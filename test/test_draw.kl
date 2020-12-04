@@ -1,0 +1,74 @@
+PROGRAM test_draw
+%NOLOCKGROUP
+
+%include draw.klt
+
+%INCLUDE kunit.klh
+%include draw.klh
+
+ROUTINE t_intersect : BOOLEAN
+  VAR
+    clipline : t_LINE2D
+    clipseg : t_SEGMENT2D
+    line1, line2, line3, line4 : t_LINE2D
+    seg1, seg2, seg3, seg4 : t_SEGMENT2D
+    alpha1, alpha2 : REAL
+    intersects : ARRAY[4] OF BOOLEAN
+    eval_alpha : ARRAY[4] OF BOOLEAN
+  BEGIN
+    clipline.point = VEC2D(-5,3)
+    clipline.vec = VEC2D(10,-6)
+    --eq of line p = p_0 + v*t
+    clipseg.r0 = clipline.point + clipline.vec*0
+    clipseg.r1 = clipline.point + clipline.vec*1
+
+    --intersects at (0,0)
+    line1.point = VEC2D(-10,-4)
+    line1.vec = VEC2D(20,8)
+    --convert into segment
+    seg1.r0 = line1.point + line1.vec*0
+    seg1.r1 = line1.point + line1.vec*1
+
+    intersects[1] = draw__intersect(clipseg, seg1, alpha1, alpha2)
+    eval_alpha[1] = kunit_eq_r(0.5, alpha1) AND kunit_eq_r(0.5, alpha2)
+
+    --does not intersect
+    line2.point = VEC2D(-5,-4)
+    line2.vec = VEC2D(10,0)
+    --convert into segment
+    seg2.r0 = line2.point + line2.vec*0
+    seg2.r1 = line2.point + line2.vec*1
+
+    intersects[2] = draw__intersect(clipseg, seg2, alpha1, alpha2)
+
+    --intersects at endpoints
+    line3.point = VEC2D(-5,-5)
+    line3.vec = VEC2D(10,2)
+    --convert into segment
+    seg3.r0 = line3.point + line3.vec*0
+    seg3.r1 = line3.point + line3.vec*1
+
+    intersects[3] = draw__intersect(clipseg, seg3, alpha1, alpha2)
+    eval_alpha[3] = kunit_eq_r(1, alpha1) AND kunit_eq_r(1, alpha2)
+
+    --intersects at 0.82
+    line4.point = VEC2D(-5,-5)
+    line4.vec = VEC2D(3,8)
+    --convert into segment
+    seg4.r0 = line4.point + line4.vec*0
+    seg4.r1 = line4.point + line4.vec*1
+
+    intersects[4] = draw__intersect(clipseg, seg4, alpha1, alpha2)
+    eval_alpha[4] = kunit_eq_r(0.244, alpha1) AND kunit_eq_r(0.816, alpha2)
+
+
+    RETURN(kunit_assert(intersects[1]) AND eval_alpha[1] AND &
+           kunit_assert(intersects[3]) AND eval_alpha[3] AND &
+           kunit_assert(intersects[4]) AND eval_alpha[4] AND &
+           NOT kunit_assert(intersects[2]) )
+  END t_intersect
+
+BEGIN
+  kunit_test('test line intersection', t_intersect)
+  kunit_done
+END test_draw

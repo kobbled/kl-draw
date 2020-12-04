@@ -94,6 +94,69 @@ ROUTINE draw__SEGMENT2D_to_SEGMENT
   END draw__SEGMENT2D_to_SEGMENT
 
 
+ROUTINE draw__perpendicular_vector
+  VAR
+    v_out : VECTOR
+  BEGIN
+    v_out.x = -1*v.y
+    v_out.y = v.x
+    v_out.z = 0
+    RETURN(v_out)
+  END draw__perpendicular_vector
+
+ROUTINE draw__intersect
+  VAR
+    --line normals
+    n_l1, n_l2 : VECTOR
+    -- perpendicular line normals
+    perp_l1, perp_l2 : VECTOR
+    --Window Edge Coordinates
+    --how far away a poitn is from a line
+    -- +ive to left of line. -ive to right of line
+    WEC1, WEC2 : ARRAY[2] OF REAL
+  BEGIN
+    --create vector normals, and perpendicular normals
+    --for both lines
+    n_l1 = (l1.r1 - l1.r0)/math__norm((l1.r1 - l1.r0))
+    perp_l1 = draw__perpendicular_vector(n_l1)
+
+    n_l2 = (l2.r1 - l2.r0)/math__norm((l2.r1 - l2.r0))
+    perp_l2 = draw__perpendicular_vector(n_l2)
+
+    --for each endpoint determine which side of the opposing line
+    --it is on. Using a lines (Q1Q2) perpendicular vector (Q2-Q1)⊥, 
+    --and the dot product between a point's (P) vector with the line (PQ1).
+    --The product will be negative to the right of the line (In the negative
+    --half space of the line), or positive to the left of the line (In the 
+    --positive half space of the line).
+    -- (ref: https://math.stackexchange.com/questions/2945417/unknown-mathematical-symbols)
+
+    --using l2 line (P-Q1)*(Q2-Q1)⊥
+    WEC1[1] = (l1.r0 - l2.r0)@perp_l2
+    WEC1[2] = (l1.r1 - l2.r0)@perp_l2
+
+    --using l1 line (P-Q1)*(Q2-Q1)⊥
+    WEC2[1] = (l2.r0 - l1.r0)@perp_l1
+    WEC2[2] = (l2.r1 - l1.r0)@perp_l1
+
+    --if endpoints are on opposite sides of the line (one +ive, one -ive), 
+    --the line intersects with the other one.
+    IF (WEC1[1]*WEC1[2] > 0) AND (WEC2[1]*WEC2[2] > 0) THEN
+      RETURN(FALSE)
+    ELSE
+      --ratios with WEC can be made to give a ratio for how for much of one
+      --line lies to the left of another line. For clipping the line you
+      --would want to remove the 1-alpha of the line if your polygon hull is
+      --sequenced ccw.
+      out_alpha1 = WEC1[1]/(WEC1[1]-WEC1[2])
+      out_alpha2 = WEC2[1]/(WEC2[1]-WEC2[2])
+
+      RETURN(TRUE)
+    ENDIF
+
+    RETURN(FALSE)
+  END draw__intersect
+
 BEGIN
 END draw
 

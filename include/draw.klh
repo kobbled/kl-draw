@@ -33,5 +33,14 @@ declare_function(prog_name,SEGMENT2D_to_SEGMENT,prog_name_alias,cnvs3d)
 ROUTINE draw__SEGMENT2D_to_SEGMENT(l : t_SEGMENT2D; frame : XYZWPR) : t_SEGMENT FROM draw
 
 
+declare_function(prog_name,perpendicular_vector,prog_name_alias,perpv)
+ROUTINE draw__perpendicular_vector(v : VECTOR) : VECTOR FROM draw
+declare_function(prog_name,intersect,prog_name_alias,intsct)
+-- alpha designates where the intersection point lies relative to the start point
+-- as a ratio 0-1. Where alpha=0 would mean the intersection point is at the start point,
+-- and alpha = 1 means the intersection point is at the end point.
+--
+-- the return type informs if the lines intersect or not.
+ROUTINE draw__intersect(l1 : t_SEGMENT2D; l2 : t_SEGMENT2D; out_alpha1 : REAL; out_alpha2 : REAL) : BOOLEAN FROM draw
 
 %endif --draw_h
