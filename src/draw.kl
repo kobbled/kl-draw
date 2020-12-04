@@ -1,0 +1,99 @@
+PROGRAM draw
+%NOBUSYLAMP
+%COMMENT = '2d library'
+%NOLOCKGROUP
+%NOPAUSE = COMMAND + TPENABLE + ERROR
+
+%include systemvars.klt
+%include draw.klt
+
+%include systemlib.klh
+%from math.klh %import norm, norm2
+%include draw.klh
+
+ROUTINE VEC2D
+  VAR
+    v : VECTOR
+  BEGIN
+    v.x = x; v.y = y; v.z = 0;
+    RETURN(v)
+  END VEC2D
+
+ROUTINE draw__vec_to_vec2d
+  VAR
+    v_trans : VECTOR
+    v2 : VECTOR
+  BEGIN
+    --get vector relative to frame
+    v_trans = INV((frame)):v
+    --remove z componenet
+    v2.x = v_trans.x ; v2.y = v_trans.y ; v2.z = 0 ;
+    RETURN(v2)
+  END draw__vec_to_vec2d
+  
+ROUTINE draw__vec2d_to_vec
+  VAR
+    v2 : VECTOR
+  BEGIN
+    v2.x = v.x ; v2.y = v.y ; v2.z = 0 ;
+    v2 = frame:v2
+    RETURN(v2)
+  END draw__vec2d_to_vec
+
+ROUTINE draw__vec2d_to_pos
+  VAR
+    v2 : VECTOR
+    p : XYZWPR
+  BEGIN
+    v2.x = v.x ; v2.y = v.y ; v2.z = 0 ;
+    v2 = frame:v2
+    --add orientation
+    p.w = frame.w; p.p = frame.p; p.r = frame.r;
+
+    RETURN(p)
+  END draw__vec2d_to_pos
+
+ROUTINE draw__LINE_to_LINE2D
+  VAR
+    l2 : t_LINE2D
+  BEGIN
+    l2.point = draw__vec_to_vec2d(l.point, frame)
+    l2.vec = draw__vec_to_vec2d(l.vec, frame)
+
+    RETURN(l2)
+  END draw__LINE_to_LINE2D
+
+ROUTINE draw__LINE2D_to_LINE
+  VAR
+    l2 : t_LINE
+  BEGIN
+    l2.point = draw__vec2d_to_vec(l.point, frame)
+    l2.vec = draw__vec2d_to_vec(l.vec, frame)
+
+    RETURN(l2)
+  END draw__LINE2D_to_LINE
+
+ROUTINE draw__SEGMENT_to_SEGMENT2D
+  VAR
+    l2 : t_SEGMENT2D
+  BEGIN
+    l2.r0 = draw__vec_to_vec2d(l.r0, frame)
+    l2.r1 = draw__vec_to_vec2d(l.r1, frame)
+
+    RETURN(l2)
+  END draw__SEGMENT_to_SEGMENT2D
+
+ROUTINE draw__SEGMENT2D_to_SEGMENT
+  VAR
+    l2 : t_SEGMENT
+  BEGIN
+    l2.r0 = draw__vec2d_to_vec(l.r0, frame)
+    l2.r1 = draw__vec2d_to_vec(l.r1, frame)
+
+    RETURN(l2)
+  END draw__SEGMENT2D_to_SEGMENT
+
+
+BEGIN
+END draw
+

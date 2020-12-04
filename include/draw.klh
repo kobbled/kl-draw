@@ -1,0 +1,37 @@
+%ifndef draw_h
+%define draw_h
+
+%include namespace.m
+
+%define prog_name draw
+%define prog_name_alias draw
+
+--initializer
+ROUTINE VEC2D(x : REAL; y : REAL) : VECTOR FROM draw
+
+-- *** conversions ***
+-- *******************
+
+-- frame is the 2d drawing frame
+declare_function(prog_name,vec_to_vec2d,prog_name_alias,cnvvec2)
+ROUTINE draw__vec_to_vec2d(v : VECTOR; frame : XYZWPR) : VECTOR FROM draw
+-- frame is the 2d drawing frame
+declare_function(prog_name,vec2d_to_vec,prog_name_alias,cnvvec)
+ROUTINE draw__vec2d_to_vec(v : VECTOR; frame : XYZWPR) : VECTOR FROM draw
+declare_function(prog_name,vec2d_to_pos,prog_name_alias,cnvpos)
+ROUTINE draw__vec2d_to_pos(v : VECTOR; frame : XYZWPR) : XYZWPR FROM draw
+
+declare_function(prog_name,LINE_to_LINE2D,prog_name_alias,cnvl2d)
+--frame is the 2d drawing frame
+ROUTINE draw__LINE_to_LINE2D(l : t_LINE; frame : XYZWPR) : t_LINE2D FROM draw
+declare_function(prog_name,LINE2D_to_LINE,prog_name_alias,cnvl3d)
+--frame is the 2d drawing frame
+ROUTINE draw__LINE2D_to_LINE(l : t_LINE2D; frame : XYZWPR) : t_LINE FROM draw
+declare_function(prog_name,SEGMENT_to_SEGMENT2D,prog_name_alias,cnvs2d)
+ROUTINE draw__SEGMENT_to_SEGMENT2D(l : t_SEGMENT; frame : XYZWPR) : t_SEGMENT2D FROM draw
+declare_function(prog_name,SEGMENT2D_to_SEGMENT,prog_name_alias,cnvs3d)
+ROUTINE draw__SEGMENT2D_to_SEGMENT(l : t_SEGMENT2D; frame : XYZWPR) : t_SEGMENT FROM draw
+
+
+
+%endif --draw_h

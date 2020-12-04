@@ -1,0 +1,24 @@
+{
+  "manver" : "1",
+  "project" : "draw",
+  "description" : "2d canvas library",
+  "version" : "0.0.1",
+  "license" : "Apache 2.0",
+  "author" : "kobbled",
+  "source" : [
+    "src/draw.kl"
+  ],
+  "tests" : [
+    "test/test_draw.kl"
+  ],
+  "includes" : [
+    "include"
+  ],
+  "depends" : [
+    "shapes",
+    "math",
+    "KUnit",
+    "ktransw-macros",
+    "systemlib"
+  ]
+}

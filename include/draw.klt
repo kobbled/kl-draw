@@ -1,0 +1,25 @@
+%ifndef draw_t
+%define draw_t
+
+%include shapes.klt
+
+TYPE
+
+  --equation for line:
+  -- p = p_0 + v*t
+  -- where -INF < t < INF
+  t_LINE2D FROM draw = STRUCTURE
+    point : VECTOR
+    vec : VECTOR
+  ENDSTRUCTURE
+
+  --equation for segment:
+  -- p = (1-t)*r_o + t*r_1
+  -- where 0 < t < 1
+  t_SEGMENT2D FROM draw = STRUCTURE
+    r0 : VECTOR
+    r1 : VECTOR
+  ENDSTRUCTURE
+
+
+%endif --draw_t
