@@ -1,0 +1,18 @@
+%ifndef draw__private_h
+%define draw__private_h
+
+%include namespace.m
+
+%define prog_name draw
+%define prog_name_alias draw
+
+
+--glt = TRUE : >, glt = FALSE : <
+declare_function(prog_name,find_min,prog_name_alias,fdmin)
+ROUTINE draw__find_min(point_arr : ARRAY[*] OF VECTOR; search_vec : VECTOR) : INTEGER FROM draw
+declare_function(prog_name,find_max,prog_name_alias,fdmax)
+ROUTINE draw__find_max(point_arr : ARRAY[*] OF VECTOR; search_vec : VECTOR) : INTEGER FROM draw
+declare_function(prog_name,on_hull,prog_name_alias,onhul)
+ROUTINE draw__on_hull(v : VECTOR ; arr : ARRAY[*] OF VECTOR) : BOOLEAN FROM draw
+
+%endif --draw__private_h

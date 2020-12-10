@@ -11,6 +11,7 @@ PROGRAM draw
 %include systemlib.klh
 %from math.klh %import norm, norm2
 %include draw.klh
+%include draw.private.klh
 
 ROUTINE VEC2D
   VAR
@@ -170,6 +171,170 @@ ROUTINE draw__intersect
 
     RETURN(FALSE)
   END draw__intersect
+
+
+-- private polygon routines
+
+--comparator = TRUE : >, comparator = FALSE : <
+ROUTINE glt(r1, r2 : REAL; comparator : BOOLEAN) : BOOLEAN
+  BEGIN
+    IF comparator THEN
+      RETURN(r1 > r2)
+    ELSE
+      RETURN(r1 < r2)
+    ENDIF
+  END glt
+
+
+--comparator = TRUE : >, comparator = FALSE : <
+ROUTINE minmax(point_arr : ARRAY[*] OF VECTOR; search_vec : VECTOR; comparator : BOOLEAN) : INTEGER
+  VAR
+   i : INTEGER
+   minmax_idx : INTEGER
+   valy, valx : REAL
+   origin : VECTOR
+   perp_vec : VECTOR
+  BEGIN
+    origin = VEC2D(0,0)
+    --get perpendicular vector
+    perp_vec = draw__perpendicular_vector(search_vec)
+    --find y min
+    minmax_idx = 1
+    --dot product between (point-origin) and search vector
+    --will give the point with the maximum distance from the
+    --origin wrt the search vector
+    valy = (search_vec@(point_arr[1]-origin))
+    FOR i=2 TO ARRAY_LEN(point_arr) DO
+      --if uninit vector assume at end of list
+      IF UNINIT(point_arr[i].x) THEN RETURN(minmax_idx) ; ENDIF
+
+      IF (glt( (search_vec@(point_arr[i]-origin)), valy, comparator) ) THEN
+        valy = (search_vec@(point_arr[i]-origin)) 
+        minmax_idx = i
+
+      ELSE IF ((search_vec@(point_arr[i]-origin)) = valy) THEN
+        valx = (perp_vec@(point_arr[minmax_idx]-origin))
+        IF (glt( (perp_vec@(point_arr[i]-origin)), valx,  NOT comparator) ) THEN
+          valx = (perp_vec@(point_arr[minmax_idx]-origin))
+          minmax_idx = i
+        ENDIF
+      ENDIF
+      ENDIF
+    ENDFOR
+
+    RETURN(minmax_idx)
+
+  END minmax
+
+ROUTINE draw__find_min
+  BEGIN
+    RETURN( minmax(point_arr, search_vec, FALSE) )
+  END draw__find_min
+
+ROUTINE draw__find_max
+  BEGIN
+    RETURN( minmax(point_arr, search_vec, TRUE) )
+  END draw__find_max
+
+ROUTINE draw__on_hull
+  VAR
+    i : INTEGER
+    b : BOOLEAN
+  BEGIN
+    b = FALSE
+    FOR i=1 TO ARRAY_LEN(arr) DO
+      IF NOT UNINIT(arr[i]) THEN
+      IF (v = arr[i]) THEN
+        b = TRUE
+      ENDIF
+      ENDIF
+    ENDFOR
+
+    RETURN(b)
+  END draw__on_hull
+
+-- public polygon routines
+ROUTINE draw__convex_hull
+-- (ref : https://www.geeksforgeeks.org/convex-hull-set-1-jarviss-algorithm-or-wrapping/)
+-- (ref : https://www.topcoder.com/community/competitive-programming/tutorials/geometry-concepts-line-intersection-and-its-applications#convexhull)
+  VAR
+   i,j : INTEGER
+   end_idx : INTEGER
+   min_hull : INTEGER
+   curr, nxt, tst : INTEGER
+   dummy_v : VECTOR
+   dot : REAL
+   det, prev_det : REAL
+  BEGIN
+    -- set end index
+    FOR i=1 TO ARRAY_LEN(verticies) DO
+      IF NOT UNINIT(verticies[i]) THEN
+        end_idx = i
+      ENDIF
+    ENDFOR
+
+    --find y min
+    min_hull = draw__find_min(verticies, VEC2D(0,1))
+    
+    --min point must be on hull
+    curr = min_hull
+
+    --skip first point as we know it is min_hull
+    -- and will be the last found hull point
+    j = 1
+
+    REPEAT
+      -- reset tentative hull point
+      nxt = -1
+
+      prev_det = 0
+
+      FOR i=1 TO end_idx DO
+        -- for next point (curr+i)%end_idx
+        tst = ((curr+i-1) MOD end_idx) + 1
+
+        -- cross product will determine the furthest point
+        -- from the line nxt->curr.
+
+        --Do not test if in hull set. But abort out 
+        IF (tst <> curr) AND NOT draw__on_hull(verticies[tst], out_hull) THEN
+          IF (nxt = -1) THEN
+            nxt = ((curr+i-1) MOD end_idx) + 1
+          ENDIF
+
+          dummy_v = (verticies[curr]-verticies[nxt])#(verticies[tst]-verticies[nxt])
+          det = dummy_v.z
+
+          --det = 0, nxt and tst are colinear
+          IF det = 0 THEN
+            --points are on the same line select the one furthest
+            --away
+            dot = (verticies[curr]-verticies[nxt])@(verticies[tst]-verticies[nxt])
+            -- if dot product is negative tst is further away
+            IF dot < 0 THEN
+              nxt = tst
+            ENDIF
+          ENDIF
+
+          IF det > prev_det THEN
+            nxt = tst
+            prev_det = det
+          ENDIF
+        ENDIF
+      ENDFOR
+      -- add point furthest counter clockwise from current point to hull
+      curr = nxt
+
+      j = j + 1
+      out_hull[j] = verticies[nxt]
+
+    UNTIL(curr = min_hull)
+
+    --swap last point into first point position as this is the
+    --min_hull point
+    out_hull[1] = out_hull[j]
+
+  END draw__convex_hull
 
 BEGIN
 END draw
