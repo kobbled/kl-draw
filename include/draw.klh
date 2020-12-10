@@ -50,4 +50,6 @@ ROUTINE draw__intersect(l1 : t_SEGMENT2D; l2 : t_SEGMENT2D; out_alpha1 : REAL; o
 declare_function(prog_name,convex_hull,prog_name_alias,convh)
 -- return list of points on the convex hull in counterclockwise order
 ROUTINE draw__convex_hull(verticies : ARRAY[*] OF VECTOR; out_hull : ARRAY[*] OF VECTOR) FROM draw
+declare_function(prog_name,bounding_box,prog_name_alias,bndbx)
+ROUTINE draw__bounding_box(verticies : ARRAY[*] OF VECTOR; angle : REAL) : t_RECT FROM draw
 %endif --draw_h

@@ -22,4 +22,37 @@ TYPE
   ENDSTRUCTURE
 
 
+  t_VERTEX FROM draw = STRUCTURE
+    coords : VECTOR
+    polygon : BYTE
+    nextPoly : BYTE
+  ENDSTRUCTURE
+
+  t_VERT_CLIP FROM draw = STRUCTURE
+    coords : VECTOR
+    entry_exit : BOOLEAN
+    intersect : BOOLEAN
+    nextPoly : BYTE
+    alpha : BYTE
+    neighbor : BYTE
+  ENDSTRUCTURE
+
+  HDR_POLYGON FROM draw = STRUCTURE
+%define max_polygons 20
+    polygons : BYTE
+  ENDSTRUCTURE
+
+  t_TRIANGLE FROM draw = STRUCTURE
+    --verticies
+    verts : ARRAY[3] OF VECTOR
+    convex : BOOLEAN
+  ENDSTRUCTURE
+
+  t_RECT FROM shapes = STRUCTURE
+    verts : ARRAY[4] OF VECTOR
+    vec :  VECTOR
+    center : VECTOR
+  ENDSTRUCTURE
+
+
 %endif --draw_t
