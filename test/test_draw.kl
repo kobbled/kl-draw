@@ -5,6 +5,7 @@ PROGRAM test_draw
 
 %INCLUDE kunit.klh
 %include draw.klh
+%include draw.private.klh
 
 ROUTINE t_intersect : BOOLEAN
   VAR
@@ -68,7 +69,170 @@ ROUTINE t_intersect : BOOLEAN
            NOT kunit_assert(intersects[2]) )
   END t_intersect
 
+ROUTINE t_anchr_pnts : BOOLEAN
+  VAR
+    i : INTEGER
+    nde_arr : ARRAY[10] OF VECTOR
+    unint_v : VECTOR
+    act_min, act_max : INTEGER
+    exp_min, exp_max : INTEGER
+    act_min2, act_max2 : INTEGER
+    exp_min2, exp_max2 : INTEGER
+  BEGIN
+    --set polygon
+    nde_arr[1] = VEC2D(0,6)
+    nde_arr[2] = VEC2D(1,4)
+    nde_arr[3] = VEC2D(3,4)
+    nde_arr[4] = VEC2D(1,3)
+    nde_arr[5] = VEC2D(2,0)
+    nde_arr[6] = VEC2D(0,2)
+    nde_arr[7] = VEC2D(-2,0)
+    nde_arr[8] = VEC2D(-1,3)
+    nde_arr[9] = VEC2D(-1,4)
+    nde_arr[10] = VEC2D(-3,4)
+
+    act_min = draw__find_min(nde_arr, VEC2D(0,1))
+    act_max = draw__find_max(nde_arr, VEC2D(0,1))
+
+    exp_min = 7 ; exp_max = 1
+
+    --rest array
+    FOR i=1 TO ARRAY_LEN(nde_arr) DO
+      nde_arr[1] = unint_v
+    ENDFOR
+
+    --set polygon
+    nde_arr[1] = VEC2D(3,0)
+    nde_arr[2] = VEC2D(5,4)
+    nde_arr[3] = VEC2D(9,4)
+    nde_arr[4] = VEC2D(9,-2)
+    nde_arr[5] = VEC2D(6,-3)
+    nde_arr[6] = VEC2D(6,0)
+
+    act_min2 = draw__find_min(nde_arr, VEC2D(0,1))
+    act_max2 = draw__find_max(nde_arr, VEC2D(0,1))
+
+    exp_min2 = 5 ; exp_max2 = 3
+
+    RETURN(kunit_eq_int(exp_min, act_min) AND kunit_eq_int(exp_max, act_max) AND &
+           kunit_eq_int(exp_min2, act_min2) AND kunit_eq_int(exp_max2, act_max2))
+
+  END t_anchr_pnts
+
+ROUTINE t_conv_hull : BOOLEAN
+  VAR
+    nde_arr : ARRAY[10] OF VECTOR
+    exp_hull : ARRAY[6] OF VECTOR
+    hull_arr : ARRAY[10] OF VECTOR
+
+    nde_arr2 : ARRAY[12] OF VECTOR
+    exp_hull2 : ARRAY[6] OF VECTOR
+    hull_arr2 : ARRAY[10] OF VECTOR
+  BEGIN
+    --set polygon
+    nde_arr[1] = VEC2D(0,6)
+    nde_arr[2] = VEC2D(1,4)
+    nde_arr[3] = VEC2D(3,4)
+    nde_arr[4] = VEC2D(1,3)
+    nde_arr[5] = VEC2D(2,0)
+    nde_arr[6] = VEC2D(0,2)
+    nde_arr[7] = VEC2D(-2,0)
+    nde_arr[8] = VEC2D(-1,3)
+    nde_arr[9] = VEC2D(-1,4)
+    nde_arr[10] = VEC2D(-3,4)
+
+    --compute convex hull
+    draw__convex_hull(nde_arr, hull_arr)
+
+    --expected hull
+    exp_hull[1] = VEC2D(-2,0)
+    exp_hull[2] = VEC2D(2,0)
+    exp_hull[3] = VEC2D(3,4)
+    exp_hull[4] = VEC2D(0,6)
+    exp_hull[5] = VEC2D(-3,4)
+    exp_hull[6] = VEC2D(-2,0)
+
+    --set polygon multiple bodies
+    --square 1
+    nde_arr2[1] = VEC2D(-8,3)
+    nde_arr2[2] = VEC2D(-6,1.5)
+    nde_arr2[3] = VEC2D(-3,5.5)
+    nde_arr2[4] = VEC2D(-5,7)
+    --square 2
+    nde_arr2[5] = VEC2D(-4.17,0.13)
+    nde_arr2[6] = VEC2D(0,-3)
+    nde_arr2[7] = VEC2D(4.17,0.13)
+    nde_arr2[8] = VEC2D(0,3.25)
+    --square 3
+    nde_arr2[9] = VEC2D(6,1.5)
+    nde_arr2[10] = VEC2D(8,3)
+    nde_arr2[11] = VEC2D(5,7)
+    nde_arr2[12] = VEC2D(3,5.5)
+
+    --compute convex hull
+    draw__convex_hull(nde_arr2, hull_arr2)
+
+    --expected hull
+    exp_hull2[1] = VEC2D(0,-3)
+    exp_hull2[2] = VEC2D(8,3)
+    exp_hull2[3] = VEC2D(5,7)
+    exp_hull2[4] = VEC2D(-5,7)
+    exp_hull2[5] = VEC2D(8,3)
+    exp_hull2[6] = VEC2D(0,-3)
+
+    RETURN(kunit_eq_vec(exp_hull[1], hull_arr[1]) AND kunit_eq_vec(exp_hull[3], hull_arr[3]) AND &
+           kunit_eq_vec(exp_hull[4], hull_arr[4]) AND kunit_eq_vec(exp_hull[6], hull_arr[6]) AND &
+           kunit_eq_vec(exp_hull2[1], hull_arr2[1]) AND kunit_eq_vec(exp_hull2[3], hull_arr2[3]) AND &
+           kunit_eq_vec(exp_hull2[4], hull_arr2[4]) AND kunit_eq_vec(exp_hull2[6], hull_arr2[6])  )
+
+  END t_conv_hull
+
+
+ROUTINE t_bbox : BOOLEAN
+  VAR
+    nde_arr : ARRAY[6] OF VECTOR
+    act_box1 , act_box2 : t_RECT
+    exp_box1 , exp_box2 : t_RECT
+  BEGIN
+    --set polygon
+    nde_arr[1] = VEC2D(0.34,-1.38)
+    nde_arr[2] = VEC2D(3.24,-0.7)
+    nde_arr[3] = VEC2D(6.22,1.74)
+    nde_arr[4] = VEC2D(3.48,5.46)
+    nde_arr[5] = VEC2D(-1.02,3.3)
+    nde_arr[6] = VEC2D(-1.74,0.84)
+    
+    act_box1 = draw__bounding_box(nde_arr, 0)
+
+    exp_box1.verts[1] = VEC2D(-1.74,-1.38)
+    exp_box1.verts[2] = VEC2D(6.22,-1.38)
+    exp_box1.verts[3] = VEC2D(6.22,5.46)
+    exp_box1.verts[4] = VEC2D(-1.74,5.46)
+
+    exp_box1.center = VEC2D(2.24,2.04)
+
+    act_box2 = draw__bounding_box(nde_arr, -45)
+
+    exp_box2.verts[1] = VEC2D(-2.68,1.64)
+    exp_box2.verts[2] = VEC2D(1.72,-2.76)
+    exp_box2.verts[3] = VEC2D(6.71,2.23)
+    exp_box2.verts[4] = VEC2D(2.31,6.63)
+
+    exp_box2.center = VEC2D(2.015,1.935)
+
+    RETURN(kunit_eq_vec(exp_box1.verts[1], act_box1.verts[1]) AND kunit_eq_vec(exp_box1.verts[4], act_box1.verts[4]) AND &
+           kunit_eq_vec(exp_box1.center, act_box1.center) AND &
+           kunit_eq_vec(exp_box2.verts[1], act_box2.verts[1]) AND kunit_eq_vec(exp_box2.verts[4], act_box2.verts[4]) AND &
+           kunit_eq_vec(exp_box2.center, act_box2.center) )
+  END t_bbox
+
+
+
 BEGIN
-  kunit_test('test line intersection', t_intersect)
+  --total asserts 28
+  kunit_test('test line intersection', t_intersect) -- asserts 10 
+  kunit_test('test finding min and max points in polygon', t_anchr_pnts) -- asserts 4
+  kunit_test('test convex hull', t_conv_hull) -- asserts 8
+  kunit_test('test bounding box', t_bbox) -- asserts 6
   kunit_done
 END test_draw

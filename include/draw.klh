@@ -35,6 +35,10 @@ ROUTINE draw__SEGMENT2D_to_SEGMENT(l : t_SEGMENT2D; frame : XYZWPR) : t_SEGMENT 
 
 declare_function(prog_name,perpendicular_vector,prog_name_alias,perpv)
 ROUTINE draw__perpendicular_vector(v : VECTOR) : VECTOR FROM draw
+declare_function(prog_name,angle_to_vector,prog_name_alias,angvc)
+ROUTINE draw__angle_to_vector(angle : REAL) : VECTOR FROM draw
+declare_function(prog_name,vector_to_angle,prog_name_alias,vecan)
+ROUTINE draw__vector_to_angle(v : VECTOR) : REAL FROM draw
 declare_function(prog_name,intersect,prog_name_alias,intsct)
 -- alpha designates where the intersection point lies relative to the start point
 -- as a ratio 0-1. Where alpha=0 would mean the intersection point is at the start point,

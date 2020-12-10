@@ -5,6 +5,7 @@ PROGRAM draw
 %NOPAUSE = COMMAND + TPENABLE + ERROR
 
 %include systemvars.klt
+%include math.klt
 %include draw.klt
 
 %include systemlib.klh
@@ -103,6 +104,19 @@ ROUTINE draw__perpendicular_vector
     v_out.z = 0
     RETURN(v_out)
   END draw__perpendicular_vector
+
+ROUTINE draw__angle_to_vector
+  VAR
+    v : VECTOR
+  BEGIN
+    v.x = COS(angle) ; v.y = SIN(angle) ; v.z = 0;
+    RETURN(v)
+  END draw__angle_to_vector
+
+ROUTINE draw__vector_to_angle
+  BEGIN
+    RETURN(ATAN2(v.y, v.x) * 180/M_PI)
+  END draw__vector_to_angle
 
 ROUTINE draw__intersect
   VAR
