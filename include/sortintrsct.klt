@@ -1,0 +1,25 @@
+%include define_type.m
+
+%defeval ARRAYTYPE t_VERT_CLIP
+
+%mode push
+%mode string QQQ "`" "`" "\\"
+
+%define array_type_define `TYPE
+t_VERT_CLIP FROM draw = STRUCTURE
+    coords : VECTOR
+    entry_exit : BOOLEAN
+    intersect : BOOLEAN
+    nextPoly : BYTE
+    alpha : REAL
+    neighbor : BYTE
+  ENDSTRUCTURE`
+
+%define define_callback `declare_member(class_name,callback,class_name,call)
+ROUTINE callback(nde : ARRAYTYPE) : REAL
+  BEGIN
+    --get euclidean distance
+    RETURN( nde.alpha )
+  END callback
+  `
+%mode pop 

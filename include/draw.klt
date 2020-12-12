@@ -28,12 +28,14 @@ TYPE
     nextPoly : BYTE
   ENDSTRUCTURE
 
+  --(ref: https://www.researchgate.net/publication/220184531_Efficient_Clipping_of_Arbitrary_Polygons)
+  --..warning:: If changing update sortintrsct.klt macro for sorting operation
   t_VERT_CLIP FROM draw = STRUCTURE
     coords : VECTOR
     entry_exit : BOOLEAN
     intersect : BOOLEAN
     nextPoly : BYTE
-    alpha : BYTE
+    alpha : REAL
     neighbor : BYTE
   ENDSTRUCTURE
 
@@ -50,7 +52,7 @@ TYPE
 
   t_RECT FROM shapes = STRUCTURE
     verts : ARRAY[4] OF VECTOR
-    vec :  VECTOR
+    vec : ARRAY[2] OF VECTOR
     center : VECTOR
   ENDSTRUCTURE
 

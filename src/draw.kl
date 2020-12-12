@@ -9,7 +9,8 @@ PROGRAM draw
 %include draw.klt
 
 %include systemlib.klh
-%from math.klh %import norm, norm2, average_vector
+%from errors.klh %import CHK_STAT
+%from math.klh %import norm, norm2, average_vector, ceil
 %include draw.klh
 %include draw.private.klh
 
@@ -186,8 +187,7 @@ ROUTINE glt(r1, r2 : REAL; comparator : BOOLEAN) : BOOLEAN
   END glt
 
 
---comparator = TRUE : >, comparator = FALSE : <
-ROUTINE minmax(point_arr : ARRAY[*] OF VECTOR; search_vec : VECTOR; comparator : BOOLEAN) : INTEGER
+ROUTINE minmax(point_arr : PATH nodedata = t_VERTEX; search_vec : VECTOR; comparator : BOOLEAN) : INTEGER
   VAR
    i : INTEGER
    minmax_idx : INTEGER
@@ -203,19 +203,17 @@ ROUTINE minmax(point_arr : ARRAY[*] OF VECTOR; search_vec : VECTOR; comparator :
     --dot product between (point-origin) and search vector
     --will give the point with the maximum distance from the
     --origin wrt the search vector
-    valy = (search_vec@(point_arr[1]-origin))
-    FOR i=2 TO ARRAY_LEN(point_arr) DO
-      --if uninit vector assume at end of list
-      IF UNINIT(point_arr[i].x) THEN RETURN(minmax_idx) ; ENDIF
+    valy = (search_vec@(point_arr[1].coords-origin))
+    FOR i=2 TO PATH_LEN(point_arr) DO
 
-      IF (glt( (search_vec@(point_arr[i]-origin)), valy, comparator) ) THEN
-        valy = (search_vec@(point_arr[i]-origin)) 
+      IF (glt( (search_vec@(point_arr[i].coords-origin)), valy, comparator) ) THEN
+        valy = (search_vec@(point_arr[i].coords-origin)) 
         minmax_idx = i
 
-      ELSE IF ((search_vec@(point_arr[i]-origin)) = valy) THEN
-        valx = (perp_vec@(point_arr[minmax_idx]-origin))
-        IF (glt( (perp_vec@(point_arr[i]-origin)), valx,  NOT comparator) ) THEN
-          valx = (perp_vec@(point_arr[minmax_idx]-origin))
+      ELSE IF ((search_vec@(point_arr[i].coords-origin)) = valy) THEN
+        valx = (perp_vec@(point_arr[minmax_idx].coords-origin))
+        IF (glt( (perp_vec@(point_arr[i].coords-origin)), valx,  NOT comparator) ) THEN
+          valx = (perp_vec@(point_arr[minmax_idx].coords-origin))
           minmax_idx = i
         ENDIF
       ENDIF
@@ -242,11 +240,9 @@ ROUTINE draw__on_hull
     b : BOOLEAN
   BEGIN
     b = FALSE
-    FOR i=1 TO ARRAY_LEN(arr) DO
-      IF NOT UNINIT(arr[i]) THEN
-      IF (v = arr[i]) THEN
+    FOR i=1 TO PATH_LEN(hull) DO
+      IF (v = hull[i].coords) THEN
         b = TRUE
-      ENDIF
       ENDIF
     ENDFOR
 
@@ -258,83 +254,81 @@ ROUTINE draw__convex_hull
 -- (ref : https://www.geeksforgeeks.org/convex-hull-set-1-jarviss-algorithm-or-wrapping/)
 -- (ref : https://www.topcoder.com/community/competitive-programming/tutorials/geometry-concepts-line-intersection-and-its-applications#convexhull)
   VAR
-   i,j : INTEGER
-   end_idx : INTEGER
+   i : INTEGER
    min_hull : INTEGER
    curr, nxt, tst : INTEGER
-   dummy_v : VECTOR
+   cross : VECTOR
    dot : REAL
-   det, prev_det : REAL
+   det : REAL
+   status : INTEGER
   BEGIN
-    -- set end index
-    FOR i=1 TO ARRAY_LEN(verticies) DO
-      IF NOT UNINIT(verticies[i]) THEN
-        end_idx = i
-      ENDIF
-    ENDFOR
+    --clear hull
+    i = PATH_LEN(out_hull)
+    WHILE PATH_LEN(out_hull) > 0 DO
+		  DELETE_NODE(out_hull,i,status)
+      i = i - 1
+	  ENDWHILE
 
     --find y min
     min_hull = draw__find_min(verticies, VEC2D(0,1))
-    
     --min point must be on hull
     curr = min_hull
 
     --skip first point as we know it is min_hull
     -- and will be the last found hull point
-    j = 1
 
     REPEAT
       -- reset tentative hull point
       nxt = -1
 
-      prev_det = 0
-
-      FOR i=1 TO end_idx DO
-        -- for next point (curr+i)%end_idx
-        tst = ((curr+i-1) MOD end_idx) + 1
-
+      FOR i=1 TO PATH_LEN(verticies) DO
+        -- continuous loop from 1..path_len
+        tst = ((curr+i-1) MOD PATH_LEN(verticies)) + 1
         -- cross product will determine the furthest point
         -- from the line nxt->curr.
 
         --Do not test if in hull set. But abort out 
-        IF (tst <> curr) AND NOT draw__on_hull(verticies[tst], out_hull) THEN
+        IF (tst <> curr) AND NOT draw__on_hull(verticies[tst].coords, out_hull) THEN
           IF (nxt = -1) THEN
-            nxt = ((curr+i-1) MOD end_idx) + 1
+            nxt = ((curr+i-1) MOD PATH_LEN(verticies)) + 1
           ENDIF
 
-          dummy_v = (verticies[curr]-verticies[nxt])#(verticies[tst]-verticies[nxt])
-          det = dummy_v.z
+          cross = (verticies[curr].coords-verticies[nxt].coords)#(verticies[tst].coords-verticies[nxt].coords)
+          det = cross.z
 
           --det = 0, nxt and tst are colinear
-          IF det = 0 THEN
-            --points are on the same line select the one furthest
-            --away
-            dot = (verticies[curr]-verticies[nxt])@(verticies[tst]-verticies[nxt])
-            -- if dot product is negative tst is further away
-            IF dot < 0 THEN
-              nxt = tst
+          IF rmv_colinear THEN
+            IF (det = 0) THEN
+              --points are on the same line select the one furthest
+              --away
+              dot = (verticies[curr].coords-verticies[nxt].coords)@(verticies[tst].coords-verticies[nxt].coords)
+              -- if dot product is negative tst is further away
+              IF (dot < 0) THEN
+                nxt = tst
+              ENDIF
             ENDIF
           ENDIF
 
-          IF det > prev_det THEN
+          IF det > 0 THEN
             nxt = tst
-            prev_det = det
           ENDIF
         ENDIF
       ENDFOR
       -- add point furthest counter clockwise from current point to hull
       curr = nxt
 
-      j = j + 1
-      out_hull[j] = verticies[nxt]
+      APPEND_NODE(out_hull,status)
+      out_hull[PATH_LEN(out_hull)].coords = verticies[nxt].coords
 
     UNTIL(curr = min_hull)
 
-    --swap last point into first point position as this is the
-    --min_hull point
-    out_hull[1] = out_hull[j]
+    --add min_hull to the start of the list
+    INSERT_NODE(out_hull,1,status)
+    CHK_STAT(status)
+    out_hull[1].coords =  verticies[nxt].coords
 
   END draw__convex_hull
+
 
 ROUTINE draw__bounding_box
   VAR
@@ -350,15 +344,15 @@ ROUTINE draw__bounding_box
     perp_vec = draw__perpendicular_vector(align_vec)
 
     --find four corners
-    edges[1] = verticies[draw__find_min(verticies, align_vec)]
-    edges[2] = verticies[draw__find_max(verticies, perp_vec)]
-    edges[3] = verticies[draw__find_max(verticies, align_vec)]
-    edges[4] = verticies[draw__find_min(verticies, perp_vec)]
+    edges[1] = verticies[draw__find_min(verticies, align_vec)].coords
+    edges[2] = verticies[draw__find_max(verticies, perp_vec)].coords
+    edges[3] = verticies[draw__find_max(verticies, align_vec)].coords
+    edges[4] = verticies[draw__find_min(verticies, perp_vec)].coords
 
     --put edges in rotated frame
     frm.x = 0; frm.y = 0; frm.z = 0; frm.w = 0; frm.p = 0; frm.r = angle ;
     FOR i=1 TO ARRAY_LEN(edges) DO
-      edges[i] = INV(frm):edges[i]
+      edges[i] = INV((frm)):edges[i]
     ENDFOR
 
     box.verts[1] = frm:(VEC2D(edges[2].x, edges[1].y))
@@ -366,7 +360,8 @@ ROUTINE draw__bounding_box
     box.verts[3] = frm:(VEC2D(edges[4].x, edges[3].y))
     box.verts[4] = frm:(VEC2D(edges[2].x, edges[3].y))
 
-    box.vec = align_vec
+    box.vec[1] = align_vec
+    box.vec[2] = perp_vec
     box.center = math__average_vector(box.verts)
 
     RETURN(box)

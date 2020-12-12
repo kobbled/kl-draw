@@ -3,9 +3,44 @@ PROGRAM test_draw
 
 %include draw.klt
 
+VAR
+  polygon1 : PATH nodedata = t_VERTEX
+  polygon2 : PATH nodedata = t_VERTEX
+  hull : PATH nodedata = t_VERTEX
+
 %INCLUDE kunit.klh
 %include draw.klh
 %include draw.private.klh
+
+
+ROUTINE clear_path(p : PATH nodedata = t_VERTEX)
+  VAR
+    i, status : INTEGER
+  BEGIN
+    i = PATH_LEN(p)
+    WHILE PATH_LEN(p) > 0 DO
+		  DELETE_NODE(p,i,status)
+      i = i - 1
+	  ENDWHILE
+  END clear_path
+
+ROUTINE append_nodes(p : PATH nodedata = t_VERTEX; nodes : INTEGER)
+  VAR
+    i, status : INTEGER
+  BEGIN
+    FOR i=1 TO nodes DO
+      APPEND_NODE(p,status)
+    ENDFOR
+  END append_nodes
+
+ROUTINE path_to_arr(p : PATH nodedata = t_VERTEX; out_arr : ARRAY[*] OF VECTOR)
+  VAR
+    i : INTEGER
+  BEGIN
+    FOR i=1 TO PATH_LEN(p) DO
+      out_arr[i] = p[i].coords
+    ENDFOR
+  END path_to_arr
 
 ROUTINE t_intersect : BOOLEAN
   VAR
@@ -72,45 +107,42 @@ ROUTINE t_intersect : BOOLEAN
 ROUTINE t_anchr_pnts : BOOLEAN
   VAR
     i : INTEGER
-    nde_arr : ARRAY[10] OF VECTOR
-    unint_v : VECTOR
     act_min, act_max : INTEGER
     exp_min, exp_max : INTEGER
     act_min2, act_max2 : INTEGER
     exp_min2, exp_max2 : INTEGER
   BEGIN
     --set polygon
-    nde_arr[1] = VEC2D(0,6)
-    nde_arr[2] = VEC2D(1,4)
-    nde_arr[3] = VEC2D(3,4)
-    nde_arr[4] = VEC2D(1,3)
-    nde_arr[5] = VEC2D(2,0)
-    nde_arr[6] = VEC2D(0,2)
-    nde_arr[7] = VEC2D(-2,0)
-    nde_arr[8] = VEC2D(-1,3)
-    nde_arr[9] = VEC2D(-1,4)
-    nde_arr[10] = VEC2D(-3,4)
+    clear_path(polygon1)
+    append_nodes(polygon1, 10)
+    polygon1[1].coords = VEC2D(0,6)
+    polygon1[2].coords = VEC2D(1,4)
+    polygon1[3].coords = VEC2D(3,4)
+    polygon1[4].coords = VEC2D(1,3)
+    polygon1[5].coords = VEC2D(2,0)
+    polygon1[6].coords = VEC2D(0,2)
+    polygon1[7].coords = VEC2D(-2,0)
+    polygon1[8].coords = VEC2D(-1,3)
+    polygon1[9].coords = VEC2D(-1,4)
+    polygon1[10].coords = VEC2D(-3,4)
 
-    act_min = draw__find_min(nde_arr, VEC2D(0,1))
-    act_max = draw__find_max(nde_arr, VEC2D(0,1))
+    act_min = draw__find_min(polygon1, VEC2D(0,1))
+    act_max = draw__find_max(polygon1, VEC2D(0,1))
 
     exp_min = 7 ; exp_max = 1
 
-    --rest array
-    FOR i=1 TO ARRAY_LEN(nde_arr) DO
-      nde_arr[1] = unint_v
-    ENDFOR
-
     --set polygon
-    nde_arr[1] = VEC2D(3,0)
-    nde_arr[2] = VEC2D(5,4)
-    nde_arr[3] = VEC2D(9,4)
-    nde_arr[4] = VEC2D(9,-2)
-    nde_arr[5] = VEC2D(6,-3)
-    nde_arr[6] = VEC2D(6,0)
+    clear_path(polygon2)
+    append_nodes(polygon2, 6)
+    polygon2[1].coords = VEC2D(3,0)
+    polygon2[2].coords = VEC2D(5,4)
+    polygon2[3].coords = VEC2D(9,4)
+    polygon2[4].coords = VEC2D(9,-2)
+    polygon2[5].coords = VEC2D(6,-3)
+    polygon2[6].coords = VEC2D(6,0)
 
-    act_min2 = draw__find_min(nde_arr, VEC2D(0,1))
-    act_max2 = draw__find_max(nde_arr, VEC2D(0,1))
+    act_min2 = draw__find_min(polygon2, VEC2D(0,1))
+    act_max2 = draw__find_max(polygon2, VEC2D(0,1))
 
     exp_min2 = 5 ; exp_max2 = 3
 
@@ -119,30 +151,29 @@ ROUTINE t_anchr_pnts : BOOLEAN
 
   END t_anchr_pnts
 
-ROUTINE t_conv_hull : BOOLEAN
+ROUTINE t_convhull : BOOLEAN
   VAR
-    nde_arr : ARRAY[10] OF VECTOR
     exp_hull : ARRAY[6] OF VECTOR
     hull_arr : ARRAY[10] OF VECTOR
-
-    nde_arr2 : ARRAY[12] OF VECTOR
-    exp_hull2 : ARRAY[6] OF VECTOR
-    hull_arr2 : ARRAY[10] OF VECTOR
   BEGIN
     --set polygon
-    nde_arr[1] = VEC2D(0,6)
-    nde_arr[2] = VEC2D(1,4)
-    nde_arr[3] = VEC2D(3,4)
-    nde_arr[4] = VEC2D(1,3)
-    nde_arr[5] = VEC2D(2,0)
-    nde_arr[6] = VEC2D(0,2)
-    nde_arr[7] = VEC2D(-2,0)
-    nde_arr[8] = VEC2D(-1,3)
-    nde_arr[9] = VEC2D(-1,4)
-    nde_arr[10] = VEC2D(-3,4)
+    clear_path(polygon1)
+    append_nodes(polygon1, 10)
+    polygon1[1].coords = VEC2D(0,6)
+    polygon1[2].coords = VEC2D(1,4)
+    polygon1[3].coords = VEC2D(3,4)
+    polygon1[4].coords = VEC2D(1,3)
+    polygon1[5].coords = VEC2D(2,0)
+    polygon1[6].coords = VEC2D(0,2)
+    polygon1[7].coords = VEC2D(-2,0)
+    polygon1[8].coords = VEC2D(-1,3)
+    polygon1[9].coords = VEC2D(-1,4)
+    polygon1[10].coords = VEC2D(-3,4)
 
     --compute convex hull
-    draw__convex_hull(nde_arr, hull_arr)
+    draw__convex_hull(polygon1, TRUE, hull)
+
+    path_to_arr(hull, hull_arr)
 
     --expected hull
     exp_hull[1] = VEC2D(-2,0)
@@ -152,57 +183,71 @@ ROUTINE t_conv_hull : BOOLEAN
     exp_hull[5] = VEC2D(-3,4)
     exp_hull[6] = VEC2D(-2,0)
 
+    RETURN(kunit_eq_vec(exp_hull[1], hull_arr[1]) AND kunit_eq_vec(exp_hull[3], hull_arr[3]) AND &
+           kunit_eq_vec(exp_hull[4], hull_arr[4]) AND kunit_eq_vec(exp_hull[6], hull_arr[6])  )
+
+  END t_convhull
+
+ROUTINE t_convhull_m : BOOLEAN
+  VAR
+    exp_hull : ARRAY[6] OF VECTOR
+    hull_arr : ARRAY[10] OF VECTOR
+  BEGIN
     --set polygon multiple bodies
+    clear_path(polygon2)
+    append_nodes(polygon2, 12)
     --square 1
-    nde_arr2[1] = VEC2D(-8,3)
-    nde_arr2[2] = VEC2D(-6,1.5)
-    nde_arr2[3] = VEC2D(-3,5.5)
-    nde_arr2[4] = VEC2D(-5,7)
+    polygon2[1].coords = VEC2D(-8,3)
+    polygon2[2].coords = VEC2D(-6,1.5)
+    polygon2[3].coords = VEC2D(-3,5.5)
+    polygon2[4].coords = VEC2D(-5,7)
     --square 2
-    nde_arr2[5] = VEC2D(-4.17,0.13)
-    nde_arr2[6] = VEC2D(0,-3)
-    nde_arr2[7] = VEC2D(4.17,0.13)
-    nde_arr2[8] = VEC2D(0,3.25)
+    polygon2[5].coords = VEC2D(-4.17,0.13)
+    polygon2[6].coords = VEC2D(0,-3)
+    polygon2[7].coords = VEC2D(4.17,0.13)
+    polygon2[8].coords = VEC2D(0,3.25)
     --square 3
-    nde_arr2[9] = VEC2D(6,1.5)
-    nde_arr2[10] = VEC2D(8,3)
-    nde_arr2[11] = VEC2D(5,7)
-    nde_arr2[12] = VEC2D(3,5.5)
+    polygon2[9].coords = VEC2D(6,1.5)
+    polygon2[10].coords = VEC2D(8,3)
+    polygon2[11].coords = VEC2D(5,7)
+    polygon2[12].coords = VEC2D(3,5.5)
 
     --compute convex hull
-    draw__convex_hull(nde_arr2, hull_arr2)
+    draw__convex_hull(polygon2, TRUE, hull)
+
+    path_to_arr(hull, hull_arr)
 
     --expected hull
-    exp_hull2[1] = VEC2D(0,-3)
-    exp_hull2[2] = VEC2D(8,3)
-    exp_hull2[3] = VEC2D(5,7)
-    exp_hull2[4] = VEC2D(-5,7)
-    exp_hull2[5] = VEC2D(8,3)
-    exp_hull2[6] = VEC2D(0,-3)
+    exp_hull[1] = VEC2D(0,-3)
+    exp_hull[2] = VEC2D(8,3)
+    exp_hull[3] = VEC2D(5,7)
+    exp_hull[4] = VEC2D(-5,7)
+    exp_hull[5] = VEC2D(8,3)
+    exp_hull[6] = VEC2D(0,-3)
 
     RETURN(kunit_eq_vec(exp_hull[1], hull_arr[1]) AND kunit_eq_vec(exp_hull[3], hull_arr[3]) AND &
-           kunit_eq_vec(exp_hull[4], hull_arr[4]) AND kunit_eq_vec(exp_hull[6], hull_arr[6]) AND &
-           kunit_eq_vec(exp_hull2[1], hull_arr2[1]) AND kunit_eq_vec(exp_hull2[3], hull_arr2[3]) AND &
-           kunit_eq_vec(exp_hull2[4], hull_arr2[4]) AND kunit_eq_vec(exp_hull2[6], hull_arr2[6])  )
+           kunit_eq_vec(exp_hull[4], hull_arr[4]) AND kunit_eq_vec(exp_hull[6], hull_arr[6]) )
 
-  END t_conv_hull
+  END t_convhull_m
 
 
 ROUTINE t_bbox : BOOLEAN
   VAR
-    nde_arr : ARRAY[6] OF VECTOR
     act_box1 , act_box2 : t_RECT
     exp_box1 , exp_box2 : t_RECT
   BEGIN
     --set polygon
-    nde_arr[1] = VEC2D(0.34,-1.38)
-    nde_arr[2] = VEC2D(3.24,-0.7)
-    nde_arr[3] = VEC2D(6.22,1.74)
-    nde_arr[4] = VEC2D(3.48,5.46)
-    nde_arr[5] = VEC2D(-1.02,3.3)
-    nde_arr[6] = VEC2D(-1.74,0.84)
+    clear_path(polygon2)
+    append_nodes(polygon2, 6)
+
+    polygon2[1].coords = VEC2D(0.34,-1.38)
+    polygon2[2].coords = VEC2D(3.24,-0.7)
+    polygon2[3].coords = VEC2D(6.22,1.74)
+    polygon2[4].coords = VEC2D(3.48,5.46)
+    polygon2[5].coords = VEC2D(-1.02,3.3)
+    polygon2[6].coords = VEC2D(-1.74,0.84)
     
-    act_box1 = draw__bounding_box(nde_arr, 0)
+    act_box1 = draw__bounding_box(polygon2, 0)
 
     exp_box1.verts[1] = VEC2D(-1.74,-1.38)
     exp_box1.verts[2] = VEC2D(6.22,-1.38)
@@ -211,7 +256,7 @@ ROUTINE t_bbox : BOOLEAN
 
     exp_box1.center = VEC2D(2.24,2.04)
 
-    act_box2 = draw__bounding_box(nde_arr, -45)
+    act_box2 = draw__bounding_box(polygon2, -45)
 
     exp_box2.verts[1] = VEC2D(-2.68,1.64)
     exp_box2.verts[2] = VEC2D(1.72,-2.76)
@@ -232,7 +277,8 @@ BEGIN
   --total asserts 28
   kunit_test('test line intersection', t_intersect) -- asserts 10 
   kunit_test('test finding min and max points in polygon', t_anchr_pnts) -- asserts 4
-  kunit_test('test convex hull', t_conv_hull) -- asserts 8
+  kunit_test('test convex hull star shape', t_convhull) -- asserts 4
+  kunit_test('test convex hull of multiple polygons', t_convhull_m) -- asserts 4
   kunit_test('test bounding box', t_bbox) -- asserts 6
   kunit_done
 END test_draw

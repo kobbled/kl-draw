@@ -39,6 +39,7 @@ declare_function(prog_name,angle_to_vector,prog_name_alias,angvc)
 ROUTINE draw__angle_to_vector(angle : REAL) : VECTOR FROM draw
 declare_function(prog_name,vector_to_angle,prog_name_alias,vecan)
 ROUTINE draw__vector_to_angle(v : VECTOR) : REAL FROM draw
+
 declare_function(prog_name,intersect,prog_name_alias,intsct)
 -- alpha designates where the intersection point lies relative to the start point
 -- as a ratio 0-1. Where alpha=0 would mean the intersection point is at the start point,
@@ -49,7 +50,8 @@ ROUTINE draw__intersect(l1 : t_SEGMENT2D; l2 : t_SEGMENT2D; out_alpha1 : REAL; o
 
 declare_function(prog_name,convex_hull,prog_name_alias,convh)
 -- return list of points on the convex hull in counterclockwise order
-ROUTINE draw__convex_hull(verticies : ARRAY[*] OF VECTOR; out_hull : ARRAY[*] OF VECTOR) FROM draw
+ROUTINE draw__convex_hull(verticies : PATH nodedata = t_VERTEX; rmv_colinear : BOOLEAN; out_hull : PATH nodedata = t_VERTEX) FROM draw
 declare_function(prog_name,bounding_box,prog_name_alias,bndbx)
-ROUTINE draw__bounding_box(verticies : ARRAY[*] OF VECTOR; angle : REAL) : t_RECT FROM draw
+ROUTINE draw__bounding_box(verticies : PATH nodedata = t_VERTEX; angle : REAL) : t_RECT FROM draw
+
 %endif --draw_h
