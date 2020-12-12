@@ -249,6 +249,124 @@ ROUTINE draw__on_hull
     RETURN(b)
   END draw__on_hull
 
+ROUTINE draw__point_collision_convex
+  VAR
+    i : INTEGER
+    b : BOOLEAN
+    cross : VECTOR
+    sp, ep : INTEGER
+  BEGIN
+    --If looping from end of path to start of path
+    IF end_node < start_node THEN
+      end_node = end_node + PATH_LEN(polygon)
+    ENDIF
+
+    FOR i = (start_node+1) TO end_node DO
+      --loop around path back to start
+      sp = ((i-1-1) MOD PATH_LEN(polygon)) + 1
+      ep = ((i-1) MOD PATH_LEN(polygon)) + 1
+      cross = (polygon[ep].coords - polygon[sp].coords)#(v-polygon[sp].coords)
+      --if determinate is negative it is to the right of the line
+      --and is outside a convex polygon
+      IF cross.z < 0 THEN
+        RETURN(FALSE)
+      ENDIF
+    ENDFOR
+
+    RETURN(TRUE)
+  END draw__point_collision_convex
+
+ROUTINE draw__point_avoid_convex
+  VAR
+    i : INTEGER
+    b : BOOLEAN
+    cross : VECTOR
+    sp, ep : INTEGER
+  BEGIN
+    --If looping from end of path to start of path
+    IF end_node < start_node THEN
+      end_node = end_node + PATH_LEN(polygon)
+    ENDIF
+
+    FOR i = (start_node+1) TO end_node DO
+      --loop around path back to start
+      sp = ((i-1-1) MOD PATH_LEN(polygon)) + 1
+      ep = ((i-1) MOD PATH_LEN(polygon)) + 1
+      cross = (polygon[ep].coords - polygon[sp].coords)#(v-polygon[sp].coords)
+      --if determinate is negative it is to the right of the line
+      --and is outside a convex polygon
+      IF cross.z > 0 THEN
+        RETURN(FALSE)
+      ENDIF
+    ENDFOR
+
+    RETURN(TRUE)
+  END draw__point_avoid_convex
+
+ROUTINE draw__point_collision_polygon
+  VAR
+    i, j : INTEGER
+    b : BOOLEAN
+    reflex_verts : ARRAY[30] OF INTEGER
+    reflex_start, reflex_end : INTEGER
+  BEGIN
+    --assume polygon verticies are ordered counterclockwise
+    --If point is to the left of all lines on the polygon
+    --point might be in the polygon
+    b = draw__point_collision_convex(v, polygon, 1, PATH_LEN(polygon))
+    --if point is to the left of all lines it is in the polygon
+    IF b = TRUE THEN RETURN(TRUE) ; ENDIF
+
+    --check the convex hull to see if it is outside of the hull
+    b = draw__point_collision_convex(v, hull, 1, PATH_LEN(hull))
+    --if point is to the right of any lines on the hull it is
+    --outside of the polygon
+    IF NOT b THEN RETURN(FALSE) ; ENDIF
+
+    --check for reflexive verticies
+    j = 0
+    FOR i = 1 TO PATH_LEN(polygon) DO
+      IF NOT draw__on_hull(polygon[i].coords, hull) THEN
+        j = j + 1
+        reflex_verts[j] = i
+      ENDIF
+    ENDFOR
+
+    --if any, test if point is
+    --inside these areas
+    IF j > 0 THEN
+      --endflag
+      j = j + 1
+      reflex_verts[j] = 2147483646
+      --start and end polygons are points on the hull
+      --before and after the reflexive points
+      --mod operator does not handle negatives
+      IF reflex_verts[1] = 1 THEN
+        reflex_start = PATH_LEN(polygon)
+      ELSE
+        reflex_start = ((reflex_verts[1]-1-1) MOD PATH_LEN(polygon)) + 1
+      ENDIF
+
+      FOR i=1 TO j-1 DO
+        --if next vertex is not reflexive, we have reached the hull
+        IF (reflex_verts[i] <> reflex_verts[i+1]-1) THEN
+          reflex_end = ((reflex_verts[i]+1-1) MOD PATH_LEN(polygon)) + 1
+          
+          --test poly
+          b = draw__point_avoid_convex(v, polygon, reflex_start, reflex_end)
+          -- if found inside these interior regions it is not in the polygon
+          IF b THEN RETURN(FALSE); ENDIF
+
+          reflex_start = ((reflex_verts[i+1]-1-1) MOD PATH_LEN(polygon)) + 1
+        ENDIF
+      ENDFOR
+    ENDIF
+
+    RETURN(TRUE)
+
+  END draw__point_collision_polygon
+
+
 -- public polygon routines
 ROUTINE draw__convex_hull
 -- (ref : https://www.geeksforgeeks.org/convex-hull-set-1-jarviss-algorithm-or-wrapping/)

@@ -271,6 +271,84 @@ ROUTINE t_bbox : BOOLEAN
            kunit_eq_vec(exp_box2.center, act_box2.center) )
   END t_bbox
 
+ROUTINE t_p_on_poly : BOOLEAN
+  VAR
+    i : INTEGER
+    v : ARRAY[4] OF VECTOR
+    b : ARRAY[4] OF BOOLEAN
+  BEGIN
+    --set polygon
+    clear_path(polygon1)
+    append_nodes(polygon1, 10)
+    polygon1[1].coords = VEC2D(0,6)
+    polygon1[2].coords = VEC2D(-1,4)
+    polygon1[3].coords = VEC2D(-3,4)
+    polygon1[4].coords = VEC2D(-1,3)
+    polygon1[5].coords = VEC2D(-2,0)
+    polygon1[6].coords = VEC2D(0,2)
+    polygon1[7].coords = VEC2D(2,0)
+    polygon1[8].coords = VEC2D(1,3)
+    polygon1[9].coords = VEC2D(3,4)
+    polygon1[10].coords = VEC2D(1,4)
+
+    --convex hull
+    draw__convex_hull(polygon1, FALSE, hull)
+
+    --set collision points
+    v[1] = VEC2D(0,3.5)
+    v[2] = VEC2D(-4,6)
+    v[3] = VEC2D(-2,2)
+    v[4] = VEC2D(-1.5,3.7)
+
+    FOR i=1 TO ARRAY_LEN(v) DO
+      b[i] = draw__point_collision_polygon(v[i], polygon1, hull)
+    ENDFOR
+
+    RETURN( kunit_assert(b[1]) AND NOT kunit_assert(b[2]) AND &
+            NOT kunit_assert(b[3]) AND kunit_assert(b[4]) )
+
+
+  END t_p_on_poly
+
+ROUTINE t_p_on_poly2 : BOOLEAN
+  VAR
+    i : INTEGER
+    v : ARRAY[4] OF VECTOR
+    b : ARRAY[4] OF BOOLEAN
+  BEGIN
+    --set polygon
+    clear_path(polygon2)
+    append_nodes(polygon2, 10)
+    polygon2[1].coords = VEC2D(6,0)
+    polygon2[2].coords = VEC2D(10,0)
+    polygon2[3].coords = VEC2D(10,1)
+    polygon2[4].coords = VEC2D(8,1)
+    polygon2[5].coords = VEC2D(8,3)
+    polygon2[6].coords = VEC2D(9,3)
+    polygon2[7].coords = VEC2D(9,2)
+    polygon2[8].coords = VEC2D(10,2)
+    polygon2[9].coords = VEC2D(10,4)
+    polygon2[10].coords = VEC2D(6,4)
+
+    --convex hull
+    draw__convex_hull(polygon2, FALSE, hull)
+
+    --set collision points
+    v[1] = VEC2D(7,2)
+    v[2] = VEC2D(8,4.5)
+    v[3] = VEC2D(8.5,1.6)
+    v[4] = VEC2D(9.6,2.4)
+
+    FOR i=1 TO ARRAY_LEN(v) DO
+      b[i] = draw__point_collision_polygon(v[i], polygon2, hull)
+    ENDFOR
+
+    RETURN( kunit_assert(b[1]) AND NOT kunit_assert(b[2]) AND &
+            NOT kunit_assert(b[3]) AND kunit_assert(b[4]) )
+
+
+  END t_p_on_poly2
+
 
 
 BEGIN
@@ -280,5 +358,7 @@ BEGIN
   kunit_test('test convex hull star shape', t_convhull) -- asserts 4
   kunit_test('test convex hull of multiple polygons', t_convhull_m) -- asserts 4
   kunit_test('test bounding box', t_bbox) -- asserts 6
+  kunit_test('test point collision on star', t_p_on_poly) -- asserts 4
+  kunit_test('test point collision on c shaped', t_p_on_poly2) -- asserts 4
   kunit_done
 END test_draw
