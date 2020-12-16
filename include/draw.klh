@@ -55,4 +55,8 @@ declare_function(prog_name,bounding_box,prog_name_alias,bndbx)
 ROUTINE draw__bounding_box(verticies : PATH nodedata = t_VERTEX; angle : REAL) : t_RECT FROM draw
 declare_function(prog_name,clip_lines,prog_name_alias,clpll)
 ROUTINE draw__clip_lines(line1 : t_SEGMENT2D; line2 : t_SEGMENT2D) FROM draw
+declare_function(prog_name,raster_lines,prog_name_alias,rstln)
+ROUTINE draw__raster_lines(polygon : PATH nodedata = t_VERTEX; out_hull : PATH nodedata = t_VERTEX; &
+                           raster_angle : REAL; line_width : REAL; line_pitch : REAL; & 
+                           out_lines : PATH nodedata = t_SEGMENT2D) FROM draw
 %endif --draw_h

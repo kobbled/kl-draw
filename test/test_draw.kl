@@ -7,6 +7,7 @@ VAR
   polygon1 : PATH nodedata = t_VERTEX
   polygon2 : PATH nodedata = t_VERTEX
   polygon3 : PATH nodedata = t_VERTEX
+  polygon4 : PATH nodedata = t_VERTEX
   hull : PATH nodedata = t_VERTEX
   lines : PATH nodedata = t_SEGMENT2D
 
@@ -520,6 +521,63 @@ ROUTINE t_clpln_mult : BOOLEAN
 
   END t_clpln_mult
 
+ROUTINE t_raster1 : BOOLEAN
+  VAR
+    exp_line : ARRAY[6] OF t_SEGMENT2D
+    b1, b2 : ARRAY[6] OF BOOLEAN
+  BEGIN
+    --clear lines 
+    clear_lines(lines)
+
+    --set polygon
+    clear_path(polygon1)
+    append_nodes(polygon1, 10)
+    polygon1[1].coords = VEC2D(0,6)
+    polygon1[2].coords = VEC2D(-1,4)
+    polygon1[3].coords = VEC2D(-3,4)
+    polygon1[4].coords = VEC2D(-1,3)
+    polygon1[5].coords = VEC2D(-2,0)
+    polygon1[6].coords = VEC2D(0,2)
+    polygon1[7].coords = VEC2D(2,0)
+    polygon1[8].coords = VEC2D(1,3)
+    polygon1[9].coords = VEC2D(3,4)
+    polygon1[10].coords = VEC2D(1,4)
+
+    draw__raster_lines(polygon1, hull, 0, 1, 1, lines)
+
+    --expected lines
+    exp_line[1].r0 = VEC2D(-1.5,1.5) ; exp_line[1].r1 = VEC2D(-0.5,1.5)
+    exp_line[2].r0 = VEC2D(-2,3.5) ; exp_line[2].r1 = VEC2D(2,3.5)
+    exp_line[3].r0 = VEC2D(-0.25,5.5) ; exp_line[3].r1 = VEC2D(0.25,5.5)
+
+    b1[1] = kunit_eq_vec(exp_line[1].r0, lines[3].r0)
+    b1[2] = kunit_eq_vec(exp_line[1].r1, lines[3].r1)
+    b1[3] = kunit_eq_vec(exp_line[2].r0, lines[6].r0)
+    b1[4] = kunit_eq_vec(exp_line[2].r1, lines[6].r1)
+    b1[5] = kunit_eq_vec(exp_line[3].r0, lines[8].r0)
+    b1[6] = kunit_eq_vec(exp_line[3].r1, lines[8].r1)
+
+    --clear lines 
+    clear_lines(lines)
+
+    draw__raster_lines(polygon1, hull, 45, 1, 1, lines)
+
+    --expected lines
+    exp_line[4].r0 = VEC2D(0.939,1.061) ; exp_line[4].r1 = VEC2D(1.47,1.591)
+    exp_line[5].r0 = VEC2D(-2.185,3.593) ; exp_line[5].r1 = VEC2D(-1.778,4)
+    exp_line[6].r0 = VEC2D(-0.221,5.556) ; exp_line[6].r1 = VEC2D(0.073,5.852)
+
+    b2[1] = kunit_eq_vec(exp_line[4].r0, lines[2].r0)
+    b2[2] = kunit_eq_vec(exp_line[4].r1, lines[2].r1)
+    b2[3] = kunit_eq_vec(exp_line[5].r0, lines[7].r0)
+    b2[4] = kunit_eq_vec(exp_line[5].r1, lines[7].r1)
+    b2[5] = kunit_eq_vec(exp_line[6].r0, lines[8].r0)
+    b2[6] = kunit_eq_vec(exp_line[6].r1, lines[8].r1)
+
+    RETURN(kunit_eq_arb(b1) AND kunit_eq_arb(b2))
+
+  END t_raster1
+
 BEGIN
   --total asserts 28
   kunit_test('test line intersection', t_intersect) -- asserts 10 
@@ -532,5 +590,6 @@ BEGIN
   kunit_test('line clip star polygon', t_clip_line) --asserts 8
   kunit_test('line clip on C shape', t_clip_line2) -- asserts 10
   kunit_test('multi polygon line clip', t_clpln_mult) -- asserts 6
+  kunit_test('raster polygon', t_raster1) --asserts 24
   kunit_done
 END test_draw

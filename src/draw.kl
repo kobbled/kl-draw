@@ -595,6 +595,44 @@ ROUTINE draw__clip_line_with_poly
     ENDIF
   END draw__clip_line_with_poly
 
+ROUTINE draw__raster_lines
+  VAR
+    i : INTEGER
+    bbox : t_RECT
+    new_line : t_SEGMENT2D
+    startpoint,endpoint : VECTOR
+    no_of_lines : INTEGER
+    status : INTEGER
+  BEGIN
+    --draw convex hull around polygon
+    draw__convex_hull(polygon, FALSE, out_hull)
+    --define a bounding box around polygon and fill with line segments
+    bbox = draw__bounding_box(polygon, raster_angle)
+    --define how many lines will be made based on height of box
+    --and line pitch
+    -- no_of_lines = ceil((box_height-line_width)/pitch)
+    --inc = math__ceil((math__norm(bbox.verts[4]-bbox.verts[1])-line_width)/line_pitch)
+
+    --all boundaries are assumed to be ordered counterclockwise
+    startpoint = bbox.vec[1]*(line_width/2) + bbox.verts[1]
+    endpoint = bbox.vec[1]*(line_width/2) + bbox.verts[2]
+
+    --repeat until clipping stops producing lines
+    i = 0
+    REPEAT
+      no_of_lines = PATH_LEN(out_lines)
+      new_line.r0 = bbox.vec[1]*line_pitch*(i) + startpoint
+      new_line.r1 = bbox.vec[1]*line_pitch*(i) + endpoint
+      --clip lines to polygon
+      draw__clip_line_with_poly(new_line, polygon, out_hull, out_lines)
+
+      i = i + 1
+    UNTIL(PATH_LEN(out_lines) = no_of_lines)
+
+    --return out_lines
+
+  END draw__raster_lines
+
 BEGIN
 END draw
 
