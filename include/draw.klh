@@ -53,5 +53,6 @@ declare_function(prog_name,convex_hull,prog_name_alias,convh)
 ROUTINE draw__convex_hull(verticies : PATH nodedata = t_VERTEX; rmv_colinear : BOOLEAN; out_hull : PATH nodedata = t_VERTEX) FROM draw
 declare_function(prog_name,bounding_box,prog_name_alias,bndbx)
 ROUTINE draw__bounding_box(verticies : PATH nodedata = t_VERTEX; angle : REAL) : t_RECT FROM draw
-
+declare_function(prog_name,clip_lines,prog_name_alias,clpll)
+ROUTINE draw__clip_lines(line1 : t_SEGMENT2D; line2 : t_SEGMENT2D) FROM draw
 %endif --draw_h

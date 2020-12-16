@@ -6,11 +6,14 @@ PROGRAM test_draw
 VAR
   polygon1 : PATH nodedata = t_VERTEX
   polygon2 : PATH nodedata = t_VERTEX
+  polygon3 : PATH nodedata = t_VERTEX
   hull : PATH nodedata = t_VERTEX
+  lines : PATH nodedata = t_SEGMENT2D
 
 %INCLUDE kunit.klh
 %include draw.klh
 %include draw.private.klh
+
 
 
 ROUTINE clear_path(p : PATH nodedata = t_VERTEX)
@@ -23,6 +26,17 @@ ROUTINE clear_path(p : PATH nodedata = t_VERTEX)
       i = i - 1
 	  ENDWHILE
   END clear_path
+
+ROUTINE clear_lines(p : PATH nodedata = t_SEGMENT2D)
+  VAR
+    i, status : INTEGER
+  BEGIN
+    i = PATH_LEN(p)
+    WHILE PATH_LEN(p) > 0 DO
+		  DELETE_NODE(p,i,status)
+      i = i - 1
+	  ENDWHILE
+  END clear_lines
 
 ROUTINE append_nodes(p : PATH nodedata = t_VERTEX; nodes : INTEGER)
   VAR
@@ -350,6 +364,161 @@ ROUTINE t_p_on_poly2 : BOOLEAN
   END t_p_on_poly2
 
 
+ROUTINE t_clip_line : BOOLEAN
+  VAR
+    line : ARRAY[3] OF t_SEGMENT2D
+    exp_line : ARRAY[4] OF t_SEGMENT2D
+  BEGIN
+    --clear lines 
+    clear_lines(lines)
+
+    --set polygon
+    clear_path(polygon1)
+    append_nodes(polygon1, 10)
+    polygon1[1].coords = VEC2D(0,6)
+    polygon1[2].coords = VEC2D(-1,4)
+    polygon1[3].coords = VEC2D(-3,4)
+    polygon1[4].coords = VEC2D(-1,3)
+    polygon1[5].coords = VEC2D(-2,0)
+    polygon1[6].coords = VEC2D(0,2)
+    polygon1[7].coords = VEC2D(2,0)
+    polygon1[8].coords = VEC2D(1,3)
+    polygon1[9].coords = VEC2D(3,4)
+    polygon1[10].coords = VEC2D(1,4)
+
+    -- convex hull
+    draw__convex_hull(polygon1, FALSE, hull)
+
+    --create line
+    line[1].r0 = VEC2D(-2,6)
+    line[1].r1 = VEC2D(3,0)
+    --clip line
+    draw__clip_line_with_poly(line[1], polygon1, hull, lines)
+    --expected lines
+    exp_line[1].r0 = VEC2D(-0.75,4.5) ; exp_line[1].r1 = VEC2D(1.333,2) ;
+
+    --create line
+    line[2].r0 = VEC2D(-3,2)
+    line[2].r1 = VEC2D(3,0.5)
+    --clip line
+    draw__clip_line_with_poly(line[2], polygon1, hull, lines)
+    --expected lines
+    exp_line[2].r0 = VEC2D(-1.462,1.615) ; exp_line[2].r1 = VEC2D(-0.6,1.4) ;
+    exp_line[3].r0 = VEC2D(1,1) ; exp_line[3].r1 = VEC2D(1.727,0.818) ;
+    
+    --create line
+    line[3].r0 = VEC2D(-2,5)
+    line[3].r1 = VEC2D(2,5)
+    --clip line
+    draw__clip_line_with_poly(line[3], polygon1, hull, lines)
+
+    exp_line[4].r0 = VEC2D(-0.5,5) ; exp_line[4].r1 = VEC2D(0.5,5) ;
+
+    RETURN(kunit_eq_vec(exp_line[1].r0, lines[1].r0) AND kunit_eq_vec(exp_line[1].r1, lines[1].r1) AND &
+    kunit_eq_vec(exp_line[2].r0, lines[2].r0) AND kunit_eq_vec(exp_line[2].r1, lines[2].r1) AND &
+    kunit_eq_vec(exp_line[3].r0, lines[3].r0) AND kunit_eq_vec(exp_line[3].r1, lines[3].r1) AND &
+    kunit_eq_vec(exp_line[4].r0, lines[4].r0) AND kunit_eq_vec(exp_line[4].r1, lines[4].r1) )
+
+  END t_clip_line
+
+
+ROUTINE t_clip_line2 : BOOLEAN
+  VAR
+    line : ARRAY[2] OF t_SEGMENT2D
+    exp_line : ARRAY[5] OF t_SEGMENT2D
+  BEGIN
+    --clear lines 
+    clear_lines(lines)
+
+    --set polygon
+    clear_path(polygon2)
+    append_nodes(polygon2, 10)
+    polygon2[1].coords = VEC2D(6,0)
+    polygon2[2].coords = VEC2D(10,0)
+    polygon2[3].coords = VEC2D(10,1)
+    polygon2[4].coords = VEC2D(8,1)
+    polygon2[5].coords = VEC2D(8,3)
+    polygon2[6].coords = VEC2D(9,3)
+    polygon2[7].coords = VEC2D(9,2)
+    polygon2[8].coords = VEC2D(10,2)
+    polygon2[9].coords = VEC2D(10,4)
+    polygon2[10].coords = VEC2D(6,4)
+
+    -- convex hull
+    draw__convex_hull(polygon2, FALSE, hull)
+
+    --create line
+    line[1].r0 = VEC2D(7.32,0.37)
+    line[1].r1 = VEC2D(9.66,2.41)
+    --clip line
+    draw__clip_line_with_poly(line[1], polygon2, hull, lines)
+
+    --expected lines
+    exp_line[1].r0 = VEC2D(7.32,0.37) ; exp_line[1].r1 = VEC2D(8.043,1)
+    exp_line[2].r0 = VEC2D(9.190,2) ; exp_line[2].r1 = VEC2D(9.66,2.41)
+
+    --create line
+    line[2].r0 = VEC2D(8.44,3.59)
+    line[2].r1 = VEC2D(10.09,0.5)
+    --clip line
+    draw__clip_line_with_poly(line[2], polygon2, hull, lines)
+
+    --expected lines
+    exp_line[3].r0 = VEC2D(8.44,3.590) ; exp_line[3].r1 = VEC2D(8.755,3) ;
+    exp_line[4].r0 = VEC2D(9,2.541) ; exp_line[4].r1 = VEC2D(9.289,2) ;
+    exp_line[5].r0 = VEC2D(9.823,1) ; exp_line[5].r1 = VEC2D(10,0.668) ;
+
+    RETURN(kunit_eq_vec(exp_line[1].r0, lines[1].r0) AND kunit_eq_vec(exp_line[1].r1, lines[1].r1) AND &
+           kunit_eq_vec(exp_line[2].r0, lines[2].r0) AND kunit_eq_vec(exp_line[2].r1, lines[2].r1) AND &
+           kunit_eq_vec(exp_line[3].r0, lines[3].r0) AND kunit_eq_vec(exp_line[3].r1, lines[3].r1) AND &
+           kunit_eq_vec(exp_line[4].r0, lines[4].r0) AND kunit_eq_vec(exp_line[4].r1, lines[4].r1) AND &
+           kunit_eq_vec(exp_line[5].r0, lines[5].r0) AND kunit_eq_vec(exp_line[5].r1, lines[5].r1) )
+
+  END t_clip_line2
+
+ROUTINE t_clpln_mult : BOOLEAN
+  VAR
+    line : ARRAY[1] OF t_SEGMENT2D
+    exp_line : ARRAY[3] OF t_SEGMENT2D
+  BEGIN
+    --clear lines 
+    clear_lines(lines)
+
+    --set polygon
+    clear_path(polygon3)
+    append_nodes(polygon3, 12)
+    polygon3[1].coords = VEC2D(0,14) ; polygon3[1].polygon = 1 ; polygon3[1].nextPoly = 5 ;  
+    polygon3[2].coords = VEC2D(0,10) ; polygon3[2].polygon = 1 ; polygon3[2].nextPoly = 5 ;  
+    polygon3[3].coords = VEC2D(2,10) ; polygon3[3].polygon = 1 ; polygon3[3].nextPoly = 5 ;  
+    polygon3[4].coords = VEC2D(2,14) ; polygon3[4].polygon = 1 ; polygon3[4].nextPoly = 5 ;  
+    polygon3[5].coords = VEC2D(4,14) ; polygon3[5].polygon = 2 ; polygon3[5].nextPoly = 9 ;  
+    polygon3[6].coords = VEC2D(4,10) ; polygon3[6].polygon = 2 ; polygon3[6].nextPoly = 9 ;  
+    polygon3[7].coords = VEC2D(6,10) ; polygon3[7].polygon = 2 ; polygon3[7].nextPoly = 9 ;  
+    polygon3[8].coords = VEC2D(6,14) ; polygon3[8].polygon = 2 ; polygon3[8].nextPoly = 9 ;  
+    polygon3[9].coords = VEC2D(8,14) ; polygon3[9].polygon = 3 ;
+    polygon3[10].coords = VEC2D(8,10) ; polygon3[10].polygon = 3 ;
+    polygon3[11].coords = VEC2D(10,10) ; polygon3[11].polygon = 3 ;
+    polygon3[12].coords = VEC2D(10,14) ; polygon3[12].polygon = 3 ;
+
+    -- convex hull
+    draw__convex_hull(polygon3, FALSE, hull)
+
+    --create line
+    line[1].r0 = VEC2D(-1.96,10.89)
+    line[1].r1 = VEC2D(11.68,12.84)
+    --clip line
+    draw__clip_line_with_poly(line[1], polygon3, hull, lines)
+
+    --expected lines
+    exp_line[1].r0 = VEC2D(0,11.17) ; exp_line[1].r1 = VEC2D(2,11.456)
+    exp_line[2].r0 = VEC2D(4,11.742) ; exp_line[2].r1 = VEC2D(6,12.028)
+    exp_line[3].r0 = VEC2D(8,12.314) ; exp_line[3].r1 = VEC2D(10,12.6)
+
+    RETURN(kunit_eq_vec(exp_line[1].r0, lines[1].r0) AND kunit_eq_vec(exp_line[1].r1, lines[1].r1) AND &
+           kunit_eq_vec(exp_line[2].r0, lines[2].r0) AND kunit_eq_vec(exp_line[2].r1, lines[2].r1) AND &
+           kunit_eq_vec(exp_line[3].r0, lines[3].r0) AND kunit_eq_vec(exp_line[3].r1, lines[3].r1) )
+
+  END t_clpln_mult
 
 BEGIN
   --total asserts 28
@@ -360,5 +529,8 @@ BEGIN
   kunit_test('test bounding box', t_bbox) -- asserts 6
   kunit_test('test point collision on star', t_p_on_poly) -- asserts 4
   kunit_test('test point collision on c shaped', t_p_on_poly2) -- asserts 4
+  kunit_test('line clip star polygon', t_clip_line) --asserts 8
+  kunit_test('line clip on C shape', t_clip_line2) -- asserts 10
+  kunit_test('multi polygon line clip', t_clpln_mult) -- asserts 6
   kunit_done
 END test_draw

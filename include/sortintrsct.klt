@@ -10,9 +10,8 @@ t_VERT_CLIP FROM draw = STRUCTURE
     coords : VECTOR
     entry_exit : BOOLEAN
     intersect : BOOLEAN
-    nextPoly : BYTE
     alpha : REAL
-    neighbor : BYTE
+    polygon : BYTE
   ENDSTRUCTURE`
 
 %define define_callback `declare_member(class_name,callback,class_name,call)

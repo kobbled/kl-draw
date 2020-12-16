@@ -14,6 +14,9 @@ PROGRAM draw
 %include draw.klh
 %include draw.private.klh
 
+--use for sorted line intersections with polygon
+%class srtclp('arraysort.klc','arraysort.klh','sortintrsct.klt')
+
 ROUTINE VEC2D
   VAR
     v : VECTOR
@@ -157,7 +160,9 @@ ROUTINE draw__intersect
 
     --if endpoints are on opposite sides of the line (one +ive, one -ive), 
     --the line intersects with the other one.
-    IF (WEC1[1]*WEC1[2] > 0) AND (WEC2[1]*WEC2[2] > 0) THEN
+    --..note:: WEC1[1]*WEC1[2] > 0.0001 addresses real rounding issue with
+    --          epsilon values breaking comparative.
+    IF (WEC1[1]*WEC1[2] > 0.0001) OR (WEC2[1]*WEC2[2] > 0.0001) THEN
       RETURN(FALSE)
     ELSE
       --ratios with WEC can be made to give a ratio for how for much of one
@@ -485,6 +490,110 @@ ROUTINE draw__bounding_box
     RETURN(box)
 
   END draw__bounding_box
+
+
+ROUTINE draw__clip_lines
+  VAR
+    line1_alpha, line2_alpha : REAL
+    intersect : BOOLEAN
+  BEGIN
+    intersect = draw__intersect(line1, line2, line1_alpha, line2_alpha)
+    IF intersect THEN
+      --clip lines
+      line1.r1 = (1-line1_alpha)*line1.r0 + line1_alpha*line1.r1
+      line2.r0 = (1-line2_alpha)*line2.r0 + line2_alpha*line2.r1
+    ENDIF
+
+  END draw__clip_lines
+
+
+ROUTINE draw__clip_line_with_poly
+  VAR
+--assumed maximum number of times a polygon will
+--intersect a single line
+%define total_clips 20
+    clippedverts : ARRAY[total_clips] OF t_VERT_CLIP
+    i,j : INTEGER
+    next_vert : t_VERTEX
+    poly_seg : t_SEGMENT2D
+    line_alpha, poly_alpha : REAL
+    intersect : BOOLEAN
+    entryexit, collision :  BOOLEAN
+    status : INTEGER
+  BEGIN
+    --clipped vertex index
+    j = 0
+    --is the start point of line inside or outside polygon
+    --assume polygon verticies are ordered counterclockwise
+    collision = draw__point_collision_polygon(line.r0, polygon, hull)
+
+    --If inside the polygon add to vertex list
+    IF collision THEN
+      j = j + 1
+      clippedverts[j].coords = line.r0
+      clippedverts[j].alpha = 0
+      clippedverts[j].intersect = FALSE
+      entryexit = TRUE
+      clippedverts[j].entry_exit = entryexit
+    ELSE
+      entryexit = FALSE
+    ENDIF
+
+    FOR i=1 TO PATH_LEN(polygon) DO
+      --increment loop
+      next_vert = polygon[((i+1-1) MOD PATH_LEN(polygon)) + 1]
+      IF (polygon[i].polygon = next_vert.polygon) THEN 
+        poly_seg.r0 = polygon[i].coords
+        poly_seg.r1 = next_vert.coords
+        --find intersection
+        --intersection is read from left of the subject line to the right
+        intersect = draw__intersect(line, poly_seg, line_alpha, poly_alpha)
+        IF intersect THEN
+          j = j + 1
+          --coordinates of intersection point
+          clippedverts[j].coords = (1-line_alpha)*line.r0 + line_alpha*line.r1
+          clippedverts[j].alpha = line_alpha
+          clippedverts[j].intersect = intersect
+          clippedverts[j].polygon = polygon[i].polygon
+        ENDIF
+      ENDIF
+    ENDFOR
+
+    --if any intersection are found
+    IF j > 0 THEN
+      --sort points by alpha value
+      srtclp__quicksort(clippedverts, 1, j, FALSE)
+
+      --label verticies as entry (TRUE) or exit (FALSE) nodes
+      --first node will be an entry node
+      entryexit = TRUE
+      clippedverts[1].entry_exit = entryexit
+
+      FOR i=2 TO j DO
+        entryexit = NOT entryexit
+        clippedverts[j].entry_exit = entryexit
+        
+        --add new clipped line segment on exit node
+        IF NOT entryexit THEN
+          APPEND_NODE(out_lines, status)
+          out_lines[PATH_LEN(out_lines)].r0 = clippedverts[i-1].coords
+          out_lines[PATH_LEN(out_lines)].r1 = clippedverts[i].coords
+        ENDIF
+      ENDFOR
+
+      --if there is an entry node with no corresponding exit node
+      IF entryexit THEN
+        --check if enpoint of the line is inside the polygon
+        collision = draw__point_collision_polygon(line.r0, polygon, hull)
+        IF collision THEN
+          APPEND_NODE(out_lines, status)
+          out_lines[PATH_LEN(out_lines)].r0 = clippedverts[j].coords
+          out_lines[PATH_LEN(out_lines)].r1 = line.r1
+        ENDIF
+      ENDIF
+
+    ENDIF
+  END draw__clip_line_with_poly
 
 BEGIN
 END draw

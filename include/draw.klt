@@ -24,8 +24,8 @@ TYPE
 
   t_VERTEX FROM draw = STRUCTURE
     coords : VECTOR
+    nextPoly : SHORT
     polygon : BYTE
-    nextPoly : BYTE
   ENDSTRUCTURE
 
   --(ref: https://www.researchgate.net/publication/220184531_Efficient_Clipping_of_Arbitrary_Polygons)
@@ -34,9 +34,8 @@ TYPE
     coords : VECTOR
     entry_exit : BOOLEAN
     intersect : BOOLEAN
-    nextPoly : BYTE
     alpha : REAL
-    neighbor : BYTE
+    polygon : BYTE
   ENDSTRUCTURE
 
   HDR_POLYGON FROM draw = STRUCTURE
