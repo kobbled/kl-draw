@@ -633,6 +633,141 @@ ROUTINE draw__raster_lines
 
   END draw__raster_lines
 
+ROUTINE draw__line_inset
+  VAR
+    line1_alpha, line2_alpha : REAL
+    line_vec1, line_vec2 : VECTOR
+    perp_vec1,perp_vec2 : VECTOR
+    intersect : BOOLEAN
+  BEGIN
+    --get line vector
+    line_vec1 = (line1.r1-line1.r0)/math__norm(line1.r1-line1.r0)
+    --inset lines based on perpendicular vector
+    out_line1.r0 = draw__perpendicular_vector(line_vec1)*inset_amount + line1.r0
+    out_line1.r1 = draw__perpendicular_vector(line_vec1)*inset_amount + line1.r1
+
+    --get line vector
+    line_vec2 = (line2.r1-line2.r0)/math__norm(line2.r1-line2.r0)
+    --inset lines based on perpendicular vector
+    out_line2.r0 = draw__perpendicular_vector(line_vec2)*inset_amount + line2.r0
+    out_line2.r1 = draw__perpendicular_vector(line_vec2)*inset_amount + line2.r1
+
+    --clip line with previous line
+    intersect = draw__intersect(out_line1, out_line2, line1_alpha, line2_alpha)
+    IF intersect THEN
+      out_line1.r1 = (1-line1_alpha)*out_line1.r0 + line1_alpha*out_line1.r1
+      out_line2.r0 = (1-line2_alpha)*out_line2.r0 + line2_alpha*out_line2.r1
+    ELSE
+      --concave lines may not intersect. Increase r1 of the previous line,
+      --and r0 of the current line to see if they clip.
+      out_line1.r1 = line_vec1*inset_amount + out_line1.r1
+      out_line2.r0 =  out_line2.r0 - line_vec2*inset_amount
+      intersect = draw__intersect(out_line1, out_line2, line1_alpha, line2_alpha)
+      IF intersect THEN
+        out_line1.r1 = (1-line1_alpha)*out_line1.r0 + line1_alpha*out_line1.r1
+        out_line2.r0 = (1-line2_alpha)*out_line2.r0 + line2_alpha*out_line2.r1
+      ENDIF
+    ENDIF
+  END draw__line_inset
+
+ROUTINE draw__inset_polygon
+  VAR
+    i, j : INTEGER
+    poly_count, first_vert : INTEGER
+    next_vert, curr_vert : t_VERTEX
+    new_line, prev_line : t_SEGMENT2D
+    new_inset, prev_inset : t_SEGMENT2D
+    uninit_line : t_SEGMENT2D
+    status : INTEGER
+  BEGIN
+    --check output polygon for verticies
+    --get polygon count
+    IF PATH_LEN(out_polygon) > 0 THEN
+      IF out_polygon[PATH_LEN(out_polygon)].polygon < 255 THEN
+        poly_count = out_polygon[PATH_LEN(out_polygon)].polygon + 1
+      ENDIF
+    ENDIF
+
+    IF UNINIT(poly_count) OR (poly_count = 0) THEN
+      poly_count = 1
+    ENDIF
+
+    first_vert = 1
+    FOR i=1 TO PATH_LEN(polygon) + 1 DO
+      --curent vert = i
+      curr_vert = polygon[((i-1) MOD PATH_LEN(polygon)) + 1]
+      --next vert = i+1
+      next_vert = polygon[((i+1-1) MOD PATH_LEN(polygon)) + 1]
+
+      --next line
+      new_line.r0 = curr_vert.coords ; new_line.r1 = next_vert.coords ;
+      
+      IF NOT UNINIT(prev_line.r0) THEN
+
+        IF (curr_vert.polygon <> next_vert.polygon) OR (i = PATH_LEN(polygon)) THEN
+          --evaluate line between first and last index of polygon
+          next_vert = polygon[first_vert]
+
+          --next line
+          new_line.r0 = curr_vert.coords ; new_line.r1 = next_vert.coords ;
+
+          --find intersection of inset lines
+          draw__line_inset(prev_line, new_line, inset_amount, prev_inset, new_inset)
+
+          --add intersection point to new polygon
+          APPEND_NODE(out_polygon, status)
+          out_polygon[PATH_LEN(out_polygon)].coords = new_inset.r0
+          out_polygon[PATH_LEN(out_polygon)].polygon = poly_count
+
+          prev_line = new_line
+
+          --close polygon, on the first vertex
+          curr_vert = polygon[first_vert]
+          next_vert = polygon[first_vert+1]
+
+          --next line
+          new_line.r0 = curr_vert.coords ; new_line.r1 = next_vert.coords ;
+
+          --find intersection of inset lines
+          draw__line_inset(prev_line, new_line, inset_amount, prev_inset, new_inset)
+
+          --add intersection point to new polygon
+          APPEND_NODE(out_polygon, status)
+          out_polygon[PATH_LEN(out_polygon)].coords = new_inset.r0
+          out_polygon[PATH_LEN(out_polygon)].polygon = poly_count
+
+          --uninitialize prev_line
+          prev_line = uninit_line
+
+          --fill 'nextpoly' member for all verticies in new polygon
+          IF i+1 < PATH_LEN(polygon) THEN
+            FOR j=i DOWNTO first_vert DO
+              out_polygon[j].nextpoly = i+1
+            ENDFOR
+          ENDIF
+
+          --update pointer for first vertex of the next polygon
+          first_vert = ((i+1-1) MOD PATH_LEN(polygon)) + 1
+
+          poly_count = poly_count + 1
+        ELSE
+          --find intersection of inset lines
+          draw__line_inset(prev_line, new_line, inset_amount, prev_inset, new_inset)
+
+          --add intersection point to new polygon
+          APPEND_NODE(out_polygon, status)
+          out_polygon[PATH_LEN(out_polygon)].coords = new_inset.r0
+          out_polygon[PATH_LEN(out_polygon)].polygon = poly_count
+
+          prev_line = new_line
+
+        ENDIF
+      ELSE
+        prev_line = new_line
+      ENDIF
+    ENDFOR
+  END draw__inset_polygon
+
 BEGIN
 END draw
 

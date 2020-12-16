@@ -25,4 +25,7 @@ ROUTINE draw__point_collision_polygon(v : VECTOR ; polygon : PATH nodedata = t_V
 declare_function(prog_name,clip_line_with_poly,prog_name_alias,clplp)
 ROUTINE draw__clip_line_with_poly(line : t_SEGMENT2D; polygon : PATH nodedata = t_VERTEX; &
                         hull : PATH nodedata = t_VERTEX; out_lines : PATH nodedata = t_SEGMENT2D) FROM draw
+declare_function(prog_name,line_inset,prog_name_alias,lnins)
+ROUTINE draw__line_inset(line1 : t_SEGMENT2D; line2 : t_SEGMENT2D; inset_amount : REAL; &
+                         out_line1 : t_SEGMENT2D; out_line2 : t_SEGMENT2D) FROM draw
 %endif --draw__private_h

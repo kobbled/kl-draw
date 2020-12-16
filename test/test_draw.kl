@@ -8,6 +8,7 @@ VAR
   polygon2 : PATH nodedata = t_VERTEX
   polygon3 : PATH nodedata = t_VERTEX
   polygon4 : PATH nodedata = t_VERTEX
+  poly_inset : PATH nodedata = t_VERTEX
   hull : PATH nodedata = t_VERTEX
   lines : PATH nodedata = t_SEGMENT2D
 
@@ -578,8 +579,86 @@ ROUTINE t_raster1 : BOOLEAN
 
   END t_raster1
 
+ROUTINE t_inset : BOOLEAN
+  VAR
+    exp_vert : ARRAY[8] OF VECTOR
+  BEGIN
+    --set polygon
+    clear_path(polygon4)
+    append_nodes(polygon4, 8)
+    polygon4[1].coords = VEC2D(-8,0)
+    polygon4[2].coords = VEC2D(-2,0)
+    polygon4[3].coords = VEC2D(-2,2)
+    polygon4[4].coords = VEC2D(-4,2)
+    polygon4[5].coords = VEC2D(-4,8)
+    polygon4[6].coords = VEC2D(-6,8)
+    polygon4[7].coords = VEC2D(-6,2)
+    polygon4[8].coords = VEC2D(-8,2)
+
+    exp_vert[1] = VEC2D(-2.4,0.4)
+    exp_vert[2] = VEC2D(-2.4,1.6)
+    exp_vert[3] = VEC2D(-4.4,1.6)
+    exp_vert[4] = VEC2D(-4.4,7.6)
+    exp_vert[5] = VEC2D(-5.6,7.6)
+    exp_vert[6] = VEC2D(-5.6,1.6)
+    exp_vert[7] = VEC2D(-7.6,1.6)
+    exp_vert[8] = VEC2D(-7.6,0.4)
+
+    clear_path(poly_inset)
+    draw__inset_polygon(polygon4, 0.4, poly_inset)
+
+    RETURN(kunit_eq_vec(exp_vert[1], poly_inset[1].coords) AND kunit_eq_vec(exp_vert[3], poly_inset[3].coords) AND &
+           kunit_eq_vec(exp_vert[5], poly_inset[5].coords) AND kunit_eq_vec(exp_vert[6], poly_inset[6].coords) AND &
+           kunit_eq_vec(exp_vert[8], poly_inset[8].coords) )
+  END t_inset
+
+ROUTINE t_inset_mult : BOOLEAN
+  VAR
+    exp_vert : ARRAY[12] OF VECTOR
+  BEGIN
+    --set polygon
+    clear_path(polygon3)
+    append_nodes(polygon3, 12)
+    polygon3[1].coords = VEC2D(0,14) ; polygon3[1].polygon = 1 ; polygon3[1].nextPoly = 5 ;  
+    polygon3[2].coords = VEC2D(0,10) ; polygon3[2].polygon = 1 ; polygon3[2].nextPoly = 5 ;  
+    polygon3[3].coords = VEC2D(2,10) ; polygon3[3].polygon = 1 ; polygon3[3].nextPoly = 5 ;  
+    polygon3[4].coords = VEC2D(2,14) ; polygon3[4].polygon = 1 ; polygon3[4].nextPoly = 5 ;  
+    polygon3[5].coords = VEC2D(4,14) ; polygon3[5].polygon = 2 ; polygon3[5].nextPoly = 9 ;  
+    polygon3[6].coords = VEC2D(4,10) ; polygon3[6].polygon = 2 ; polygon3[6].nextPoly = 9 ;  
+    polygon3[7].coords = VEC2D(6,10) ; polygon3[7].polygon = 2 ; polygon3[7].nextPoly = 9 ;  
+    polygon3[8].coords = VEC2D(6,14) ; polygon3[8].polygon = 2 ; polygon3[8].nextPoly = 9 ;  
+    polygon3[9].coords = VEC2D(8,14) ; polygon3[9].polygon = 3 ;
+    polygon3[10].coords = VEC2D(8,10) ; polygon3[10].polygon = 3 ;
+    polygon3[11].coords = VEC2D(10,10) ; polygon3[11].polygon = 3 ;
+    polygon3[12].coords = VEC2D(10,14) ; polygon3[12].polygon = 3 ;
+
+    clear_path(poly_inset)
+    draw__inset_polygon(polygon3, 0.5, poly_inset)
+    
+    --expected verts
+    exp_vert[1] = VEC2D(0.5,10.5)
+    exp_vert[2] = VEC2D(1.5,10.5)
+    exp_vert[3] = VEC2D(1.5,13.5)
+    exp_vert[4] = VEC2D(0.5,13.5)
+    exp_vert[5] = VEC2D(4.5,10.5)
+    exp_vert[6] = VEC2D(5.5,10.5)
+    exp_vert[7] = VEC2D(5.5,13.5)
+    exp_vert[8] = VEC2D(4.5,13.5)
+    exp_vert[9] = VEC2D(8.5,10.5)
+    exp_vert[10] = VEC2D(9.5,10.5)
+    exp_vert[11] = VEC2D(9.5,13.5)
+    exp_vert[12] = VEC2D(8.5,13.5)
+
+
+    RETURN(kunit_eq_vec(exp_vert[1], poly_inset[1].coords) AND kunit_eq_vec(exp_vert[4], poly_inset[4].coords) AND &
+           kunit_eq_vec(exp_vert[6], poly_inset[6].coords) AND kunit_eq_vec(exp_vert[7], poly_inset[7].coords) AND &
+           kunit_eq_vec(exp_vert[9], poly_inset[9].coords) AND kunit_eq_vec(exp_vert[12], poly_inset[12].coords) AND &
+           kunit_eq_int((polygon3[10].polygon), (poly_inset[10].polygon)) AND kunit_eq_int((polygon3[7].polygon), (poly_inset[7].polygon)) AND &
+           kunit_eq_int((polygon3[2].nextPoly), (poly_inset[2].nextPoly)) AND kunit_eq_int((polygon3[7].nextPoly), (poly_inset[7].nextPoly)) )
+  END t_inset_mult
+
 BEGIN
-  --total asserts 28
+  --total asserts 99
   kunit_test('test line intersection', t_intersect) -- asserts 10 
   kunit_test('test finding min and max points in polygon', t_anchr_pnts) -- asserts 4
   kunit_test('test convex hull star shape', t_convhull) -- asserts 4
@@ -591,5 +670,7 @@ BEGIN
   kunit_test('line clip on C shape', t_clip_line2) -- asserts 10
   kunit_test('multi polygon line clip', t_clpln_mult) -- asserts 6
   kunit_test('raster polygon', t_raster1) --asserts 24
+  kunit_test('inset oblong T shape', t_inset) --asserts 5
+  kunit_test('inset multiple polygons', t_inset_mult) --asserts 10
   kunit_done
 END test_draw
