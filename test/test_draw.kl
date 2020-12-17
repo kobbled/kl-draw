@@ -1,6 +1,7 @@
 PROGRAM test_draw
 %NOLOCKGROUP
 
+%include systemvars.klt
 %include draw.klt
 
 VAR
@@ -12,7 +13,7 @@ VAR
   hull : PATH nodedata = t_VERTEX
   lines : PATH nodedata = t_SEGMENT2D
 
-%INCLUDE kunit.klh
+%include kunit.klh
 %include draw.klh
 %include draw.private.klh
 
@@ -605,7 +606,7 @@ ROUTINE t_inset : BOOLEAN
     exp_vert[8] = VEC2D(-7.6,0.4)
 
     clear_path(poly_inset)
-    draw__inset_polygon(polygon4, 0.4, poly_inset)
+    draw__inset_polygon(polygon4, 0.4, hull, poly_inset)
 
     RETURN(kunit_eq_vec(exp_vert[1], poly_inset[1].coords) AND kunit_eq_vec(exp_vert[3], poly_inset[3].coords) AND &
            kunit_eq_vec(exp_vert[5], poly_inset[5].coords) AND kunit_eq_vec(exp_vert[6], poly_inset[6].coords) AND &
@@ -633,7 +634,7 @@ ROUTINE t_inset_mult : BOOLEAN
     polygon3[12].coords = VEC2D(10,14) ; polygon3[12].polygon = 3 ;
 
     clear_path(poly_inset)
-    draw__inset_polygon(polygon3, 0.5, poly_inset)
+    draw__inset_polygon(polygon3, 0.5, hull, poly_inset)
     
     --expected verts
     exp_vert[1] = VEC2D(0.5,10.5)

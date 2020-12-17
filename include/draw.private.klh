@@ -19,9 +19,6 @@ ROUTINE draw__point_collision_convex(v : VECTOR ; polygon : PATH nodedata = t_VE
 declare_function(prog_name,point_avoid_convex,prog_name_alias,pavdc)
 ROUTINE draw__point_avoid_convex(v : VECTOR ; polygon : PATH nodedata = t_VERTEX; & 
                                  start_node, end_node : INTEGER) : BOOLEAN FROM draw
-declare_function(prog_name,point_collision_polygon,prog_name_alias,pcolp)
-ROUTINE draw__point_collision_polygon(v : VECTOR ; polygon : PATH nodedata = t_VERTEX; & 
-                                      hull : PATH nodedata = t_VERTEX) : BOOLEAN FROM draw
 declare_function(prog_name,clip_line_with_poly,prog_name_alias,clplp)
 ROUTINE draw__clip_line_with_poly(line : t_SEGMENT2D; polygon : PATH nodedata = t_VERTEX; &
                         hull : PATH nodedata = t_VERTEX; out_lines : PATH nodedata = t_SEGMENT2D) FROM draw

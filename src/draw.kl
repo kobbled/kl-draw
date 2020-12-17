@@ -637,7 +637,6 @@ ROUTINE draw__line_inset
   VAR
     line1_alpha, line2_alpha : REAL
     line_vec1, line_vec2 : VECTOR
-    perp_vec1,perp_vec2 : VECTOR
     intersect : BOOLEAN
   BEGIN
     --get line vector
@@ -670,6 +669,27 @@ ROUTINE draw__line_inset
     ENDIF
   END draw__line_inset
 
+ROUTINE add_inset(point : VECTOR; poly_no : INTEGER; inset_amount : REAL; & 
+                  hull : PATH nodedata = t_VERTEX; out_polygon : PATH nodedata = t_VERTEX)
+  VAR
+    inflex_pnt : BOOLEAN
+    status : INTEGER
+  BEGIN
+    --test that point did not infex
+    IF inset_amount < 0 THEN
+      inflex_pnt = draw__point_avoid_convex(point, hull, 1, PATH_LEN(hull) )
+    ELSE
+      inflex_pnt = draw__point_collision_convex(point, hull, 1, PATH_LEN(hull) )
+    ENDIF
+
+    --add intersection point to new polygon
+    IF inflex_pnt THEN
+      APPEND_NODE(out_polygon, status)
+      out_polygon[PATH_LEN(out_polygon)].coords = point
+      out_polygon[PATH_LEN(out_polygon)].polygon = poly_no
+    ENDIF
+  END add_inset
+
 ROUTINE draw__inset_polygon
   VAR
     i, j : INTEGER
@@ -687,6 +707,9 @@ ROUTINE draw__inset_polygon
         poly_count = out_polygon[PATH_LEN(out_polygon)].polygon + 1
       ENDIF
     ENDIF
+
+    --draw convex hull around polygon
+    draw__convex_hull(polygon, FALSE, out_hull)
 
     IF UNINIT(poly_count) OR (poly_count = 0) THEN
       poly_count = 1
@@ -714,10 +737,8 @@ ROUTINE draw__inset_polygon
           --find intersection of inset lines
           draw__line_inset(prev_line, new_line, inset_amount, prev_inset, new_inset)
 
-          --add intersection point to new polygon
-          APPEND_NODE(out_polygon, status)
-          out_polygon[PATH_LEN(out_polygon)].coords = new_inset.r0
-          out_polygon[PATH_LEN(out_polygon)].polygon = poly_count
+          -- add inset vertex
+          add_inset(new_inset.r0, poly_count, inset_amount, out_hull, out_polygon)
 
           prev_line = new_line
 
@@ -731,10 +752,8 @@ ROUTINE draw__inset_polygon
           --find intersection of inset lines
           draw__line_inset(prev_line, new_line, inset_amount, prev_inset, new_inset)
 
-          --add intersection point to new polygon
-          APPEND_NODE(out_polygon, status)
-          out_polygon[PATH_LEN(out_polygon)].coords = new_inset.r0
-          out_polygon[PATH_LEN(out_polygon)].polygon = poly_count
+          -- add inset vertex
+          add_inset(new_inset.r0, poly_count, inset_amount, out_hull, out_polygon)
 
           --uninitialize prev_line
           prev_line = uninit_line
@@ -754,10 +773,8 @@ ROUTINE draw__inset_polygon
           --find intersection of inset lines
           draw__line_inset(prev_line, new_line, inset_amount, prev_inset, new_inset)
 
-          --add intersection point to new polygon
-          APPEND_NODE(out_polygon, status)
-          out_polygon[PATH_LEN(out_polygon)].coords = new_inset.r0
-          out_polygon[PATH_LEN(out_polygon)].polygon = poly_count
+          -- add inset vertex
+          add_inset(new_inset.r0, poly_count, inset_amount, out_hull, out_polygon)
 
           prev_line = new_line
 
