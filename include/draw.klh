@@ -31,7 +31,8 @@ declare_function(prog_name,SEGMENT_to_SEGMENT2D,prog_name_alias,cnvs2d)
 ROUTINE draw__SEGMENT_to_SEGMENT2D(l : t_SEGMENT; frame : XYZWPR) : t_SEGMENT2D FROM draw
 declare_function(prog_name,SEGMENT2D_to_SEGMENT,prog_name_alias,cnvs3d)
 ROUTINE draw__SEGMENT2D_to_SEGMENT(l : t_SEGMENT2D; frame : XYZWPR) : t_SEGMENT FROM draw
-
+declare_function(prog_name,raster2d_to_raster,prog_name_alias,ras3d)
+ROUTINE draw__raster2d_to_raster(lines : PATH nodedata = t_SEGMENT2D; frame : XYZWPR; lines3d : PATH nodedata = t_SEGMENT) FROM draw
 
 declare_function(prog_name,perpendicular_vector,prog_name_alias,perpv)
 ROUTINE draw__perpendicular_vector(v : VECTOR) : VECTOR FROM draw

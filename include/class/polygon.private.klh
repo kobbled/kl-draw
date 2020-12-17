@@ -1,0 +1,16 @@
+%ifndef polygon_private_h
+%define polygon_private_h
+
+--oop
+%include namespace.m
+
+declare_member(class_name,clear_hull,class_name,clru)
+ROUTINE clear_hull FROM class_name
+declare_member(class_name,clear_poly,class_name,clrp)
+ROUTINE clear_poly(p : PATH nodedata = t_VERTEX) FROM class_name
+declare_member(class_name,clear_lines,class_name,clrl)
+ROUTINE clear_lines FROM class_name
+declare_member(class_name,new_sub_poly,class_name,nply)
+ROUTINE new_sub_poly(polygon : INTEGER) FROM class_name
+
+%endif --polygon_private_h

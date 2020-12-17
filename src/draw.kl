@@ -99,6 +99,17 @@ ROUTINE draw__SEGMENT2D_to_SEGMENT
     RETURN(l2)
   END draw__SEGMENT2D_to_SEGMENT
 
+ROUTINE draw__raster2d_to_raster
+  VAR
+    i : INTEGER
+    status : INTEGER
+  BEGIN
+    FOR i=1 TO PATH_LEN(lines) DO
+      APPEND_NODE(lines3d, status)
+      lines3d[PATH_LEN(lines3d)] = draw__SEGMENT2D_to_SEGMENT(lines[i], frame)
+    ENDFOR
+  END draw__raster2d_to_raster
+
 
 ROUTINE draw__perpendicular_vector
   VAR

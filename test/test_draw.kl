@@ -12,11 +12,13 @@ VAR
   poly_inset : PATH nodedata = t_VERTEX
   hull : PATH nodedata = t_VERTEX
   lines : PATH nodedata = t_SEGMENT2D
+  world_lines : PATH nodedata = t_SEGMENT
 
 %include kunit.klh
 %include draw.klh
 %include draw.private.klh
 
+%class tstpoly('polygon.klc', 'polygon.klh')
 
 
 ROUTINE clear_path(p : PATH nodedata = t_VERTEX)
@@ -40,6 +42,17 @@ ROUTINE clear_lines(p : PATH nodedata = t_SEGMENT2D)
       i = i - 1
 	  ENDWHILE
   END clear_lines
+
+ROUTINE clear_line3d(p : PATH nodedata = t_SEGMENT)
+  VAR
+    i, status : INTEGER
+  BEGIN
+    i = PATH_LEN(p)
+    WHILE PATH_LEN(p) > 0 DO
+		  DELETE_NODE(p,i,status)
+      i = i - 1
+	  ENDWHILE
+  END clear_line3d
 
 ROUTINE append_nodes(p : PATH nodedata = t_VERTEX; nodes : INTEGER)
   VAR
@@ -706,8 +719,43 @@ ROUTINE t_trace : BOOLEAN
            kunit_eq_vec(exp_line[6].r0, lines[18].r0) AND kunit_eq_vec(exp_line[6].r1, lines[18].r1) )
 
   END t_trace
+
+ROUTINE t_class_poly : BOOLEAN
+  VAR
+    arr_poly : ARRAY[10] OF VECTOR
+  BEGIN
+
+    tstpoly__clear
+
+    --set canvas
+    tstpoly__set_canvas(POS(212.132,40,212.132,0,-45,0,(ZEROPOS(1).Config_data)))
+
+    --draw polygon
+    arr_poly[1] = VEC2D(6,0)
+    arr_poly[2] = VEC2D(10,0)
+    arr_poly[3] = VEC2D(10,1)
+    arr_poly[4] = VEC2D(8,1)
+    arr_poly[5] = VEC2D(8,3)
+    arr_poly[6] = VEC2D(9,3)
+    arr_poly[7] = VEC2D(9,2)
+    arr_poly[8] = VEC2D(10,2)
+    arr_poly[9] = VEC2D(10,4)
+    arr_poly[10] = VEC2D(6,4)
+
+    tstpoly__append_polygon(arr_poly)
+    --raster lines
+    tstpoly__raster(0.2, 0.2, 2, 45)
+
+    --convert to world
+    clear_line3d(world_lines)
+    tstpoly__world_transform(world_lines)
+
+
+    RETURN(TRUE)
+  END t_class_poly
+
 BEGIN
-  --total asserts 99
+  total asserts 111
   kunit_test('test line intersection', t_intersect) -- asserts 10 
   kunit_test('test finding min and max points in polygon', t_anchr_pnts) -- asserts 4
   kunit_test('test convex hull star shape', t_convhull) -- asserts 4
@@ -722,5 +770,6 @@ BEGIN
   kunit_test('inset oblong T shape', t_inset) --asserts 5
   kunit_test('inset multiple polygons', t_inset_mult) --asserts 10
   kunit_test('trace lines around star polygon', t_trace) --asserts 12
+  kunit_test('test polygon class', t_class_poly)
   kunit_done
 END test_draw

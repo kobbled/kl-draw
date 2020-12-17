@@ -12,7 +12,8 @@
     "test/test_draw.kl"
   ],
   "includes" : [
-    "include"
+    "include",
+    "include/class"
   ],
   "depends" : [
     "shapes",

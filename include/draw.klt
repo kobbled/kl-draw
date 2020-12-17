@@ -38,11 +38,6 @@ TYPE
     polygon : BYTE
   ENDSTRUCTURE
 
-  HDR_POLYGON FROM draw = STRUCTURE
-%define max_polygons 20
-    polygons : BYTE
-  ENDSTRUCTURE
-
   t_TRIANGLE FROM draw = STRUCTURE
     --verticies
     verts : ARRAY[3] OF VECTOR
