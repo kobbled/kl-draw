@@ -785,6 +785,27 @@ ROUTINE draw__inset_polygon
     ENDFOR
   END draw__inset_polygon
 
+ROUTINE draw__trace
+  VAR
+    i : INTEGER
+    align_vec : VECTOR
+    min_hull : INTEGER
+    start_vert, end_vert : INTEGER
+    status : INTEGER
+  BEGIN
+    --y-axis vector
+    align_vec = draw__angle_to_vector(start_angle + 90)
+    min_hull = draw__find_min(polygon, align_vec)
+
+    FOR i=1 TO PATH_LEN(polygon) DO
+      start_vert = ((min_hull+i-2) MOD PATH_LEN(polygon)) + 1
+      end_vert = ((min_hull+i+1-2) MOD PATH_LEN(polygon)) + 1
+      APPEND_NODE(out_lines, status)
+      out_lines[PATH_LEN(out_lines)].r0 = polygon[start_vert].coords
+      out_lines[PATH_LEN(out_lines)].r1 = polygon[end_vert].coords
+    ENDFOR
+  END draw__trace
+
 BEGIN
 END draw
 

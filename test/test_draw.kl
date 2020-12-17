@@ -658,6 +658,54 @@ ROUTINE t_inset_mult : BOOLEAN
            kunit_eq_int((polygon3[2].nextPoly), (poly_inset[2].nextPoly)) AND kunit_eq_int((polygon3[7].nextPoly), (poly_inset[7].nextPoly)) )
   END t_inset_mult
 
+ROUTINE t_trace : BOOLEAN
+  VAR
+    exp_line : ARRAY[6] OF t_SEGMENT2D
+  BEGIN
+    --clear lines 
+    clear_lines(lines)
+
+    --set polygon
+    clear_path(polygon1)
+    append_nodes(polygon1, 10)
+    polygon1[1].coords = VEC2D(0,6)
+    polygon1[2].coords = VEC2D(-1,4)
+    polygon1[3].coords = VEC2D(-3,4)
+    polygon1[4].coords = VEC2D(-1,3)
+    polygon1[5].coords = VEC2D(-2,0)
+    polygon1[6].coords = VEC2D(0,2)
+    polygon1[7].coords = VEC2D(2,0)
+    polygon1[8].coords = VEC2D(1,3)
+    polygon1[9].coords = VEC2D(3,4)
+    polygon1[10].coords = VEC2D(1,4)
+
+    --draw lines around polygon
+    draw__trace(polygon1, 0, lines)
+
+    --clear inset
+    clear_path(poly_inset)
+    --inset polygon
+    draw__inset_polygon(polygon1, 0.5, hull, poly_inset)
+
+    --draw lines around inset
+    draw__trace(poly_inset, 45, lines)
+
+    --expected lines
+    exp_line[1].r0 = VEC2D(3,4) ; exp_line[1].r1 = VEC2D(1,4) --lines[5]
+    exp_line[2].r0 = VEC2D(-1,4) ; exp_line[2].r1 = VEC2D(-3,4) --lines[8]
+    exp_line[3].r0 = VEC2D(-1,3) ; exp_line[3].r1 = VEC2D(-2,0) --lines[10]
+    exp_line[4].r0 = VEC2D(0.855,1.851) ; exp_line[4].r1 = VEC2D(0.388,3.253) --lines[11]
+    exp_line[5].r0 = VEC2D(0,4.882) ; exp_line[5].r1 = VEC2D(-0.691,3.5) --lines[14]
+    exp_line[6].r0 = VEC2D(0,2.707) ; exp_line[6].r1 = VEC2D(0.855,1.851) --lines[18]
+
+    RETURN(kunit_eq_vec(exp_line[1].r0, lines[5].r0) AND kunit_eq_vec(exp_line[1].r1, lines[5].r1) AND &
+           kunit_eq_vec(exp_line[2].r0, lines[8].r0) AND kunit_eq_vec(exp_line[2].r1, lines[8].r1) AND &
+           kunit_eq_vec(exp_line[3].r0, lines[10].r0) AND kunit_eq_vec(exp_line[3].r1, lines[10].r1) AND &
+           kunit_eq_vec(exp_line[4].r0, lines[11].r0) AND kunit_eq_vec(exp_line[4].r1, lines[11].r1) AND &
+           kunit_eq_vec(exp_line[5].r0, lines[14].r0) AND kunit_eq_vec(exp_line[5].r1, lines[14].r1) AND &
+           kunit_eq_vec(exp_line[6].r0, lines[18].r0) AND kunit_eq_vec(exp_line[6].r1, lines[18].r1) )
+
+  END t_trace
 BEGIN
   --total asserts 99
   kunit_test('test line intersection', t_intersect) -- asserts 10 
@@ -673,5 +721,6 @@ BEGIN
   kunit_test('raster polygon', t_raster1) --asserts 24
   kunit_test('inset oblong T shape', t_inset) --asserts 5
   kunit_test('inset multiple polygons', t_inset_mult) --asserts 10
+  kunit_test('trace lines around star polygon', t_trace) --asserts 12
   kunit_done
 END test_draw
