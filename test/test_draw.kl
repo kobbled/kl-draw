@@ -744,18 +744,17 @@ ROUTINE t_class_poly : BOOLEAN
 
     tstpoly__append_polygon(arr_poly)
     --raster lines
-    tstpoly__raster(0.2, 0.2, 2, 45)
+    tstpoly__raster(0.2, 0.1, 2, 45)
 
     --convert to world
     clear_line3d(world_lines)
     tstpoly__world_transform(world_lines)
 
-
     RETURN(TRUE)
   END t_class_poly
 
 BEGIN
-  total asserts 111
+  --total asserts 111
   kunit_test('test line intersection', t_intersect) -- asserts 10 
   kunit_test('test finding min and max points in polygon', t_anchr_pnts) -- asserts 4
   kunit_test('test convex hull star shape', t_convhull) -- asserts 4
