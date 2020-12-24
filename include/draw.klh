@@ -20,6 +20,8 @@ declare_function(prog_name,vec2d_to_vec,prog_name_alias,cnvvec)
 ROUTINE draw__vec2d_to_vec(v : VECTOR; frame : XYZWPR) : VECTOR FROM draw
 declare_function(prog_name,vec2d_to_pos,prog_name_alias,cnvpos)
 ROUTINE draw__vec2d_to_pos(v : VECTOR; frame : XYZWPR) : XYZWPR FROM draw
+declare_function(prog_name,pos_to_vec2d,prog_name_alias,cnvps2)
+ROUTINE draw__pos_to_vec2d(p : XYZWPR; frame : XYZWPR) : VECTOR FROM draw
 
 declare_function(prog_name,LINE_to_LINE2D,prog_name_alias,cnvl2d)
 --frame is the 2d drawing frame

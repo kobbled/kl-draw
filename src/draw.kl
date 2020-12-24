@@ -10,7 +10,7 @@ PROGRAM draw
 
 %include systemlib.klh
 %from errors.klh %import CHK_STAT
-%from math.klh %import norm, norm2, average_vector, ceil
+%include math.klh
 %include draw.klh
 %include draw.private.klh
 
@@ -58,6 +58,18 @@ ROUTINE draw__vec2d_to_pos
 
     RETURN(p)
   END draw__vec2d_to_pos
+
+ROUTINE draw__pos_to_vec2d
+  VAR
+    p_trans : XYZWPR
+    v : VECTOR
+  BEGIN
+    --get vector relative to frame
+    p_trans = INV((frame)):p
+    --remove z componenet
+    v.x = p_trans.x ; v.y = p_trans.y ; v.z = 0 ;
+    RETURN(v)
+  END draw__pos_to_vec2d
 
 ROUTINE draw__LINE_to_LINE2D
   VAR
