@@ -301,6 +301,15 @@ ROUTINE draw__point_collision_convex
       ENDIF
     ENDFOR
 
+    --last line
+    sp = end_node
+    ep = start_node
+    cross = (polygon[ep].coords - polygon[sp].coords)#(v-polygon[sp].coords)
+    IF cross.z < 0 THEN
+      RETURN(FALSE)
+    ENDIF
+
+
     RETURN(TRUE)
   END draw__point_collision_convex
 
@@ -327,6 +336,14 @@ ROUTINE draw__point_avoid_convex
         RETURN(FALSE)
       ENDIF
     ENDFOR
+
+    --last line
+    sp = end_node
+    ep = start_node
+    cross = (polygon[ep].coords - polygon[sp].coords)#(v-polygon[sp].coords)
+    IF cross.z > 0 THEN
+      RETURN(FALSE)
+    ENDIF
 
     RETURN(TRUE)
   END draw__point_avoid_convex
