@@ -377,8 +377,9 @@ ROUTINE draw__point_collision_polygon
       ENDIF
     ENDFOR
 
-    --if any, test if point is
-    --inside these areas
+    --if any reflexive points, draw a polygon
+    --around these reflexive points. see
+    --if point is inside this area
     IF j > 0 THEN
       --endflag
       j = j + 1
@@ -554,7 +555,8 @@ ROUTINE draw__clip_line_with_poly
 %define total_clips 20
     clippedverts : ARRAY[total_clips] OF t_VERT_CLIP
     i,j : INTEGER
-    next_vert : t_VERTEX
+    min_i : INTEGER
+    curr_vert, next_vert : t_VERTEX
     poly_seg : t_SEGMENT2D
     line_alpha, poly_alpha : REAL
     intersect : BOOLEAN
@@ -579,11 +581,17 @@ ROUTINE draw__clip_line_with_poly
       entryexit = FALSE
     ENDIF
 
+    --start at min vertex in polygon relative to clip line
+    --min_i = draw__find_min(polygon, (line.r1-line.r0)/math__norm(line.r1-line.r0))
+
     FOR i=1 TO PATH_LEN(polygon) DO
       --increment loop
+      --min_i+i
+      curr_vert = polygon[((i-1) MOD PATH_LEN(polygon)) + 1]
+      --min_i+i+1
       next_vert = polygon[((i+1-1) MOD PATH_LEN(polygon)) + 1]
-      IF (polygon[i].polygon = next_vert.polygon) THEN 
-        poly_seg.r0 = polygon[i].coords
+      IF (curr_vert.polygon = next_vert.polygon) THEN 
+        poly_seg.r0 = curr_vert.coords
         poly_seg.r1 = next_vert.coords
         --find intersection
         --intersection is read from left of the subject line to the right
@@ -594,7 +602,7 @@ ROUTINE draw__clip_line_with_poly
           clippedverts[j].coords = (1-line_alpha)*line.r0 + line_alpha*line.r1
           clippedverts[j].alpha = line_alpha
           clippedverts[j].intersect = intersect
-          clippedverts[j].polygon = polygon[i].polygon
+          clippedverts[j].polygon = curr_vert.polygon
         ENDIF
       ENDIF
     ENDFOR
@@ -611,10 +619,11 @@ ROUTINE draw__clip_line_with_poly
 
       FOR i=2 TO j DO
         entryexit = NOT entryexit
-        clippedverts[j].entry_exit = entryexit
+        clippedverts[i].entry_exit = entryexit
         
         --add new clipped line segment on exit node
-        IF NOT entryexit THEN
+        --dont add if length of line = 0
+        IF (NOT entryexit) AND (clippedverts[i-1].coords <> clippedverts[i].coords) THEN
           APPEND_NODE(out_lines, status)
           out_lines[PATH_LEN(out_lines)].r0 = clippedverts[i-1].coords
           out_lines[PATH_LEN(out_lines)].r1 = clippedverts[i].coords
@@ -623,8 +632,8 @@ ROUTINE draw__clip_line_with_poly
 
       --if there is an entry node with no corresponding exit node
       IF entryexit THEN
-        --check if enpoint of the line is inside the polygon
-        collision = draw__point_collision_polygon(line.r0, polygon, hull)
+        --check if endpoint of the line is inside the polygon
+        collision = draw__point_collision_polygon(line.r1, polygon, hull)
         IF collision THEN
           APPEND_NODE(out_lines, status)
           out_lines[PATH_LEN(out_lines)].r0 = clippedverts[j].coords
@@ -638,10 +647,10 @@ ROUTINE draw__clip_line_with_poly
 ROUTINE draw__raster_lines
   VAR
     i : INTEGER
+    inc : INTEGER
     bbox : t_RECT
     new_line : t_SEGMENT2D
     startpoint,endpoint : VECTOR
-    no_of_lines : INTEGER
     status : INTEGER
   BEGIN
     --draw convex hull around polygon
@@ -651,7 +660,7 @@ ROUTINE draw__raster_lines
     --define how many lines will be made based on height of box
     --and line pitch
     -- no_of_lines = ceil((box_height-line_width)/pitch)
-    --inc = math__ceil((math__norm(bbox.verts[4]-bbox.verts[1])-line_width)/line_pitch)
+    inc = math__ceil((math__norm(bbox.verts[4]-bbox.verts[1])-line_width)/line_pitch)
 
     --all boundaries are assumed to be ordered counterclockwise
     startpoint = bbox.vec[1]*(line_width/2) + bbox.verts[1]
@@ -660,14 +669,13 @@ ROUTINE draw__raster_lines
     --repeat until clipping stops producing lines
     i = 0
     REPEAT
-      no_of_lines = PATH_LEN(out_lines)
       new_line.r0 = bbox.vec[1]*line_pitch*(i) + startpoint
       new_line.r1 = bbox.vec[1]*line_pitch*(i) + endpoint
       --clip lines to polygon
       draw__clip_line_with_poly(new_line, polygon, out_hull, out_lines)
 
       i = i + 1
-    UNTIL(PATH_LEN(out_lines) = no_of_lines)
+    UNTIL(i > inc)
 
     --return out_lines
 
@@ -778,13 +786,13 @@ ROUTINE draw__inset_polygon
           draw__line_inset(prev_line, new_line, inset_amount, prev_inset, new_inset)
 
           -- add inset vertex
-          add_inset(new_inset.r0, poly_count, inset_amount, out_hull, out_polygon)
+          add_inset(prev_inset.r1, poly_count, inset_amount, out_hull, out_polygon)
 
           prev_line = new_line
 
           --close polygon, on the first vertex
           curr_vert = polygon[first_vert]
-          next_vert = polygon[first_vert+1]
+          next_vert = polygon[((first_vert+1-1) MOD PATH_LEN(polygon)) + 1]
 
           --next line
           new_line.r0 = curr_vert.coords ; new_line.r1 = next_vert.coords ;
@@ -793,7 +801,7 @@ ROUTINE draw__inset_polygon
           draw__line_inset(prev_line, new_line, inset_amount, prev_inset, new_inset)
 
           -- add inset vertex
-          add_inset(new_inset.r0, poly_count, inset_amount, out_hull, out_polygon)
+          add_inset(prev_inset.r1, poly_count, inset_amount, out_hull, out_polygon)
 
           --uninitialize prev_line
           prev_line = uninit_line
@@ -814,7 +822,7 @@ ROUTINE draw__inset_polygon
           draw__line_inset(prev_line, new_line, inset_amount, prev_inset, new_inset)
 
           -- add inset vertex
-          add_inset(new_inset.r0, poly_count, inset_amount, out_hull, out_polygon)
+          add_inset(prev_inset.r1, poly_count, inset_amount, out_hull, out_polygon)
 
           prev_line = new_line
 
