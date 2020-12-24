@@ -829,6 +829,45 @@ ROUTINE draw__trace
     ENDFOR
   END draw__trace
 
+ROUTINE draw_hexagon
+  VAR 
+    i, pthlen : INTEGER
+    status : INTEGER
+    ang : REAL
+    p : XYZWPR
+    trans : VECTOR
+    vert : VECTOR
+    poly_count : INTEGER
+  BEGIN
+    --get current length of path
+    pthlen = PATH_LEN(out_poly)
+    IF (pthlen = 0) OR UNINIT(pthlen) THEN
+      pthlen = 1
+      poly_count = 1
+    ELSE
+      IF (out_poly[pthlen].polygon <> 255) THEN
+        poly_count = out_poly[pthlen].polygon + 1
+      ELSE
+        poly_count = 1
+      ENDIF
+    ENDIF
+
+    --make radius vector
+    trans.x = radius ; trans.y = 0 ; trans.z = 0 ;
+
+    FOR i=0 TO (verticies-1) DO
+      ang = (i*2*M_PI/verticies)*M_RAD2DEG
+      p = math__rotz(math__translate(math__rotz((origin), ang), trans), -ang)
+      vert.x = p.x ; vert.y = p.y ; vert.z = p.z ;
+
+      APPEND_NODE(out_poly, status)
+      out_poly[pthlen].coords = vert
+      out_poly[pthlen].polygon = poly_count
+      --increment path length as it may not be tha same as i+1
+      pthlen = pthlen + 1
+    ENDFOR
+  END draw_hexagon
+
 BEGIN
 END draw
 
