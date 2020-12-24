@@ -13,8 +13,12 @@ declare_member(class_name,set_canvas,class_name,scnv)
 ROUTINE set_canvas(frm : XYZWPR) FROM class_name
 declare_member(class_name,append_vertex,class_name,avrt)
 ROUTINE append_vertex(vertex : VECTOR; polygon : INTEGER) FROM class_name
-declare_member(class_name,append_polygon,class_name,aply)
-ROUTINE append_polygon(verticies : ARRAY[*] OF VECTOR) FROM class_name
+declare_member(class_name,append_polygon,class_name,aplp)
+ROUTINE append_polygon(verticies : PATH nodedata = t_VERTEX) FROM class_name
+declare_member(class_name,append_polygon_array,class_name,apla)
+ROUTINE append_polygon_array(verticies : ARRAY[*] OF VECTOR) FROM class_name
+declare_member(class_name,get_lines,class_name,glns)
+ROUTINE get_lines(start_i : INTEGER; end_i : INTEGER; out_lines : PATH nodedata = t_SEGMENT2D) FROM class_name
 declare_member(class_name,raster,class_name,rast)
 ROUTINE raster(line_width : REAL; line_pitch : REAL ; wall_lines : INTEGER; raster_angle : REAL) FROM class_name
 declare_member(class_name,world_transform,class_name,wtrs)

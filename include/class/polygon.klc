@@ -36,6 +36,7 @@ ROUTINE clear_hull
     i = PATH_LEN(hull)
     WHILE PATH_LEN(hull) > 0 DO
 		  DELETE_NODE(hull,i,status)
+      CHK_STAT(status)
       i = i - 1
 	  ENDWHILE
   END clear_hull
@@ -48,6 +49,7 @@ ROUTINE clear_poly
     i = PATH_LEN(p)
     WHILE PATH_LEN(p) > 0 DO
 		  DELETE_NODE(p,i,status)
+      CHK_STAT(status)
       i = i - 1
 	  ENDWHILE
   END clear_poly
@@ -60,6 +62,7 @@ ROUTINE clear_lines
     i = PATH_LEN(lines)
     WHILE PATH_LEN(lines) > 0 DO
 		  DELETE_NODE(lines,i,status)
+      CHK_STAT(status)
       i = i - 1
 	  ENDWHILE
   END clear_lines
@@ -94,6 +97,33 @@ ROUTINE new_sub_poly
 
   END new_sub_poly
 
+ROUTINE update_last_poly
+  VAR
+    i : INTEGER
+    polygon : INTEGER
+  BEGIN
+    --append pointer to next polygon if other
+    --polygons exist
+    i = PATH_LEN(this)
+    IF i > 0 THEN
+      -- ..danger:: polygon is a BYTE. Defaults to 255.
+      IF this[i].polygon < 255 THEN
+        polygon = this[i].polygon
+      ELSE
+        polygon = 1
+      ENDIF
+      -- ..danger:: nextPoly is SHORT defaults to 32767. change if changing type.
+      WHILE (i > 0) OR (this[i].nextPoly = 32767) OR UNINIT(this[i].nextPoly) DO
+        this[i].nextPoly = PATH_LEN(this) + 1
+        i = i - 1
+      ENDWHILE
+    ELSE
+      polygon = 1
+    ENDIF
+
+    RETURN(polygon)
+  END update_last_poly
+
 -- ** public **
 
 ROUTINE clear
@@ -114,6 +144,8 @@ ROUTINE clear
     --clear to sub path
     clear_poly(sub_poly)
     clear_poly(dummy_poly1)
+
+    clear_lines
   END clear
 
 ROUTINE set_canvas
@@ -142,33 +174,37 @@ ROUTINE append_polygon
     i : INTEGER
     polygon : INTEGER
   BEGIN
-    --append pointer to next polygon if other
-    --polygons exist
-    i = PATH_LEN(this)
-    IF i > 0 THEN
-      -- ..danger:: polygon is a BYTE. Defaults to 255.
-      IF this[i].polygon < 255 THEN
-        polygon = this[i].polygon
-      ELSE
-        polygon = 1
-      ENDIF
-      -- ..danger:: nextPoly is SHORT defaults to 32767. change if changing type.
-      WHILE (i > 0) OR (this[i].nextPoly = 32767) OR UNINIT(this[i].nextPoly) DO
-        this[i].nextPoly = PATH_LEN(this) + 1
-        i = i - 1
-      ENDWHILE
-    ELSE
-      polygon = 1
-    ENDIF
+    polygon = update_last_poly
+
+    FOR i=1 TO PATH_LEN(verticies) DO
+      append_vertex(verticies[i].coords, (polygon))
+    ENDFOR
+  END append_polygon
+
+ROUTINE append_polygon_array
+  VAR
+    i : INTEGER
+    polygon : INTEGER
+  BEGIN
+    polygon = update_last_poly
 
     FOR i=1 TO ARRAY_LEN(verticies) DO
       append_vertex(verticies[i], (polygon))
     ENDFOR
-  END append_polygon
+  END append_polygon_array
+
+
+ROUTINE get_lines
+  VAR
+    status : INTEGER
+  BEGIN
+    COPY_PATH(lines, start_i, end_i, out_lines, status)
+    CHK_STAT(status)
+  END get_lines
 
 ROUTINE raster
   VAR
-    i : INTEGER
+    i, status : INTEGER
   BEGIN
     --use full polygon if sub_poly is
     --not defined
@@ -190,6 +226,10 @@ ROUTINE raster
       draw__trace(dummy_poly1, 0, lines)
       i = i + 1
     ENDWHILE
+
+    IF wall_lines = 0 THEN
+      COPY_PATH(sub_poly, 1 , PATH_LEN(sub_poly), dummy_poly1, status)
+    ENDIF
 
     --raster the interior
     draw__raster_lines(dummy_poly1, hull, raster_angle, line_width, line_pitch, lines)
