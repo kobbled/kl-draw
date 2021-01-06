@@ -9,6 +9,7 @@ PROGRAM class_name
 %include namespace.m
 
 %include errors.klt
+%include systemlib.klt
 %include draw.klt
 
 VAR
@@ -80,7 +81,7 @@ ROUTINE new_sub_poly
       REPEAT
         nde_strt = i
         --handle uninitialized nextPoly
-        IF this[i].nextPoly = 32767 THEN
+        IF this[i].nextPoly = DEFAULT_SHORT THEN
           nde_end = PATH_LEN(this)
         ELSE
           nde_end = this[i].nextPoly - 1
@@ -107,13 +108,13 @@ ROUTINE update_last_poly
     i = PATH_LEN(this)
     IF i > 0 THEN
       -- ..danger:: polygon is a BYTE. Defaults to 255.
-      IF this[i].polygon < 255 THEN
+      IF this[i].polygon < DEFAULT_BYTE THEN
         polygon = this[i].polygon
       ELSE
         polygon = 1
       ENDIF
       -- ..danger:: nextPoly is SHORT defaults to 32767. change if changing type.
-      WHILE (i > 0) OR (this[i].nextPoly = 32767) OR UNINIT(this[i].nextPoly) DO
+      WHILE (i > 0) OR (this[i].nextPoly = DEFAULT_SHORT) OR UNINIT(this[i].nextPoly) DO
         this[i].nextPoly = PATH_LEN(this) + 1
         i = i - 1
       ENDWHILE
