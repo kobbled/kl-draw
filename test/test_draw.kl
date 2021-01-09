@@ -870,4 +870,7 @@ BEGIN
   --          draw__clip_line_with_poly, of array size 4.
   -- kunit_test('test polygon class with c-shape', t_class_poly)
   kunit_done
+
+  --destruct classes
+  tstpoly__clear
 END test_draw
