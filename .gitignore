@@ -2,3 +2,5 @@
 robot.ini
 bin/
 build/
+plots/
+src/test_plot.py
