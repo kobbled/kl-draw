@@ -1,5 +1,6 @@
 PROGRAM test_draw
 %NOLOCKGROUP
+%STACKSIZE = 600
 
 %include systemvars.klt
 %include paths.klt

@@ -3,6 +3,7 @@ PROGRAM draw
 %COMMENT = '2d library'
 %NOLOCKGROUP
 %NOPAUSE = COMMAND + TPENABLE + ERROR
+%STACKSIZE = 500
 
 %include systemvars.klt
 %include math.klt
