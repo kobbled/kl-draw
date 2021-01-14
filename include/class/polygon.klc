@@ -11,6 +11,7 @@ PROGRAM class_name
 %include errors.klt
 %include systemvars.klt
 %include systemlib.klt
+%include paths.klt
 %include draw.klt
 
 VAR
@@ -19,9 +20,9 @@ VAR
   hull : PATH nodedata = t_VERTEX
 
   lines : PATH nodedata = t_SEGMENT2D
+  contours : PATH nodedata = t_VEC_PATH
   canvas : XYZWPR
-
-  dummy_poly1 : PATH nodedata = t_VERTEX
+  params : t_RASTER
 
 %include errors.klh
 %include draw.klh
@@ -69,6 +70,19 @@ ROUTINE clear_lines
       i = i - 1
 	  ENDWHILE
   END clear_lines
+
+ROUTINE clear_contours
+  VAR
+    i : INTEGER
+    status : INTEGER
+  BEGIN
+    i = PATH_LEN(contours)
+    WHILE PATH_LEN(contours) > 0 DO
+		  DELETE_NODE(contours,i,status)
+      CHK_STAT(status)
+      i = i - 1
+	  ENDWHILE
+  END clear_contours
 
 ROUTINE new_sub_poly
   VAR
@@ -145,7 +159,6 @@ ROUTINE clear
     clear_hull
     --clear to sub path
     clear_poly(sub_poly)
-    clear_poly(dummy_poly1)
 
     clear_lines
   END clear
@@ -154,6 +167,20 @@ ROUTINE set_canvas
   BEGIN
     canvas = frm
   END set_canvas
+
+ROUTINE set_params
+  BEGIN
+    params.start_angle = start_angle
+    params.dir = dir
+    params.wall_lines = wall_lines
+    params.line_width = line_width
+    params.line_pitch = line_pitch
+  END set_params
+
+ROUTINE get_params
+  BEGIN
+    RETURN(params)
+  END get_params
 
 ROUTINE append_vertex
   VAR
@@ -204,37 +231,43 @@ ROUTINE get_lines
     CHK_STAT(status)
   END get_lines
 
-ROUTINE raster
+ROUTINE trace
   VAR
-    i, status : INTEGER
+    i : INTEGER
   BEGIN
     --use full polygon if sub_poly is
     --not defined
     IF PATH_LEN(sub_poly) = 0 THEN
       new_sub_poly(0)
     ENDIF
-    --clear previous lines
-    clear_lines
+
+    --clear previous contours
+    clear_contours
 
     --get walls
     i = 0
-    WHILE (i < wall_lines) DO
+    WHILE (i < params.wall_lines) DO
       --clear inset
-      clear_poly(dummy_poly1)
+      clear_poly(sub_poly)
       --inset by width of line to fill
       --within boundaries
-      draw__inset_polygon(sub_poly, (line_width/2 + i*line_pitch), hull, dummy_poly1)
+      draw__inset_polygon(this, (params.line_width/2 + i*params.line_pitch), hull, sub_poly)
       --trace polygon
-      draw__trace(dummy_poly1, 0, lines)
+      draw__trace(sub_poly, params.start_angle, (params.dir), PTH_LINETO, contours)
       i = i + 1
     ENDWHILE
 
-    IF wall_lines = 0 THEN
-      COPY_PATH(sub_poly, 1 , PATH_LEN(sub_poly), dummy_poly1, status)
-    ENDIF
+  END trace
 
+ROUTINE raster
+  VAR
+    i, status : INTEGER
+  BEGIN
+    clear_lines
+    --trace contours if wall_lines > 0
+    trace
     --raster the interior
-    draw__raster_lines(dummy_poly1, hull, raster_angle, line_width, line_pitch, lines)
+    draw__raster_lines(sub_poly, hull, params.start_angle, params.line_width, params.line_pitch, lines)
 
   END raster
 

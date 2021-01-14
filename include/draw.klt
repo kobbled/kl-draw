@@ -50,5 +50,19 @@ TYPE
     center : VECTOR
   ENDSTRUCTURE
 
+  t_RASTER FROM shapes = STRUCTURE
+    --angle to start trace and raster
+    start_angle : REAL
+    --travel direction of trace
+    -- ccw = 1 cw = -1
+    dir : SHORT
+    -- no contour lines are drawn if wall_lines=0
+    wall_lines : SHORT
+    --width of a line
+    line_width : REAL
+    --line overlap distance
+    line_pitch : REAL
+  ENDSTRUCTURE
+
 
 %endif --draw_t

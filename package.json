@@ -19,6 +19,7 @@
     "shapes",
     "math",
     "KUnit",
+    "paths",
     "ktransw-macros",
     "systemlib"
   ]

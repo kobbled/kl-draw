@@ -10,6 +10,8 @@ declare_member(class_name,clear_poly,class_name,clrp)
 ROUTINE clear_poly(p : PATH nodedata = t_VERTEX) FROM class_name
 declare_member(class_name,clear_lines,class_name,clrl)
 ROUTINE clear_lines FROM class_name
+declare_member(class_name,clear_contours,class_name,clrc)
+ROUTINE clear_contours FROM class_name
 declare_member(class_name,new_sub_poly,class_name,nply)
 ROUTINE new_sub_poly(polygon : INTEGER) FROM class_name
 declare_member(class_name,update_last_poly,class_name,ulpl)

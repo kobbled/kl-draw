@@ -6,6 +6,7 @@ PROGRAM draw
 
 %include systemvars.klt
 %include math.klt
+%include paths.klt
 %include draw.klt
 
 %include systemlib.klh
@@ -852,14 +853,47 @@ ROUTINE draw__trace
     --y-axis vector
     align_vec = draw__angle_to_vector(start_angle + 90)
     min_hull = draw__find_min(polygon, align_vec)
+    
+    --if out_contour is not empty change code of last
+    --node from PTH_STOP to PTH_CLOSE
+    IF PATH_LEN(out_contour) > 0 THEN
+      IF out_contour[PATH_LEN(out_contour)].code = PTH_STOP THEN
+        out_contour[PATH_LEN(out_contour)].code = PTH_CLOSE
+      ENDIF
+    ENDIF
 
-    FOR i=1 TO PATH_LEN(polygon) DO
-      start_vert = ((min_hull+i-2) MOD PATH_LEN(polygon)) + 1
-      end_vert = ((min_hull+i+1-2) MOD PATH_LEN(polygon)) + 1
-      APPEND_NODE(out_lines, status)
-      out_lines[PATH_LEN(out_lines)].r0 = polygon[start_vert].coords
-      out_lines[PATH_LEN(out_lines)].r1 = polygon[end_vert].coords
-    ENDFOR
+    i = 0
+    cur_poly = 0
+    WHILE (i < PATH_LEN(polygon)) DO
+      --wheel increment
+      vert = ((min_hull+i*dir-1) MOD PATH_LEN(polygon)) + 1
+      APPEND_NODE(out_contour, status)
+      out_contour[PATH_LEN(out_contour)].v = polygon[vert].coords
+      IF UNINIT(polygon[vert].polygon) THEN polygon[vert].polygon = 1 ; ENDIF
+
+      IF polygon[vert].polygon <> cur_poly THEN
+        --end previous contour
+        IF (i > 0) THEN
+          out_contour[PATH_LEN(out_contour)-1].code = PTH_CLOSE
+        ENDIF
+        --start contour
+        out_contour[PATH_LEN(out_contour)].code = PTH_MOVETO
+        --modify start index to tell where to close the polygon
+        strt_idx = vert
+
+        cur_poly = cur_poly + 1
+      ELSE
+        out_contour[PATH_LEN(out_contour)].code = curve_type
+      ENDIF
+      
+      i = i + 1
+    ENDWHILE
+
+    --close off polygon and stop path
+    APPEND_NODE(out_contour, status)
+    out_contour[PATH_LEN(out_contour)].v = polygon[strt_idx].coords
+    out_contour[PATH_LEN(out_contour)].code = PTH_STOP
+
   END draw__trace
 
 ROUTINE draw_hexagon
