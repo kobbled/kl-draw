@@ -276,6 +276,21 @@ ROUTINE world_transform
     draw__raster2d_to_raster(lines, canvas, out_lines)
   END world_transform
 
+ROUTINE hexagon
+  VAR
+    cntr_pnt : XYZWPR
+  BEGIN
+    IF UNINIT(canvas) THEN
+      karelError(VAR_UNINIT,'class_name member "canvas" needs to' + &
+                ' be set before building polygons', ER_ABORT)
+    ENDIF
+
+    cntr_pnt = POS(translation.x,translation.y,translation.z,0,0,rotation,(ZEROPOS(1).Config_data))
+    -- draw hexagon
+    draw__hexagon(radius, verticies, cntr_pnt, this)
+
+  END hexagon
+
 
   BEGIN
   END class_name

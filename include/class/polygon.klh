@@ -30,4 +30,6 @@ declare_member(class_name,raster,class_name,rast)
 ROUTINE raster FROM class_name
 declare_member(class_name,world_transform,class_name,wtrs)
 ROUTINE world_transform(out_lines : PATH nodedata = t_SEGMENT) FROM class_name
+declare_member(class_name,hexagon,class_name,hxgn)
+ROUTINE hexagon(radius : REAL; verticies : INTEGER; translation : VECTOR; rotation : REAL) FROM class_name
 %endif --end header
