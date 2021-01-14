@@ -25,6 +25,7 @@ USERNAME = ""
 PASSWORD = ""
 
 DRAWING_OBJECT = 'TSTPOLY'
+#DRAWING_OBJECT = 'TEST_DRAW'
 SAVE_DIRECTORY = 'plots'
 
 CONTOUR_VARNAME = 'CONTOURS'
@@ -60,8 +61,8 @@ def parseContour():
 
   pattern_code = rf"Field: {CONTOUR_VARNAME}\.NODEDATA\[(\d+)\]\.{CONTOUR_CODE_SUFFIX} Access: RW: INTEGER =\s*(.*)"
   pattern_vector = rf"Field: {CONTOUR_VARNAME}\.NODEDATA\[(\d+)\]\.{CONTOUR_VEC_SUFFIX} Access: RW: VECTOR =\s"
-  patternx = r"X:\s*(\d{0,3}\.\d{1,3})"
-  patterny = r"Y:\s*(\d{0,3}\.\d{1,3})"
+  patternx = r"X:\s*(-?\d{0,3}\.\d{1,3})"
+  patterny = r"Y:\s*(-?\d{0,3}\.\d{1,3})"
 
   with open(parsefile,'r') as f:
 
@@ -109,8 +110,8 @@ def parseLines():
 
   pattern_start = rf"Field: {LINES_VARNAME}\.NODEDATA\[(\d+)\]\.{LINE_START_SUFFIX} Access: RW: VECTOR =\s*(.*)"
   pattern_end = rf"Field: {LINES_VARNAME}\.NODEDATA\[(\d+)\]\.{LINE_END_SUFFIX} Access: RW: VECTOR =\s*(.*)"
-  patternx = r"X:\s*(\d{0,3}\.\d{1,3})"
-  patterny = r"Y:\s*(\d{0,3}\.\d{1,3})"
+  patternx = r"X:\s*(-?\d{0,3}\.\d{1,3})"
+  patterny = r"Y:\s*(-?\d{0,3}\.\d{1,3})"
 
   with open(parsefile,'r') as f:
 
