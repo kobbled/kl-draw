@@ -15,6 +15,7 @@ PROGRAM draw
 %include draw.private.klh
 
 --use for sorted line intersections with polygon
+--..warning:: ** must update template if chaning 't_VERT_CLIP'
 %class srtclp('arraysort.klc','arraysort.klh','sortintrsct.klt')
 
 ROUTINE VEC2D
@@ -588,8 +589,11 @@ ROUTINE draw__clip_line_with_poly
       --increment loop
       --min_i+i
       curr_vert = polygon[((i-1) MOD PATH_LEN(polygon)) + 1]
+      IF UNINIT(curr_vert.polygon) THEN curr_vert.polygon = 1 ; ENDIF
       --min_i+i+1
       next_vert = polygon[((i+1-1) MOD PATH_LEN(polygon)) + 1]
+      IF UNINIT(next_vert.polygon) THEN next_vert.polygon = 1 ; ENDIF
+      
       IF (curr_vert.polygon = next_vert.polygon) THEN 
         poly_seg.r0 = curr_vert.coords
         poly_seg.r1 = next_vert.coords
@@ -751,7 +755,7 @@ ROUTINE draw__inset_polygon
     --check output polygon for verticies
     --get polygon count
     IF PATH_LEN(out_polygon) > 0 THEN
-      IF out_polygon[PATH_LEN(out_polygon)].polygon < 255 THEN
+      IF NOT UNINIT(out_polygon[PATH_LEN(out_polygon)].polygon) THEN
         poly_count = out_polygon[PATH_LEN(out_polygon)].polygon + 1
       ENDIF
     ENDIF
@@ -767,8 +771,10 @@ ROUTINE draw__inset_polygon
     FOR i=1 TO PATH_LEN(polygon) + 1 DO
       --curent vert = i
       curr_vert = polygon[((i-1) MOD PATH_LEN(polygon)) + 1]
+      IF UNINIT(curr_vert.polygon) THEN curr_vert.polygon = 1 ; ENDIF
       --next vert = i+1
       next_vert = polygon[((i+1-1) MOD PATH_LEN(polygon)) + 1]
+      IF UNINIT(next_vert.polygon) THEN next_vert.polygon = 1 ; ENDIF
 
       --next line
       new_line.r0 = curr_vert.coords ; new_line.r1 = next_vert.coords ;
@@ -838,7 +844,9 @@ ROUTINE draw__trace
     i : INTEGER
     align_vec : VECTOR
     min_hull : INTEGER
-    start_vert, end_vert : INTEGER
+    vert : INTEGER
+    cur_poly : INTEGER
+    strt_idx : INTEGER
     status : INTEGER
   BEGIN
     --y-axis vector
@@ -870,7 +878,7 @@ ROUTINE draw_hexagon
       pthlen = 1
       poly_count = 1
     ELSE
-      IF (out_poly[pthlen].polygon <> 255) THEN
+      IF NOT (UNINIT(out_poly[pthlen].polygon)) THEN
         poly_count = out_poly[pthlen].polygon + 1
       ELSE
         poly_count = 1

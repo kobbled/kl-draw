@@ -11,7 +11,7 @@ t_VERT_CLIP FROM draw = STRUCTURE
     entry_exit : BOOLEAN
     intersect : BOOLEAN
     alpha : REAL
-    polygon : BYTE
+    polygon : INTEGER
   ENDSTRUCTURE`
 
 %define define_callback `declare_member(class_name,callback,class_name,call)
