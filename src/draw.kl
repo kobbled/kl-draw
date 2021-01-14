@@ -615,7 +615,7 @@ ROUTINE draw__clip_line_with_poly
     --if any intersection are found
     IF j > 0 THEN
       --sort points by alpha value
-      srtclp__quicksort(clippedverts, 1, j, FALSE)
+      srtclp__bubblesort(clippedverts, 1, j, TRUE)
 
       --label verticies as entry (TRUE) or exit (FALSE) nodes
       --first node will be an entry node
