@@ -24,10 +24,12 @@ declare_member(class_name,append_polygon_array,class_name,apla)
 ROUTINE append_polygon_array(verticies : ARRAY[*] OF VECTOR) FROM class_name
 declare_member(class_name,get_lines,class_name,glns)
 ROUTINE get_lines(start_i : INTEGER; end_i : INTEGER; out_lines : PATH nodedata = t_SEGMENT2D) FROM class_name
+declare_member(class_name,get_contours,class_name,gctr)
+ROUTINE get_contours(start_i : INTEGER; end_i : INTEGER; out_cntrs : PATH nodedata = t_VEC_PATH) FROM class_name
 declare_member(class_name,trace,class_name,trce)
-ROUTINE trace FROM class_name
+ROUTINE trace(line_type : INTEGER) FROM class_name
 declare_member(class_name,raster,class_name,rast)
-ROUTINE raster FROM class_name
+ROUTINE raster(line_type : INTEGER) FROM class_name
 declare_member(class_name,world_transform,class_name,wtrs)
 ROUTINE world_transform(out_lines : PATH nodedata = t_SEGMENT) FROM class_name
 declare_member(class_name,hexagon,class_name,hxgn)

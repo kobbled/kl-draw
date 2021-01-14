@@ -161,6 +161,7 @@ ROUTINE clear
     clear_poly(sub_poly)
 
     clear_lines
+    clear_contours
   END clear
 
 ROUTINE set_canvas
@@ -231,6 +232,14 @@ ROUTINE get_lines
     CHK_STAT(status)
   END get_lines
 
+ROUTINE get_contours
+  VAR
+    status : INTEGER
+  BEGIN
+    COPY_PATH(contours, start_i, end_i, out_cntrs, status)
+    CHK_STAT(status)
+  END get_contours
+
 ROUTINE trace
   VAR
     i : INTEGER
@@ -253,7 +262,7 @@ ROUTINE trace
       --within boundaries
       draw__inset_polygon(this, (params.line_width/2 + i*params.line_pitch), hull, sub_poly)
       --trace polygon
-      draw__trace(sub_poly, params.start_angle, (params.dir), PTH_LINETO, contours)
+      draw__trace(sub_poly, params.start_angle, (params.dir), line_type, contours)
       i = i + 1
     ENDWHILE
 
@@ -265,7 +274,7 @@ ROUTINE raster
   BEGIN
     clear_lines
     --trace contours if wall_lines > 0
-    trace
+    trace(line_type)
     --raster the interior
     draw__raster_lines(sub_poly, hull, params.start_angle, params.line_width, params.line_pitch, lines)
 
