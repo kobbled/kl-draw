@@ -2,6 +2,7 @@ PROGRAM test_draw
 %NOLOCKGROUP
 
 %include systemvars.klt
+%include paths.klt
 %include draw.klt
 
 VAR
@@ -11,6 +12,7 @@ VAR
   polygon4 : PATH nodedata = t_VERTEX
   poly_inset : PATH nodedata = t_VERTEX
   hull : PATH nodedata = t_VERTEX
+  contours : PATH nodedata = t_VEC_PATH
   lines : PATH nodedata = t_SEGMENT2D
   world_lines : PATH nodedata = t_SEGMENT
 
@@ -53,6 +55,17 @@ ROUTINE clear_line3d(p : PATH nodedata = t_SEGMENT)
       i = i - 1
 	  ENDWHILE
   END clear_line3d
+
+ROUTINE clear_contrs(p : PATH nodedata = t_VEC_PATH)
+  VAR
+    i, status : INTEGER
+  BEGIN
+    i = PATH_LEN(p)
+    WHILE PATH_LEN(p) > 0 DO
+		  DELETE_NODE(p,i,status)
+      i = i - 1
+	  ENDWHILE
+  END clear_contrs
 
 ROUTINE append_nodes(p : PATH nodedata = t_VERTEX; nodes : INTEGER)
   VAR
@@ -700,10 +713,12 @@ ROUTINE t_inset_mult : BOOLEAN
 
 ROUTINE t_trace : BOOLEAN
   VAR
-    exp_line : ARRAY[6] OF t_SEGMENT2D
+    i : INTEGER
+    act_cntr_v, exp_cntr_v : ARRAY[8] OF VECTOR
+    act_cntr_c, exp_cntr_c : ARRAY[8] OF INTEGER
   BEGIN
     --clear lines 
-    clear_lines(lines)
+    clear_contrs(contours)
 
     --set polygon
     clear_path(polygon1)
@@ -720,7 +735,7 @@ ROUTINE t_trace : BOOLEAN
     polygon1[10].coords = VEC2D(1,4)
 
     --draw lines around polygon
-    draw__trace(polygon1, 0, lines)
+    draw__trace(polygon1, 0, 1, PTH_LINETO, contours)
 
     --clear inset
     clear_path(poly_inset)
@@ -728,28 +743,32 @@ ROUTINE t_trace : BOOLEAN
     draw__inset_polygon(polygon1, 0.5, hull, poly_inset)
 
     --draw lines around inset
-    draw__trace(poly_inset, 45, lines)
+    draw__trace(poly_inset, 45, 1, PTH_LINETO, contours)
 
-    --expected lines
-    exp_line[1].r0 = VEC2D(3,4) ; exp_line[1].r1 = VEC2D(1,4) --lines[5]
-    exp_line[2].r0 = VEC2D(-1,4) ; exp_line[2].r1 = VEC2D(-3,4) --lines[8]
-    exp_line[3].r0 = VEC2D(-1,3) ; exp_line[3].r1 = VEC2D(-2,0) --lines[10]
-    exp_line[4].r0 = VEC2D(0.855,1.851) ; exp_line[4].r1 = VEC2D(0.388,3.253) --lines[11]
-    exp_line[5].r0 = VEC2D(0,4.882) ; exp_line[5].r1 = VEC2D(-0.691,3.5) --lines[14]
-    exp_line[6].r0 = VEC2D(0,2.707) ; exp_line[6].r1 = VEC2D(0.855,1.851) --lines[18]
+    FOR i=1 TO ARRAY_LEN(exp_cntr_v) DO
+      act_cntr_v[i] = contours[i+11].v
+      act_cntr_c[i] = contours[i+11].code
+    ENDFOR
 
-    RETURN(kunit_eq_vec(exp_line[1].r0, lines[5].r0) AND kunit_eq_vec(exp_line[1].r1, lines[5].r1) AND &
-           kunit_eq_vec(exp_line[2].r0, lines[8].r0) AND kunit_eq_vec(exp_line[2].r1, lines[8].r1) AND &
-           kunit_eq_vec(exp_line[3].r0, lines[10].r0) AND kunit_eq_vec(exp_line[3].r1, lines[10].r1) AND &
-           kunit_eq_vec(exp_line[4].r0, lines[11].r0) AND kunit_eq_vec(exp_line[4].r1, lines[11].r1) AND &
-           kunit_eq_vec(exp_line[5].r0, lines[14].r0) AND kunit_eq_vec(exp_line[5].r1, lines[14].r1) AND &
-           kunit_eq_vec(exp_line[6].r0, lines[18].r0) AND kunit_eq_vec(exp_line[6].r1, lines[18].r1) )
+    --expected points
+    exp_cntr_v[1] = VEC2D(0.855, 1.851) ; exp_cntr_c[1] = 1
+    exp_cntr_v[2] = VEC2D(0.388, 3.253) ; exp_cntr_c[2] = 2
+    exp_cntr_v[3] = VEC2D(0.691, 3.5) ;   exp_cntr_c[3] = 2
+    exp_cntr_v[4] = VEC2D(0.0, 4.882) ;   exp_cntr_c[4] = 2
+    exp_cntr_v[5] = VEC2D(-0.691, 3.5) ;  exp_cntr_c[5] = 2
+    exp_cntr_v[6] = VEC2D(-0.388, 3.253); exp_cntr_c[6] = 2
+    exp_cntr_v[7] = VEC2D(-0.855, 1.851); exp_cntr_c[7] = 2 
+    exp_cntr_v[8] = VEC2D(0.0, 2.707) ;   exp_cntr_c[8] = 2  
+
+    RETURN(kunit_eq_arv(exp_cntr_v, act_cntr_v, 0.05) AND kunit_eq_ari(exp_cntr_c, act_cntr_c))
 
   END t_trace
 
 ROUTINE t_class_poly : BOOLEAN
   VAR
-    exp_line : ARRAY[10] OF t_SEGMENT2D
+    i : INTEGER
+    act_line_r0, exp_line_r0 : ARRAY[5] OF VECTOR
+    act_line_r1, exp_line_r1 : ARRAY[5] OF VECTOR
   BEGIN
 
     tstpoly__clear
@@ -774,81 +793,89 @@ ROUTINE t_class_poly : BOOLEAN
 
     tstpoly__append_polygon(polygon2)
     --raster lines
-    tstpoly__raster(0.2, 0.1, 2, 45)
-
-    --expected lines
-    exp_line[1].r0 = VEC2D(3,4) ; exp_line[1].r1 = VEC2D(1,4) --lines[5]
-    exp_line[2].r0 = VEC2D(-1,4) ; exp_line[2].r1 = VEC2D(-3,4) --lines[8]
-    exp_line[3].r0 = VEC2D(-1,3) ; exp_line[3].r1 = VEC2D(-2,0) --lines[10]
-    exp_line[4].r0 = VEC2D(0.855,1.851) ; exp_line[4].r1 = VEC2D(0.388,3.253) --lines[11]
-    exp_line[5].r0 = VEC2D(0,4.882) ; exp_line[5].r1 = VEC2D(-0.691,3.5) --lines[14]
-    exp_line[6].r0 = VEC2D(0,2.707) ; exp_line[6].r1 = VEC2D(0.855,1.851) --lines[18]
+    tstpoly__set_params(45, 1, 2, 0.2, 0.3)
+    tstpoly__raster(PTH_LINETO)
 
     --clear lines 
     clear_lines(lines)
+    tstpoly__get_lines(1, 10, lines)
 
-    tstpoly__get_lines(1, 18, lines)
-
+    FOR i=1 TO ARRAY_LEN(act_line_r0) DO
+      act_line_r0[i] = lines[i].r0
+      act_line_r1[i] = lines[i].r1
+    ENDFOR
 
     --convert to world
     clear_line3d(world_lines)
     tstpoly__world_transform(world_lines)
 
-    RETURN(TRUE)
+    --expected lines
+    exp_line_r0[1] = VEC2D(9.459, 0.4) ; exp_line_r1[1] = VEC2D(9.6, 0.541) ; 
+    exp_line_r0[2] = VEC2D(9.034, 0.4) ; exp_line_r1[2] = VEC2D(9.234, 0.6) ; 
+    exp_line_r0[3] = VEC2D(8.61, 0.4) ; exp_line_r1[3] = VEC2D(8.81, 0.6) ;
+    exp_line_r0[4] = VEC2D(8.186, 0.4) ; exp_line_r1[4] = VEC2D(8.386, 0.6) ;
+    exp_line_r0[5] = VEC2D(7.762, 0.4) ; exp_line_r1[5] = VEC2D(7.962, 0.6) ;
 
-    RETURN(kunit_eq_vec(exp_line[1].r0, lines[5].r0) AND kunit_eq_vec(exp_line[1].r1, lines[5].r1) AND &
-          kunit_eq_vec(exp_line[2].r0, lines[8].r0) AND kunit_eq_vec(exp_line[2].r1, lines[8].r1) AND &
-          kunit_eq_vec(exp_line[3].r0, lines[10].r0) AND kunit_eq_vec(exp_line[3].r1, lines[10].r1) AND &
-          kunit_eq_vec(exp_line[4].r0, lines[11].r0) AND kunit_eq_vec(exp_line[4].r1, lines[11].r1) AND &
-          kunit_eq_vec(exp_line[5].r0, lines[14].r0) AND kunit_eq_vec(exp_line[5].r1, lines[14].r1) AND &
-          kunit_eq_vec(exp_line[6].r0, lines[18].r0) AND kunit_eq_vec(exp_line[6].r1, lines[18].r1)  )
+    RETURN(kunit_eq_arv(exp_line_r0, act_line_r0, 0.05) AND kunit_eq_arv(exp_line_r1, act_line_r1, 0.05) )
   
   END t_class_poly
 
 ROUTINE t_hexagon : BOOLEAN
   VAR
-    origin : XYZWPR
 %define radius 150
 %define num_of_points 5
-    exp_line : ARRAY[10] OF t_SEGMENT2D
+    i : INTEGER
+    act_line_r0, exp_line_r0 : ARRAY[5] OF VECTOR
+    act_line_r1, exp_line_r1 : ARRAY[5] OF VECTOR
+    act_cntr_v, exp_cntr_v : ARRAY[5] OF VECTOR
+    act_cntr_c, exp_cntr_c : ARRAY[5] OF INTEGER
   BEGIN
-    clear_path(polygon3)
-
-    origin = POS(radius,radius,0,0,0,180, (ZEROPOS(1).Config_data))
-    draw__hexagon(radius, num_of_points, origin, polygon3)
 
     tstpoly__clear
     tstpoly__set_canvas((ZEROPOS(1)))
-    tstpoly__append_polygon(polygon3)
+    tstpoly__hexagon(radius, num_of_points, VEC2D(radius, radius), 180)
     --raster lines
-    tstpoly__raster(0, 20, 2, 90)
+    tstpoly__set_params(90, 1, 2, 0, 20)
+    tstpoly__raster(PTH_LINETO)
 
-    --expected lines
-    exp_line[1].r0 = VEC2D(271.353,238.168) ; exp_line[1].r1 = VEC2D(103.647,292.658) --lines[3]
-    exp_line[2].r0 = VEC2D(111.287,30.853) ; exp_line[2].r1 = VEC2D(251.353,76.363) --lines[6]
-    exp_line[3].r0 = VEC2D(111.287,269.147) ; exp_line[3].r1 = VEC2D(24.721,150) --lines[9]
-    exp_line[4].r0 = VEC2D(211.353,63.366) ; exp_line[4].r1 = VEC2D(211.353,236.634) --lines[12]
-    exp_line[5].r0 = VEC2D(131.353,37.373) ; exp_line[5].r1 = VEC2D(131.353,262.627) --lines[16]
-    exp_line[6].r0 = VEC2D(91.353,58.290) ; exp_line[6].r1 = VEC2D(91.353,241.710) --lines[18]
-    exp_line[7].r0 = VEC2D(51.353,113.345) ; exp_line[7].r1 = VEC2D(51.353,186.655) --lines[20]
-
-    --clear lines 
+    --copy lines from tstpoly object
     clear_lines(lines)
+    tstpoly__get_lines(1, 5, lines)
 
-    tstpoly__get_lines(1, 20, lines)
+    FOR i=1 TO ARRAY_LEN(act_line_r0) DO
+      act_line_r0[i] = lines[i].r0
+      act_line_r1[i] = lines[i].r1
+    ENDFOR
 
-    RETURN(kunit_eq_vec(exp_line[1].r0, lines[3].r0) AND kunit_eq_vec(exp_line[1].r1, lines[3].r1) AND &
-          kunit_eq_vec(exp_line[2].r0, lines[6].r0) AND kunit_eq_vec(exp_line[2].r1, lines[6].r1) AND &
-          kunit_eq_vec(exp_line[3].r0, lines[9].r0) AND kunit_eq_vec(exp_line[3].r1, lines[9].r1) AND &
-          kunit_eq_vec(exp_line[4].r0, lines[12].r0) AND kunit_eq_vec(exp_line[4].r1, lines[12].r1) AND &
-          kunit_eq_vec(exp_line[5].r0, lines[16].r0) AND kunit_eq_vec(exp_line[5].r1, lines[16].r1) AND &
-          kunit_eq_vec(exp_line[6].r0, lines[18].r0) AND kunit_eq_vec(exp_line[6].r1, lines[18].r1) AND &
-          kunit_eq_vec(exp_line[7].r0, lines[20].r0) AND kunit_eq_vec(exp_line[7].r1, lines[20].r1)  )
+    clear_contrs(contours)
+    tstpoly__get_contours(7, 12, contours)
+
+    FOR i=1 TO ARRAY_LEN(exp_cntr_v) DO
+      act_cntr_v[i] = contours[i].v
+      act_cntr_c[i] = contours[i].code
+    ENDFOR
+    
+    --expected lines
+    exp_line_r0[1] = VEC2D(231.353, 69.865) ; exp_line_r1[1] = VEC2D(231.353, 230.135) ; 
+    exp_line_r0[2] = VEC2D(211.353, 63.366) ; exp_line_r1[2] = VEC2D(211.353, 236.634) ; 
+    exp_line_r0[3] = VEC2D(191.353, 56.868) ; exp_line_r1[3] = VEC2D(191.353, 243.132) ;
+    exp_line_r0[4] = VEC2D(171.353, 50.369) ; exp_line_r1[4] = VEC2D(171.353, 249.631) ;
+    exp_line_r0[5] = VEC2D(151.353, 43.871) ; exp_line_r1[5] = VEC2D(151.353, 256.129) ;
+
+    exp_cntr_v[1] = VEC2D(251.353, 76.363) ; exp_cntr_c[1] = 1
+    exp_cntr_v[2] = VEC2D(251.353, 223.637) ; exp_cntr_c[2] = 2
+    exp_cntr_v[3] = VEC2D(111.287, 269.147) ;   exp_cntr_c[3] = 2
+    exp_cntr_v[4] = VEC2D(24.721, 150.0) ;   exp_cntr_c[4] = 2
+    exp_cntr_v[5] = VEC2D(111.287, 30.853) ;  exp_cntr_c[5] = 2
+
+
+    RETURN(kunit_eq_arv(exp_cntr_v, act_cntr_v, 0.05) AND kunit_eq_ari(exp_cntr_c, act_cntr_c) AND &
+           kunit_eq_arv(exp_line_r0, act_line_r0, 0.05) AND kunit_eq_arv(exp_line_r1, act_line_r1, 0.05) )
 
   END t_hexagon
 
 BEGIN
-  --total asserts 111
+  --total asserts 107
   kunit_test('test line intersection', t_intersect) -- asserts 10 
   kunit_test('test finding min and max points in polygon', t_anchr_pnts) -- asserts 4
   kunit_test('test convex hull star shape', t_convhull) -- asserts 4
@@ -862,13 +889,9 @@ BEGIN
   kunit_test('raster polygon', t_raster1) --asserts 24
   kunit_test('inset oblong T shape', t_inset) --asserts 5
   kunit_test('inset multiple polygons', t_inset_mult) --asserts 10
-  kunit_test('trace lines around star polygon', t_trace) --asserts 12
-  kunit_test('test create hexagon', t_hexagon) --asserts 14
-
-  -- ..todo:: getting stack overflow issue, quicksorting t_VERT_CLIP
-  --          line 'srtclp__quicksort(clippedverts, 1, j, FALSE)' in
-  --          draw__clip_line_with_poly, of array size 4.
-  -- kunit_test('test polygon class with c-shape', t_class_poly)
+  kunit_test('trace lines around star polygon', t_trace) --asserts 2
+  kunit_test('test polygon class with c-shape', t_class_poly) --asserts 2
+  kunit_test('test create hexagon', t_hexagon) --asserts 4
   kunit_done
 
   --destruct classes
