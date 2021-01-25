@@ -9,6 +9,8 @@ header_def -- define class
 
 declare_member(class_name,clear,class_name,clr)
 ROUTINE clear FROM class_name
+declare_member(class_name,new,class_name,new)
+ROUTINE new FROM class_name
 declare_member(class_name,set_canvas,class_name,scnv)
 ROUTINE set_canvas(frm : XYZWPR) FROM class_name
 declare_member(class_name,set_params,class_name,sprm)
@@ -26,6 +28,8 @@ declare_member(class_name,get_lines,class_name,glns)
 ROUTINE get_lines(start_i : INTEGER; end_i : INTEGER; out_lines : PATH nodedata = t_SEGMENT2D) FROM class_name
 declare_member(class_name,get_contours,class_name,gctr)
 ROUTINE get_contours(start_i : INTEGER; end_i : INTEGER; out_cntrs : PATH nodedata = t_VEC_PATH) FROM class_name
+declare_member(class_name,get_bounding_box,class_name,gbox)
+ROUTINE get_bounding_box : t_RECT FROM class_name
 declare_member(class_name,trace,class_name,trce)
 ROUTINE trace(line_type : INTEGER) FROM class_name
 declare_member(class_name,raster,class_name,rast)

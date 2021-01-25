@@ -15,7 +15,6 @@ VAR
   hull : PATH nodedata = t_VERTEX
   contours : PATH nodedata = t_VEC_PATH
   lines : PATH nodedata = t_SEGMENT2D
-  world_lines : PATH nodedata = t_SEGMENT
 
 %include kunit.klh
 %include draw.klh
@@ -805,10 +804,6 @@ ROUTINE t_class_poly : BOOLEAN
       act_line_r0[i] = lines[i].r0
       act_line_r1[i] = lines[i].r1
     ENDFOR
-
-    --convert to world
-    clear_line3d(world_lines)
-    tstpoly__world_transform(world_lines)
 
     --expected lines
     exp_line_r0[1] = VEC2D(9.459, 0.4) ; exp_line_r1[1] = VEC2D(9.6, 0.541) ; 

@@ -74,26 +74,6 @@ ROUTINE draw__pos_to_vec2d
     RETURN(v)
   END draw__pos_to_vec2d
 
-ROUTINE draw__LINE_to_LINE2D
-  VAR
-    l2 : t_LINE2D
-  BEGIN
-    l2.point = draw__vec_to_vec2d(l.point, frame)
-    l2.vec = draw__vec_to_vec2d(l.vec, frame)
-
-    RETURN(l2)
-  END draw__LINE_to_LINE2D
-
-ROUTINE draw__LINE2D_to_LINE
-  VAR
-    l2 : t_LINE
-  BEGIN
-    l2.point = draw__vec2d_to_vec(l.point, frame)
-    l2.vec = draw__vec2d_to_vec(l.vec, frame)
-
-    RETURN(l2)
-  END draw__LINE2D_to_LINE
-
 ROUTINE draw__SEGMENT_to_SEGMENT2D
   VAR
     l2 : t_SEGMENT2D
@@ -113,6 +93,16 @@ ROUTINE draw__SEGMENT2D_to_SEGMENT
 
     RETURN(l2)
   END draw__SEGMENT2D_to_SEGMENT
+
+ROUTINE draw__SEGMENT2D_to_SEGMENTXYZ
+  VAR
+    l2 : t_SEGMENTXYZ
+  BEGIN
+    l2.r0 = draw__vec2d_to_pos(l.r0, frame)
+    l2.r1 = draw__vec2d_to_pos(l.r1, frame)
+
+    RETURN(l2)
+  END draw__SEGMENT2D_to_SEGMENTXYZ
 
 ROUTINE draw__raster2d_to_raster
   VAR

@@ -23,16 +23,12 @@ ROUTINE draw__vec2d_to_pos(v : VECTOR; frame : XYZWPR) : XYZWPR FROM draw
 declare_function(prog_name,pos_to_vec2d,prog_name_alias,cnvps2)
 ROUTINE draw__pos_to_vec2d(p : XYZWPR; frame : XYZWPR) : VECTOR FROM draw
 
-declare_function(prog_name,LINE_to_LINE2D,prog_name_alias,cnvl2d)
---frame is the 2d drawing frame
-ROUTINE draw__LINE_to_LINE2D(l : t_LINE; frame : XYZWPR) : t_LINE2D FROM draw
-declare_function(prog_name,LINE2D_to_LINE,prog_name_alias,cnvl3d)
---frame is the 2d drawing frame
-ROUTINE draw__LINE2D_to_LINE(l : t_LINE2D; frame : XYZWPR) : t_LINE FROM draw
 declare_function(prog_name,SEGMENT_to_SEGMENT2D,prog_name_alias,cnvs2d)
 ROUTINE draw__SEGMENT_to_SEGMENT2D(l : t_SEGMENT; frame : XYZWPR) : t_SEGMENT2D FROM draw
 declare_function(prog_name,SEGMENT2D_to_SEGMENT,prog_name_alias,cnvs3d)
 ROUTINE draw__SEGMENT2D_to_SEGMENT(l : t_SEGMENT2D; frame : XYZWPR) : t_SEGMENT FROM draw
+declare_function(prog_name,SEGMENT2D_to_SEGMENTXYZ,prog_name_alias,segpos)
+ROUTINE draw__SEGMENT2D_to_SEGMENTXYZ(l : t_SEGMENT2D; frame : XYZWPR) : t_SEGMENTXYZ FROM draw
 declare_function(prog_name,raster2d_to_raster,prog_name_alias,ras3d)
 ROUTINE draw__raster2d_to_raster(lines : PATH nodedata = t_SEGMENT2D; frame : XYZWPR; lines3d : PATH nodedata = t_SEGMENT) FROM draw
 

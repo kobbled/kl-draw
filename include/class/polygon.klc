@@ -164,6 +164,12 @@ ROUTINE clear
     clear_contours
   END clear
 
+ROUTINE new
+  BEGIN
+    clear
+    set_canvas((ZEROPOS(1)))
+  END new
+
 ROUTINE set_canvas
   BEGIN
     canvas = frm
@@ -239,6 +245,17 @@ ROUTINE get_contours
     COPY_PATH(contours, start_i, end_i, out_cntrs, status)
     CHK_STAT(status)
   END get_contours
+
+ROUTINE get_bounding_box
+  VAR
+    bbox : t_RECT
+  BEGIN
+    bbox = draw__bounding_box(this, params.start_angle)
+    --convert to world coordinates
+
+
+    RETURN(bbox)
+  END get_bounding_box
 
 ROUTINE trace
   VAR
