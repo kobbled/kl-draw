@@ -731,8 +731,13 @@ ROUTINE draw__raster_lines
     inc = math__ceil((math__norm(bbox.verts[4]-bbox.verts[1])-line_width)/line_pitch)
 
     --all boundaries are assumed to be ordered counterclockwise
-    startpoint = bbox.vec[1]*(line_width/2) + bbox.verts[1]
-    endpoint = bbox.vec[1]*(line_width/2) + bbox.verts[2]
+    IF dir = 1 THEN
+      startpoint = bbox.vec[1]*(line_width/2) + bbox.verts[1]
+      endpoint = bbox.vec[1]*(line_width/2) + bbox.verts[2]
+    ELSE
+      startpoint = bbox.vec[1]*(line_width/2) + bbox.verts[2]
+      endpoint = bbox.vec[1]*(line_width/2) + bbox.verts[1]
+    ENDIF
 
     --repeat until clipping stops producing lines
     i = 0
@@ -744,6 +749,11 @@ ROUTINE draw__raster_lines
 
       i = i + 1
     UNTIL(i > inc)
+
+    --fill next_poly if more than one polygon is present
+    IF PATH_LEN(out_lines) > 1 THEN
+      draw__line_nextPoly(out_lines)
+    ENDIF
 
     --return out_lines
 
@@ -795,7 +805,7 @@ ROUTINE add_inset(point : VECTOR; poly_no : INTEGER; inset_amount : REAL; &
     IF inset_amount < 0 THEN
       inflex_pnt = draw__point_avoid_convex(point, hull, 1, PATH_LEN(hull) )
     ELSE
-      inflex_pnt = draw__point_collision_convex(point, hull, 1, PATH_LEN(hull) )
+      inflex_pnt = draw__point_collision_convex(point, hull, 1, PATH_LEN(hull), FALSE)
     ENDIF
 
     --add intersection point to new polygon
