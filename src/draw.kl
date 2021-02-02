@@ -434,7 +434,7 @@ ROUTINE draw__convex_hull
 	  ENDWHILE
 
     --find y min
-    min_hull = draw__find_min(verticies, VEC2D(0,1))
+    min_hull = draw__find_min(verticies, 1, PATH_LEN(verticies), draw__psuedo_center(verticies), VEC2D(1,0))
     --min point must be on hull
     curr = min_hull
 
@@ -468,6 +468,16 @@ ROUTINE draw__convex_hull
               dot = (verticies[curr].coords-verticies[nxt].coords)@(verticies[tst].coords-verticies[nxt].coords)
               -- if dot product is negative tst is further away
               IF (dot < 0) THEN
+                nxt = tst
+              ENDIF
+            ENDIF
+          ELSE
+            IF (det = 0) THEN
+              --points are on the same line select the one furthest
+              --away
+              dot = (verticies[curr].coords-verticies[nxt].coords)@(verticies[tst].coords-verticies[nxt].coords)
+              -- if dot product is positive tst is closer
+              IF (dot > 0) AND (tst <> min_hull) THEN
                 nxt = tst
               ENDIF
             ENDIF
