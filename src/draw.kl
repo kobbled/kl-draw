@@ -10,6 +10,8 @@ PROGRAM draw
 %include paths.klt
 %include draw.klt
 
+--CONST
+%define epsilon 0.0001
 %include systemlib.klh
 %from errors.klh %import CHK_STAT
 %include math.klh
@@ -136,7 +138,11 @@ ROUTINE draw__intersect
     --the line intersects with the other one.
     --..note:: WEC1[1]*WEC1[2] > 0.0001 addresses real rounding issue with
     --          epsilon values breaking comparative.
-    IF (WEC1[1]*WEC1[2] > 0.0001) OR (WEC2[1]*WEC2[2] > 0.0001) THEN
+    IF (WEC1[1]*WEC1[2] > epsilon) OR (WEC2[1]*WEC2[2] > epsilon) THEN
+      RETURN(FALSE)
+    --denominator must be > 0. Account for rounding issues
+    --avoids intersecting parallel lines
+    ELSE IF (ABS(WEC1[1]-WEC1[2]) < epsilon) OR (ABS(WEC2[1]-WEC2[2]) < epsilon) THEN
       RETURN(FALSE)
     ELSE
       --ratios with WEC can be made to give a ratio for how for much of one
@@ -147,6 +153,7 @@ ROUTINE draw__intersect
       out_alpha2 = WEC2[1]/(WEC2[1]-WEC2[2])
 
       RETURN(TRUE)
+    ENDIF
     ENDIF
 
     RETURN(FALSE)
