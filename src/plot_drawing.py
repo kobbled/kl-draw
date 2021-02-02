@@ -154,17 +154,22 @@ def parseLines():
         else:
           raster_lines.insert(nid, [[0, 0],[new_x, new_y]] )
 
-def print_list(list_obj):
+def print_cont(list_obj):
   for i in range(len(list_obj)):
-    print(str(list_obj[i]))
+    print("{}: {:.3f}, {:.3f}".format(list_obj[i][0], list_obj[i][1][0], list_obj[i][1][1]))
+
+def print_line(list_obj):
+  for i in range(len(list_obj)):
+    print("{:.3f}, {:.3f} : {:.3f}, {:.3f}".format(list_obj[i][0][0], list_obj[i][0][1], list_obj[i][1][0], list_obj[i][1][1]))
 
 def plot():
   fig, ax = plt.subplots()
 
   #ploygons
   Path = mpath.Path
-  codes, verts = zip(*polygons)
-  start_idx = 0 ; end_idx = len(polygons)
+  if len(polygons) > 0:
+    codes, verts = zip(*polygons)
+    start_idx = 0 ; end_idx = len(polygons)
 
   for i in range(len(polygons)):
     if codes[i] == Path.MOVETO:
@@ -245,9 +250,9 @@ if __name__ == "__main__":
   parseContour()
   parseLines()
   print('polygons')
-  print_list(polygons)
+  print_cont(polygons)
   print('lines')
-  print_list(raster_lines)
+  print_line(raster_lines)
   plot()
 
 
