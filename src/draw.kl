@@ -6,6 +6,7 @@ PROGRAM draw
 %STACKSIZE = 500
 
 %include systemvars.klt
+%include systemlib.c.klt
 %include math.klt
 %include paths.klt
 %include draw.klt
@@ -271,19 +272,34 @@ ROUTINE draw__point_collision_convex
       cross = (polygon[ep].coords - polygon[sp].coords)#(v-polygon[sp].coords)
       --if determinate is negative it is to the right of the line
       --and is outside a convex polygon
-      IF cross.z < 0 THEN
-        RETURN(FALSE)
+      --if determinant is zero it is on the line. Discard as this point
+      --will be incuded as an intersection
+      IF on_boundary THEN
+        IF cross.z < epsilon THEN
+          RETURN(FALSE)
+        ENDIF
+      ELSE
+        IF cross.z < 0 THEN
+          RETURN(FALSE)
+        ENDIF
       ENDIF
     ENDFOR
 
-    --last line
-    sp = end_node
-    ep = start_node
-    cross = (polygon[ep].coords - polygon[sp].coords)#(v-polygon[sp].coords)
-    IF cross.z < 0 THEN
-      RETURN(FALSE)
+    IF polygon[start_node].coords <> polygon[end_node].coords THEN
+      --last line
+      sp = end_node
+      ep = start_node
+      cross = (polygon[ep].coords - polygon[sp].coords)#(v-polygon[sp].coords)
+      IF on_boundary THEN
+        IF cross.z < epsilon THEN
+          RETURN(FALSE)
+        ENDIF
+      ELSE
+        IF cross.z < 0 THEN
+          RETURN(FALSE)
+        ENDIF
+      ENDIF
     ENDIF
-
 
     RETURN(TRUE)
   END draw__point_collision_convex
@@ -305,13 +321,14 @@ ROUTINE draw__point_avoid_convex
       sp = ((i-1-1) MOD PATH_LEN(polygon)) + 1
       ep = ((i-1) MOD PATH_LEN(polygon)) + 1
       cross = (polygon[ep].coords - polygon[sp].coords)#(v-polygon[sp].coords)
-      --if determinate is negative it is to the right of the line
-      --and is outside a convex polygon
+      --if determinate is positive it is to the left of the line
+      --and inside a convex polygon
       IF cross.z > 0 THEN
         RETURN(FALSE)
       ENDIF
     ENDFOR
 
+  IF polygon[start_node].coords <> polygon[end_node].coords THEN
     --last line
     sp = end_node
     ep = start_node
@@ -319,6 +336,7 @@ ROUTINE draw__point_avoid_convex
     IF cross.z > 0 THEN
       RETURN(FALSE)
     ENDIF
+  ENDIF
 
     RETURN(TRUE)
   END draw__point_avoid_convex
