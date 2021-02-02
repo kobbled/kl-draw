@@ -77,11 +77,10 @@ ROUTINE draw__pos_to_vec2d
 
 ROUTINE draw__perpendicular_vector
   VAR
-    v_out : VECTOR
+    v_out: VECTOR
   BEGIN
-    v_out.x = -1*v.y
-    v_out.y = v.x
-    v_out.z = 0
+    v_out = math__rotz_vec((v), 90)
+
     RETURN(v_out)
   END draw__perpendicular_vector
 
@@ -153,6 +152,22 @@ ROUTINE draw__intersect
     RETURN(FALSE)
   END draw__intersect
 
+ROUTINE draw__psuedo_center
+  VAR
+    i : INTEGER
+    center : VECTOR
+  BEGIN
+    center.x = 0 ; center.y = 0; center.z = 0;
+    FOR i=1 TO PATH_LEN(verticies) DO
+      center.x = center.x + verticies[i].coords.x
+      center.y = center.y + verticies[i].coords.y
+    ENDFOR
+    center.x = center.x/PATH_LEN(verticies)
+    center.y = center.y/PATH_LEN(verticies)
+
+    RETURN(center)
+  END draw__psuedo_center
+
 
 -- private polygon routines
 
@@ -167,36 +182,37 @@ ROUTINE glt(r1, r2 : REAL; comparator : BOOLEAN) : BOOLEAN
   END glt
 
 
-ROUTINE minmax(point_arr : PATH nodedata = t_VERTEX; search_vec : VECTOR; comparator : BOOLEAN) : INTEGER
+ROUTINE minmax(point_arr : PATH nodedata = t_VERTEX; strti, endi : INTEGER ; &
+               origin : VECTOR ; search_vec : VECTOR; comparator : BOOLEAN) : INTEGER
   VAR
    i : INTEGER
    minmax_idx : INTEGER
    valy, valx : REAL
-   origin : VECTOR
    perp_vec : VECTOR
   BEGIN
-    origin = VEC2D(0,0)
     --get perpendicular vector
     perp_vec = draw__perpendicular_vector(search_vec)
     --find y min
-    minmax_idx = 1
+    minmax_idx = strti
     --dot product between (point-origin) and search vector
     --will give the point with the maximum distance from the
     --origin wrt the search vector
-    valy = (search_vec@(point_arr[1].coords-origin))
-    FOR i=2 TO PATH_LEN(point_arr) DO
+    valy = search_vec@(point_arr[strti].coords-origin)
+    valx = perp_vec@(point_arr[strti].coords-origin)
+    FOR i=strti TO endi DO
 
-      IF (glt( (search_vec@(point_arr[i].coords-origin)), valy, comparator) ) THEN
-        valy = (search_vec@(point_arr[i].coords-origin)) 
+      IF (glt( search_vec@(point_arr[i].coords-origin), valy, comparator) ) THEN
+        valy = search_vec@(point_arr[i].coords-origin)
+        valx = perp_vec@(point_arr[i].coords-origin)
         minmax_idx = i
+      ENDIF
 
-      ELSE IF ((search_vec@(point_arr[i].coords-origin)) = valy) THEN
-        valx = (perp_vec@(point_arr[minmax_idx].coords-origin))
-        IF (glt( (perp_vec@(point_arr[i].coords-origin)), valx,  NOT comparator) ) THEN
-          valx = (perp_vec@(point_arr[minmax_idx].coords-origin))
+      IF (search_vec@(point_arr[i].coords-origin) = valy) THEN
+        IF (glt( perp_vec@(point_arr[i].coords-origin), valx, comparator) ) THEN
+          valy = search_vec@(point_arr[i].coords-origin)
+          valx = perp_vec@(point_arr[i].coords-origin)
           minmax_idx = i
         ENDIF
-      ENDIF
       ENDIF
     ENDFOR
 
@@ -206,12 +222,12 @@ ROUTINE minmax(point_arr : PATH nodedata = t_VERTEX; search_vec : VECTOR; compar
 
 ROUTINE draw__find_min
   BEGIN
-    RETURN( minmax(point_arr, search_vec, FALSE) )
+    RETURN( minmax(point_arr, strti, endi, center, search_vec, FALSE) )
   END draw__find_min
 
 ROUTINE draw__find_max
   BEGIN
-    RETURN( minmax(point_arr, search_vec, TRUE) )
+    RETURN( minmax(point_arr, strti, endi, center, search_vec, TRUE) )
   END draw__find_max
 
 ROUTINE draw__on_hull

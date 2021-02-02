@@ -8,9 +8,11 @@
 
 
 declare_function(prog_name,find_min,prog_name_alias,fdmin)
-ROUTINE draw__find_min(point_arr : PATH nodedata = t_VERTEX; search_vec : VECTOR) : INTEGER FROM draw
+ROUTINE draw__find_min(point_arr : PATH nodedata = t_VERTEX; strti : INTEGER ; endi : INTEGER ; &
+                       center : VECTOR ; search_vec : VECTOR) : INTEGER FROM draw
 declare_function(prog_name,find_max,prog_name_alias,fdmax)
-ROUTINE draw__find_max(point_arr : PATH nodedata = t_VERTEX; search_vec : VECTOR) : INTEGER FROM draw
+ROUTINE draw__find_max(point_arr : PATH nodedata = t_VERTEX; strti : INTEGER ; endi : INTEGER ; & 
+                       center : VECTOR ; search_vec : VECTOR) : INTEGER FROM draw
 declare_function(prog_name,on_hull,prog_name_alias,onhul)
 ROUTINE draw__on_hull(v : VECTOR ; hull : PATH nodedata = t_VERTEX) : BOOLEAN FROM draw
 declare_function(prog_name,point_collision_convex,prog_name_alias,pcolc)
@@ -25,4 +27,6 @@ ROUTINE draw__clip_line_with_poly(line : t_SEGMENT2D; polygon : PATH nodedata = 
 declare_function(prog_name,line_inset,prog_name_alias,lnins)
 ROUTINE draw__line_inset(line1 : t_SEGMENT2D; line2 : t_SEGMENT2D; inset_amount : REAL; &
                          out_line1 : t_SEGMENT2D; out_line2 : t_SEGMENT2D) FROM draw
+declare_function(prog_name,psuedo_center,prog_name_alias,psucn)
+ROUTINE draw__psuedo_center(verticies : PATH nodedata = t_VERTEX) : VECTOR FROM draw
 %endif --draw__private_h
