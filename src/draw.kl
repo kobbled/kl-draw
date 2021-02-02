@@ -5,6 +5,12 @@ PROGRAM draw
 %NOPAUSE = COMMAND + TPENABLE + ERROR
 %STACKSIZE = 500
 
+%ifdef DEBUG_BUILD
+%define LOG_NAME 'RD:draw_debug.DT'
+%include display.c.klt
+%endif
+
+%include errors.klt
 %include systemvars.klt
 %include systemlib.c.klt
 %include math.klt
@@ -13,15 +19,24 @@ PROGRAM draw
 
 --CONST
 %define epsilon 0.0001
+
+%from errors.klh %import CHK_STAT, karelError
 %include systemlib.klh
-%from errors.klh %import CHK_STAT
+%include paths.klh
 %include math.klh
+%from strings.klh %import i_to_s, r_to_s, vec_to_s, b_to_s
+
 %include draw.klh
 %include draw.private.klh
 
 --use for sorted line intersections with polygon
 --..warning:: ** must update template if chaning 't_VERT_CLIP'
 %class srtclp('arraysort.klc','arraysort.klh','sortintrsct.klt')
+
+%ifdef DEBUG_BUILD
+-- user display log
+%class usrdis('dispclass.klc','dispclass.klh')
+%endif
 
 ROUTINE VEC2D
   VAR
@@ -221,6 +236,10 @@ ROUTINE minmax(point_arr : PATH nodedata = t_VERTEX; strti, endi : INTEGER ; &
   BEGIN
     --get perpendicular vector
     perp_vec = draw__perpendicular_vector(search_vec)
+%ifdef DEBUG_BUILD
+    usrdis__print(DEBUG,'center:' + vec_to_s(origin, ','))
+    usrdis__print(DEBUG,'pvec:' + vec_to_s(perp_vec, ','))
+%endif
     --find y min
     minmax_idx = strti
     --dot product between (point-origin) and search vector
@@ -244,6 +263,10 @@ ROUTINE minmax(point_arr : PATH nodedata = t_VERTEX; strti, endi : INTEGER ; &
         ENDIF
       ENDIF
     ENDFOR
+
+%ifdef DEBUG_BUILD
+    usrdis__print(DEBUG,'index['+i_to_s(minmax_idx)+']: ' + vec_to_s((point_arr[minmax_idx].coords), ',') )
+%endif
 
     RETURN(minmax_idx)
 
@@ -458,9 +481,16 @@ ROUTINE draw__convex_hull
     min_hull = draw__find_min(verticies, 1, PATH_LEN(verticies), draw__psuedo_center(verticies), VEC2D(1,0))
     --min point must be on hull
     curr = min_hull
+%ifdef DEBUG_BUILD
+    usrdis__print(DEBUG,'min pnt:' + i_to_s(min_hull))
+%endif
 
     --skip first point as we know it is min_hull
     -- and will be the last found hull point
+
+%ifdef DEBUG_BUILD
+    usrdis__print(INFO,'starting convex hull')
+%endif
 
     REPEAT
       -- reset tentative hull point
@@ -505,11 +535,17 @@ ROUTINE draw__convex_hull
           ENDIF
 
           IF det > 0 THEN
+%ifdef DEBUG_BUILD
+            usrdis__print(DEBUG,'idx:' + i_to_s(tst) + ' det:' + r_to_s(det))
+%endif
             nxt = tst
           ENDIF
         ENDIF
       ENDFOR
       -- add point furthest counter clockwise from current point to hull
+%ifdef DEBUG_BUILD
+      usrdis__print(DEBUG,'hull pnt:' + i_to_s(nxt))
+%endif
       curr = nxt
 
       APPEND_NODE(out_hull,status)
@@ -610,6 +646,10 @@ ROUTINE draw__clip_line_with_poly
 
     --If inside the polygon add to vertex list
     IF collision THEN
+%ifdef DEBUG_BUILD
+      usrdis__print(DEBUG, vec_to_s(line.r0,',') + ' collision: ' + b_to_s(collision))
+%endif
+
       j = j + 1
       clippedverts[j].coords = line.r0
       clippedverts[j].alpha = 0
@@ -643,6 +683,11 @@ ROUTINE draw__clip_line_with_poly
           clippedverts[j].alpha = line_alpha
           clippedverts[j].intersect = intersect
           clippedverts[j].polygon = curr_vert.polygon
+%ifdef DEBUG_BUILD
+          usrdis__print(DEBUG,'clip['+ i_to_s(j) +']: ' + vec_to_s(clippedverts[j].coords, ','))
+          usrdis__print(DEBUG, 'alpha = ' + r_to_s(clippedverts[j].alpha))
+          usrdis__print(DEBUG,'seg_nxt: r0[' + vec_to_s(poly_seg.r0, ',') + '] r1[' + vec_to_s(poly_seg.r1, ',') + ']')
+%endif
         ENDIF
       ELSE  --curr_vert.polygon = next_vert.polygon
           poly_seg.r0 = curr_vert.coords
@@ -657,6 +702,11 @@ ROUTINE draw__clip_line_with_poly
             clippedverts[j].alpha = line_alpha
             clippedverts[j].intersect = intersect
             clippedverts[j].polygon = curr_vert.polygon
+%ifdef DEBUG_BUILD
+            usrdis__print(DEBUG,'clip['+ i_to_s(j) +']: ' + vec_to_s(clippedverts[j].coords, ','))
+            usrdis__print(DEBUG, 'alpha = ' + r_to_s(clippedverts[j].alpha))
+            usrdis__print(DEBUG,'seg: r0[' + vec_to_s(poly_seg.r0, ',') + '] r1[' + vec_to_s(poly_seg.r1, ',') + ']')
+%endif
           ENDIF
       ENDIF
       
@@ -664,8 +714,16 @@ ROUTINE draw__clip_line_with_poly
         --update polygon count and first vert for next polygon
         curr_poly = curr_vert.polygon
         frst_vert = curr_vert
+%ifdef DEBUG_BUILD
+        usrdis__print(DEBUG,'Finding intersections for polygon ' + i_to_s(curr_poly))
+        usrdis__print(DEBUG,'First vertex: ' + vec_to_s(frst_vert.coords, ','))
+%endif
       ENDIF
     ENDFOR
+
+%ifdef DEBUG_BUILD
+    usrdis__print(DEBUG,'total clips: ' + i_to_s(j))
+%endif
 
     --if any intersection are found
     IF j > 0 THEN
@@ -721,10 +779,21 @@ ROUTINE draw__raster_lines
     startpoint,endpoint : VECTOR
     status : INTEGER
   BEGIN
+%ifdef DEBUG_BUILD
+    usrdis__print(INFO,'starting raster')
+%endif
+
     --draw convex hull around polygon
     draw__convex_hull(polygon, FALSE, out_hull)
     --define a bounding box around polygon and fill with line segments
     bbox = draw__bounding_box(polygon, raster_angle)
+
+%ifdef DEBUG_BUILD
+    usrdis__print(DEBUG,'bounding box:' + vec_to_s(bbox.verts[1], ','))
+    usrdis__print(DEBUG, vec_to_s(bbox.verts[2], ','))
+    usrdis__print(DEBUG, vec_to_s(bbox.verts[3], ','))
+    usrdis__print(DEBUG, vec_to_s(bbox.verts[4], ','))
+%endif
     --define how many lines will be made based on height of box
     --and line pitch
     -- no_of_lines = ceil((box_height-line_width)/pitch)
@@ -744,6 +813,11 @@ ROUTINE draw__raster_lines
     REPEAT
       new_line.r0 = bbox.vec[1]*line_pitch*(i) + startpoint
       new_line.r1 = bbox.vec[1]*line_pitch*(i) + endpoint
+
+%ifdef DEBUG_BUILD
+      usrdis__print(DEBUG,'clipping line[' + i_to_s(i) + ']:' + vec_to_s(new_line.r0, ',') + ',')
+      usrdis__print(DEBUG, vec_to_s(new_line.r1, ','))
+%endif
       --clip lines to polygon
       draw__clip_line_with_poly(new_line, polygon, out_hull, out_lines)
 
@@ -923,6 +997,9 @@ ROUTINE draw__trace
     status : INTEGER
     center : VECTOR
   BEGIN
+%ifdef DEBUG_BUILD
+    usrdis__print(INFO,'start trace')
+%endif
     --determine if multiple polygons exist
     IF (UNINIT(polygon[1].polygon)) OR (UNINIT(polygon[PATH_LEN(polygon)].polygon)) THEN
       strt = 1 ; endi = PATH_LEN(polygon)
@@ -955,6 +1032,9 @@ ROUTINE draw__trace
       --get starting point for polygon
       min_hull = draw__find_min(polygon, strt, endi, center, align_vec)
 
+%ifdef DEBUG_BUILD
+      usrdis__print(DEBUG,'min pnt:' + i_to_s(min_hull))
+%endif
       --loop through polygon and add to contour list
       FOR i=0 TO (endi-strt) DO
         --wheel increment between strt and endi
@@ -970,6 +1050,9 @@ ROUTINE draw__trace
           polygon[vert].polygon = 1
         ENDIF
         
+%ifdef DEBUG_BUILD
+        usrdis__print(DEBUG,'vert:' + i_to_s(vert) + ' poly:' + i_to_s((polygon[vert].polygon)) )
+%endif
         IF (i = 0) THEN
             --start contour
             APPEND_NODE(out_contour, status)
@@ -1033,6 +1116,11 @@ ROUTINE draw_hexagon
     ELSE
       IF NOT (UNINIT(out_poly[pthlen].polygon)) THEN
         poly_count = out_poly[pthlen].polygon + 1
+        i = pthlen
+        WHILE((i >= 1) OR UNINIT(out_poly[i].nextpoly)) DO
+          out_poly[i].nextpoly = poly_count - 1
+          i = i - 1
+        ENDWHILE
       ELSE
         poly_count = 1
       ENDIF

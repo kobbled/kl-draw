@@ -20,6 +20,8 @@
     "math",
     "KUnit",
     "paths",
+    "Strings",
+    "display",
     "ktransw-macros",
     "systemlib"
   ]
