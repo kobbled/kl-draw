@@ -14,7 +14,7 @@ VAR
   poly_inset : PATH nodedata = t_VERTEX
   hull : PATH nodedata = t_VERTEX
   contours : PATH nodedata = t_VEC_PATH
-  lines : PATH nodedata = t_SEGMENT2D
+  lines : PATH nodedata = t_SEG2D_POLY
 
 %include kunit.klh
 %include draw.klh
@@ -34,7 +34,7 @@ ROUTINE clear_path(p : PATH nodedata = t_VERTEX)
 	  ENDWHILE
   END clear_path
 
-ROUTINE clear_lines(p : PATH nodedata = t_SEGMENT2D)
+ROUTINE clear_lines(p : PATH nodedata = t_SEG2D_POLY)
   VAR
     i, status : INTEGER
   BEGIN

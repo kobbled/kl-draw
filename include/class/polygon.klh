@@ -24,8 +24,10 @@ declare_member(class_name,append_polygon,class_name,aplp)
 ROUTINE append_polygon(verticies : PATH nodedata = t_VERTEX) FROM class_name
 declare_member(class_name,append_polygon_array,class_name,apla)
 ROUTINE append_polygon_array(verticies : ARRAY[*] OF VECTOR) FROM class_name
+declare_member(class_name,get_poly,class_name,gply)
+ROUTINE get_poly(polygon : INTEGER; out_poly : PATH nodedata = t_VERTEX) FROM class_name
 declare_member(class_name,get_lines,class_name,glns)
-ROUTINE get_lines(start_i : INTEGER; end_i : INTEGER; out_lines : PATH nodedata = t_SEGMENT2D) FROM class_name
+ROUTINE get_lines(start_i : INTEGER; end_i : INTEGER; out_lines : PATH nodedata = t_SEG2D_POLY) FROM class_name
 declare_member(class_name,get_contours,class_name,gctr)
 ROUTINE get_contours(start_i : INTEGER; end_i : INTEGER; out_cntrs : PATH nodedata = t_VEC_PATH) FROM class_name
 declare_member(class_name,get_bounding_box,class_name,gbox)
@@ -34,8 +36,8 @@ declare_member(class_name,trace,class_name,trce)
 ROUTINE trace(line_type : INTEGER) FROM class_name
 declare_member(class_name,raster,class_name,rast)
 ROUTINE raster(line_type : INTEGER) FROM class_name
-declare_member(class_name,world_transform,class_name,wtrs)
-ROUTINE world_transform(out_lines : PATH nodedata = t_SEGMENT) FROM class_name
+declare_member(class_name,convert_vec_path,class_name,cvph)
+ROUTINE convert_vec_path(out_cntrs : PATH nodedata = t_VEC_PATH; out_lines : PATH nodedata = t_VEC_PATH) FROM class_name
 declare_member(class_name,hexagon,class_name,hxgn)
 ROUTINE hexagon(radius : REAL; verticies : INTEGER; translation : VECTOR; rotation : REAL) FROM class_name
 %endif --end header

@@ -21,6 +21,12 @@ TYPE
     r1 : VECTOR
   ENDSTRUCTURE
 
+  t_SEG2D_POLY FROM draw = STRUCTURE
+    r0 : VECTOR
+    r1 : VECTOR
+    nextPoly : SHORT
+    polygon : SHORT
+  ENDSTRUCTURE
 
   t_VERTEX FROM draw = STRUCTURE
     coords : VECTOR

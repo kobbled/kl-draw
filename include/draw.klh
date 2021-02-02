@@ -50,8 +50,8 @@ ROUTINE draw__point_collision_polygon(v : VECTOR ; polygon : PATH nodedata = t_V
                                       hull : PATH nodedata = t_VERTEX) : BOOLEAN FROM draw
 declare_function(prog_name,raster_lines,prog_name_alias,rstln)
 ROUTINE draw__raster_lines(polygon : PATH nodedata = t_VERTEX; out_hull : PATH nodedata = t_VERTEX; &
-                           raster_angle : REAL; line_width : REAL; line_pitch : REAL; & 
-                           out_lines : PATH nodedata = t_SEGMENT2D) FROM draw
+                           raster_angle : REAL; line_width : REAL; line_pitch : REAL; dir : INTEGER ; & 
+                           out_lines : PATH nodedata = t_SEG2D_POLY) FROM draw
 declare_function(prog_name,inset_polygon,prog_name_alias,inset)
 ROUTINE draw__inset_polygon(polygon : PATH nodedata = t_VERTEX; inset_amount : REAL; out_hull : PATH nodedata = t_VERTEX ; & 
                             out_polygon : PATH nodedata = t_VERTEX) FROM draw
