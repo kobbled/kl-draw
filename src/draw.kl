@@ -74,47 +74,6 @@ ROUTINE draw__pos_to_vec2d
     RETURN(v)
   END draw__pos_to_vec2d
 
-ROUTINE draw__SEGMENT_to_SEGMENT2D
-  VAR
-    l2 : t_SEGMENT2D
-  BEGIN
-    l2.r0 = draw__vec_to_vec2d(l.r0, frame)
-    l2.r1 = draw__vec_to_vec2d(l.r1, frame)
-
-    RETURN(l2)
-  END draw__SEGMENT_to_SEGMENT2D
-
-ROUTINE draw__SEGMENT2D_to_SEGMENT
-  VAR
-    l2 : t_SEGMENT
-  BEGIN
-    l2.r0 = draw__vec2d_to_vec(l.r0, frame)
-    l2.r1 = draw__vec2d_to_vec(l.r1, frame)
-
-    RETURN(l2)
-  END draw__SEGMENT2D_to_SEGMENT
-
-ROUTINE draw__SEGMENT2D_to_SEGMENTXYZ
-  VAR
-    l2 : t_SEGMENTXYZ
-  BEGIN
-    l2.r0 = draw__vec2d_to_pos(l.r0, frame)
-    l2.r1 = draw__vec2d_to_pos(l.r1, frame)
-
-    RETURN(l2)
-  END draw__SEGMENT2D_to_SEGMENTXYZ
-
-ROUTINE draw__raster2d_to_raster
-  VAR
-    i : INTEGER
-    status : INTEGER
-  BEGIN
-    FOR i=1 TO PATH_LEN(lines) DO
-      APPEND_NODE(lines3d, status)
-      lines3d[PATH_LEN(lines3d)] = draw__SEGMENT2D_to_SEGMENT(lines[i], frame)
-    ENDFOR
-  END draw__raster2d_to_raster
-
 
 ROUTINE draw__perpendicular_vector
   VAR

@@ -35,7 +35,7 @@ TYPE
     entry_exit : BOOLEAN
     intersect : BOOLEAN
     alpha : REAL
-    polygon : SHORT
+    polygon : INTEGER
   ENDSTRUCTURE
 
   t_TRIANGLE FROM draw = STRUCTURE
