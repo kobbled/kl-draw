@@ -467,19 +467,25 @@ ROUTINE draw__bounding_box
     edges : ARRAY[4] OF VECTOR
     box : t_RECT
     align_vec, perp_vec : VECTOR
+    center : VECTOR
     frm : XYZWPR
     i : INTEGER
   BEGIN
     --y-axis vector
     align_vec = draw__angle_to_vector(angle + 90)
     --x-axis vector
-    perp_vec = draw__perpendicular_vector(align_vec)
+    perp_vec = draw__angle_to_vector(angle)
+
+    --approximated center
+    center = draw__psuedo_center(verticies)
 
     --find four corners
-    edges[1] = verticies[draw__find_min(verticies, align_vec)].coords
-    edges[2] = verticies[draw__find_max(verticies, perp_vec)].coords
-    edges[3] = verticies[draw__find_max(verticies, align_vec)].coords
-    edges[4] = verticies[draw__find_min(verticies, perp_vec)].coords
+    --y
+    edges[1] = verticies[draw__find_min(verticies, 1, PATH_LEN(verticies), center, align_vec )].coords
+    edges[2] = verticies[draw__find_max(verticies, 1, PATH_LEN(verticies), center, align_vec )].coords
+    --x
+    edges[3] = verticies[draw__find_min(verticies, 1, PATH_LEN(verticies), center, perp_vec )].coords
+    edges[4] = verticies[draw__find_max(verticies, 1, PATH_LEN(verticies), center, perp_vec )].coords
 
     --put edges in rotated frame
     frm.x = 0; frm.y = 0; frm.z = 0; frm.w = 0; frm.p = 0; frm.r = angle ;
@@ -487,10 +493,10 @@ ROUTINE draw__bounding_box
       edges[i] = INV((frm)):edges[i]
     ENDFOR
 
-    box.verts[1] = frm:(VEC2D(edges[2].x, edges[1].y))
+    box.verts[1] = frm:(VEC2D(edges[3].x, edges[1].y))
     box.verts[2] = frm:(VEC2D(edges[4].x, edges[1].y))
-    box.verts[3] = frm:(VEC2D(edges[4].x, edges[3].y))
-    box.verts[4] = frm:(VEC2D(edges[2].x, edges[3].y))
+    box.verts[3] = frm:(VEC2D(edges[4].x, edges[2].y))
+    box.verts[4] = frm:(VEC2D(edges[3].x, edges[2].y))
 
     box.vec[1] = align_vec
     box.vec[2] = perp_vec
