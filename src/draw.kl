@@ -919,14 +919,23 @@ ROUTINE draw__trace
     align_vec : VECTOR
     min_hull : INTEGER
     vert : INTEGER
-    cur_poly : INTEGER
-    strt_idx : INTEGER
+    strt, endi : INTEGER
     status : INTEGER
+    center : VECTOR
   BEGIN
-    --y-axis vector
-    align_vec = draw__angle_to_vector(start_angle + 90)
-    min_hull = draw__find_min(polygon, align_vec)
-    
+    --determine if multiple polygons exist
+    IF (UNINIT(polygon[1].polygon)) OR (UNINIT(polygon[PATH_LEN(polygon)].polygon)) THEN
+      strt = 1 ; endi = PATH_LEN(polygon)
+    ELSE
+      IF (polygon[1].polygon <> polygon[PATH_LEN(polygon)].polygon) THEN
+        --get first poly. Assumes polygon is in sequential order, with the
+        --polygon starting at a lower index
+        strt = 1 ; endi = polygon[1].nextPoly-1
+      ELSE
+        strt = 1 ; endi = PATH_LEN(polygon)
+      ENDIF
+    ENDIF
+
     --if out_contour is not empty change code of last
     --node from PTH_STOP to PTH_CLOSE
     IF PATH_LEN(out_contour) > 0 THEN
@@ -935,37 +944,74 @@ ROUTINE draw__trace
       ENDIF
     ENDIF
 
-    i = 0
-    cur_poly = 0
-    WHILE (i < PATH_LEN(polygon)) DO
-      --wheel increment
-      vert = ((min_hull+i*dir-1) MOD PATH_LEN(polygon)) + 1
-      APPEND_NODE(out_contour, status)
-      out_contour[PATH_LEN(out_contour)].v = polygon[vert].coords
-      IF UNINIT(polygon[vert].polygon) THEN polygon[vert].polygon = 1 ; ENDIF
+    --y-axis vector
+    align_vec = draw__angle_to_vector(start_angle + 90)
 
-      IF polygon[vert].polygon <> cur_poly THEN
-        --end previous contour
-        IF (i > 0) THEN
-          out_contour[PATH_LEN(out_contour)-1].code = PTH_CLOSE
+    --approx center
+    center = draw__psuedo_center(polygon)
+
+    --go to every node in list
+    REPEAT
+      --get starting point for polygon
+      min_hull = draw__find_min(polygon, strt, endi, center, align_vec)
+
+      --loop through polygon and add to contour list
+      FOR i=0 TO (endi-strt) DO
+        --wheel increment between strt and endi
+        vert = ((min_hull+i*dir-1) MOD (endi-strt+1))
+        -- mod operator includes negatives. must handle these
+        -- cases
+        IF vert < 0 THEN
+          vert = (endi-strt+1) + vert
         ENDIF
-        --start contour
-        out_contour[PATH_LEN(out_contour)].code = PTH_MOVETO
-        --modify start index to tell where to close the polygon
-        strt_idx = vert
+        vert = (strt-1) + vert + 1
 
-        cur_poly = cur_poly + 1
-      ELSE
-        out_contour[PATH_LEN(out_contour)].code = curve_type
+        IF UNINIT(polygon[vert].polygon) THEN
+          polygon[vert].polygon = 1
+        ENDIF
+        
+        IF (i = 0) THEN
+            --start contour
+            APPEND_NODE(out_contour, status)
+            out_contour[PATH_LEN(out_contour)].v = polygon[vert].coords
+            out_contour[PATH_LEN(out_contour)].code = PTH_MOVETO
+            out_contour[PATH_LEN(out_contour)].polygon = polygon[vert].polygon
+        ELSE IF i = (endi-strt) THEN
+            APPEND_NODE(out_contour, status)
+            out_contour[PATH_LEN(out_contour)].v = polygon[vert].coords
+            out_contour[PATH_LEN(out_contour)].code = curve_type
+            out_contour[PATH_LEN(out_contour)].polygon = polygon[vert].polygon
+
+            APPEND_NODE(out_contour, status)
+            out_contour[PATH_LEN(out_contour)].v = polygon[min_hull].coords
+            out_contour[PATH_LEN(out_contour)].code = PTH_CLOSE
+            out_contour[PATH_LEN(out_contour)].polygon = polygon[min_hull].polygon
+        ELSE
+            APPEND_NODE(out_contour, status)
+            out_contour[PATH_LEN(out_contour)].v = polygon[vert].coords
+            out_contour[PATH_LEN(out_contour)].code = curve_type
+            out_contour[PATH_LEN(out_contour)].polygon = polygon[vert].polygon
+        ENDIF
+        ENDIF
+      ENDFOR
+
+      --update start and end indicies
+      IF (NOT UNINIT(polygon[vert].nextPoly)) THEN
+        strt = polygon[vert].nextPoly
+        IF UNINIT(polygon[strt].nextPoly) THEN
+          endi = PATH_LEN(polygon)
+        ELSE
+          endi = polygon[strt].nextPoly - 1
+        ENDIF
       ENDIF
-      
-      i = i + 1
-    ENDWHILE
+
+    UNTIL( UNINIT(polygon[vert].nextPoly) )
 
     --close off polygon and stop path
-    APPEND_NODE(out_contour, status)
-    out_contour[PATH_LEN(out_contour)].v = polygon[strt_idx].coords
     out_contour[PATH_LEN(out_contour)].code = PTH_STOP
+
+    --fill next_poly if more than one polygon is present
+    paths__vec_nextPoly(out_contour)
 
   END draw__trace
 
