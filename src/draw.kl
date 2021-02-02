@@ -351,15 +351,20 @@ ROUTINE draw__point_collision_polygon
     --assume polygon verticies are ordered counterclockwise
     --If point is to the left of all lines on the polygon
     --point might be in the polygon
-    b = draw__point_collision_convex(v, polygon, 1, PATH_LEN(polygon))
+    b = draw__point_collision_convex(v, polygon, 1, PATH_LEN(polygon), TRUE)
     --if point is to the left of all lines it is in the polygon
-    IF b = TRUE THEN RETURN(TRUE) ; ENDIF
+    IF b = TRUE THEN
+      RETURN(TRUE)
+    ENDIF
+
 
     --check the convex hull to see if it is outside of the hull
-    b = draw__point_collision_convex(v, hull, 1, PATH_LEN(hull))
+    b = draw__point_collision_convex(v, hull, 1, PATH_LEN(hull), TRUE)
     --if point is to the right of any lines on the hull it is
     --outside of the polygon
-    IF NOT b THEN RETURN(FALSE) ; ENDIF
+    IF NOT b THEN
+      RETURN(FALSE)
+    ENDIF
 
     --check for reflexive verticies
     j = 0
@@ -376,7 +381,7 @@ ROUTINE draw__point_collision_polygon
     IF j > 0 THEN
       --endflag
       j = j + 1
-      reflex_verts[j] = 2147483646
+      reflex_verts[j] = MAX_INTEGER
       --start and end polygons are points on the hull
       --before and after the reflexive points
       --mod operator does not handle negatives
@@ -394,7 +399,9 @@ ROUTINE draw__point_collision_polygon
           --test poly
           b = draw__point_avoid_convex(v, polygon, reflex_start, reflex_end)
           -- if found inside these interior regions it is not in the polygon
-          IF b THEN RETURN(FALSE); ENDIF
+          IF b THEN
+            RETURN(FALSE)
+          ENDIF
 
           reflex_start = ((reflex_verts[i+1]-1-1) MOD PATH_LEN(polygon)) + 1
         ENDIF
