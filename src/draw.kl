@@ -572,11 +572,13 @@ ROUTINE draw__clip_line_with_poly
     clippedverts : ARRAY[total_clips] OF t_VERT_CLIP
     i,j : INTEGER
     min_i : INTEGER
+    curr_poly : INTEGER
     curr_vert, next_vert : t_VERTEX
+    frst_vert : t_VERTEX
     poly_seg : t_SEGMENT2D
     line_alpha, poly_alpha : REAL
     intersect : BOOLEAN
-    entryexit, collision :  BOOLEAN
+    entryexit, collision : BOOLEAN
     status : INTEGER
   BEGIN
     --clipped vertex index
@@ -591,15 +593,12 @@ ROUTINE draw__clip_line_with_poly
       clippedverts[j].coords = line.r0
       clippedverts[j].alpha = 0
       clippedverts[j].intersect = FALSE
-      entryexit = TRUE
       clippedverts[j].entry_exit = entryexit
-    ELSE
-      entryexit = FALSE
     ENDIF
 
     --start at min vertex in polygon relative to clip line
     --min_i = draw__find_min(polygon, (line.r1-line.r0)/math__norm(line.r1-line.r0))
-
+    curr_poly = 0
     FOR i=1 TO PATH_LEN(polygon) DO
       --increment loop
       --min_i+i
@@ -609,9 +608,10 @@ ROUTINE draw__clip_line_with_poly
       next_vert = polygon[((i+1-1) MOD PATH_LEN(polygon)) + 1]
       IF UNINIT(next_vert.polygon) THEN next_vert.polygon = 1 ; ENDIF
       
-      IF (curr_vert.polygon = next_vert.polygon) THEN 
+      IF curr_vert.polygon <> next_vert.polygon THEN
+        --intersect between last vert and first vert in poly
         poly_seg.r0 = curr_vert.coords
-        poly_seg.r1 = next_vert.coords
+        poly_seg.r1 = frst_vert.coords
         --find intersection
         --intersection is read from left of the subject line to the right
         intersect = draw__intersect(line, poly_seg, line_alpha, poly_alpha)
@@ -623,6 +623,26 @@ ROUTINE draw__clip_line_with_poly
           clippedverts[j].intersect = intersect
           clippedverts[j].polygon = curr_vert.polygon
         ENDIF
+      ELSE  --curr_vert.polygon = next_vert.polygon
+          poly_seg.r0 = curr_vert.coords
+          poly_seg.r1 = next_vert.coords
+          --find intersection
+          --intersection is read from left of the subject line to the right
+          intersect = draw__intersect(line, poly_seg, line_alpha, poly_alpha)
+          IF intersect THEN
+            j = j + 1
+            --coordinates of intersection point
+            clippedverts[j].coords = (1-line_alpha)*line.r0 + line_alpha*line.r1
+            clippedverts[j].alpha = line_alpha
+            clippedverts[j].intersect = intersect
+            clippedverts[j].polygon = curr_vert.polygon
+          ENDIF
+      ENDIF
+      
+      IF curr_vert.polygon > curr_poly THEN
+        --update polygon count and first vert for next polygon
+        curr_poly = curr_vert.polygon
+        frst_vert = curr_vert
       ENDIF
     ENDFOR
 
@@ -634,11 +654,9 @@ ROUTINE draw__clip_line_with_poly
       --label verticies as entry (TRUE) or exit (FALSE) nodes
       --first node will be an entry node
       entryexit = TRUE
-      clippedverts[1].entry_exit = entryexit
 
       FOR i=2 TO j DO
         entryexit = NOT entryexit
-        clippedverts[i].entry_exit = entryexit
         
         --add new clipped line segment on exit node
         --dont add if length of line = 0
@@ -646,6 +664,11 @@ ROUTINE draw__clip_line_with_poly
           APPEND_NODE(out_lines, status)
           out_lines[PATH_LEN(out_lines)].r0 = clippedverts[i-1].coords
           out_lines[PATH_LEN(out_lines)].r1 = clippedverts[i].coords
+          IF UNINIT(clippedverts[i-1].polygon) THEN
+            out_lines[PATH_LEN(out_lines)].polygon =  clippedverts[i].polygon
+          ELSE
+            out_lines[PATH_LEN(out_lines)].polygon =  clippedverts[i-1].polygon
+          ENDIF
         ENDIF
       ENDFOR
 
@@ -657,6 +680,11 @@ ROUTINE draw__clip_line_with_poly
           APPEND_NODE(out_lines, status)
           out_lines[PATH_LEN(out_lines)].r0 = clippedverts[j].coords
           out_lines[PATH_LEN(out_lines)].r1 = line.r1
+          IF UNINIT(clippedverts[j].polygon) THEN
+            out_lines[PATH_LEN(out_lines)].polygon =  clippedverts[j-1].polygon
+          ELSE
+            out_lines[PATH_LEN(out_lines)].polygon =  clippedverts[j].polygon
+          ENDIF
         ENDIF
       ENDIF
 
