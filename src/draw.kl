@@ -100,6 +100,27 @@ ROUTINE draw__vector_to_angle
     RETURN(ATAN2(v.y, v.x) * 180/M_PI)
   END draw__vector_to_angle
 
+ROUTINE draw__line_nextPoly
+  VAR
+    first_vert : INTEGER
+    prev_poly : INTEGER
+    i, j : INTEGER
+  BEGIN
+    IF NOT UNINIT(lines[1].polygon) THEN
+      IF lines[1].polygon <> lines[PATH_LEN(lines)].polygon THEN
+        first_vert = 1
+        FOR i=1 TO PATH_LEN(lines)-1 DO
+          IF (lines[i].polygon <> lines[i+1].polygon) THEN
+            FOR j=i DOWNTO first_vert DO
+              lines[j].nextpoly = i+1
+            ENDFOR
+            first_vert = i+1
+          ENDIF
+        ENDFOR
+      ENDIF
+    ENDIF
+  END draw__line_nextPoly
+
 ROUTINE draw__intersect
   VAR
     --line normals
