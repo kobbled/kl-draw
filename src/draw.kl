@@ -38,14 +38,6 @@ PROGRAM draw
 %class usrdis('dispclass.klc','dispclass.klh')
 %endif
 
-ROUTINE VEC2D
-  VAR
-    v : VECTOR
-  BEGIN
-    v.x = x; v.y = y; v.z = 0;
-    RETURN(v)
-  END VEC2D
-
 ROUTINE draw__vec_to_vec2d
   VAR
     v_trans : VECTOR

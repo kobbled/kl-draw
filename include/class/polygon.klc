@@ -25,6 +25,7 @@ VAR
   params : t_RASTER
 
 %include errors.klh
+%from systemlib.klh %import VEC2D
 %include draw.klh
 %include polygon.klh
 %include polygon.private.klh

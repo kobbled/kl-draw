@@ -6,9 +6,6 @@
 %define prog_name draw
 %define prog_name_alias draw
 
---initializer
-ROUTINE VEC2D(x : REAL; y : REAL) : VECTOR FROM draw
-
 -- *** conversions ***
 -- *******************
 

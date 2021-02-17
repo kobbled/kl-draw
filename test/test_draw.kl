@@ -22,6 +22,7 @@ VAR
   lines : PATH nodedata = t_SEG2D_POLY
 
 %include kunit.klh
+%from systemlib.klh %import VEC2D
 %include draw.klh
 %include draw.private.klh
 
