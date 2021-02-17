@@ -600,22 +600,15 @@ ROUTINE draw__clip_lines
   END draw__clip_lines
 
 
-ROUTINE draw__clip_line_with_poly
+ROUTINE draw__clip_poly_verts
   VAR
---assumed maximum number of times a polygon will
---intersect a single line
-%define total_clips 20
-    clippedverts : ARRAY[total_clips] OF t_VERT_CLIP
     i,j : INTEGER
-    min_i : INTEGER
-    curr_poly : INTEGER
-    curr_vert, next_vert : t_VERTEX
+    curr_vert, next_vert : INTEGER
     frst_vert : t_VERTEX
     poly_seg : t_SEGMENT2D
     line_alpha, poly_alpha : REAL
     intersect : BOOLEAN
-    entryexit, collision : BOOLEAN
-    status : INTEGER
+    collision : BOOLEAN
   BEGIN
     --clipped vertex index
     j = 0
@@ -626,31 +619,30 @@ ROUTINE draw__clip_line_with_poly
     --If inside the polygon add to vertex list
     IF collision THEN
 %ifdef DEBUG_BUILD
-      usrdis__print(DEBUG, vec_to_s(line.r0,',') + ' collision: ' + b_to_s(collision))
+      usrdis__print(DEBUG, 'polygon collision at: ' + vec_to_s(line.r0,','))
 %endif
 
       j = j + 1
-      clippedverts[j].coords = line.r0
-      clippedverts[j].alpha = 0
-      clippedverts[j].intersect = FALSE
-      clippedverts[j].entry_exit = entryexit
+      out_verts[j].coords = line.r0
+      out_verts[j].alpha = 0
+      out_verts[j].intersect = FALSE
     ENDIF
 
     --start at min vertex in polygon relative to clip line
     --min_i = draw__find_min(polygon, (line.r1-line.r0)/math__norm(line.r1-line.r0))
-    curr_poly = 0
+    frst_vert.polygon = 0
     FOR i=1 TO PATH_LEN(polygon) DO
       --increment loop
-      --min_i+i
-      curr_vert = polygon[((i-1) MOD PATH_LEN(polygon)) + 1]
-      IF UNINIT(curr_vert.polygon) THEN curr_vert.polygon = 1 ; ENDIF
-      --min_i+i+1
-      next_vert = polygon[((i+1-1) MOD PATH_LEN(polygon)) + 1]
-      IF UNINIT(next_vert.polygon) THEN next_vert.polygon = 1 ; ENDIF
-      
-      IF curr_vert.polygon <> next_vert.polygon THEN
+      --i
+      curr_vert = ((i-1) MOD PATH_LEN(polygon)) + 1
+      IF UNINIT(polygon[curr_vert].polygon) THEN polygon[curr_vert].polygon = 1 ; ENDIF
+      --i+1
+      next_vert = ((i+1-1) MOD PATH_LEN(polygon)) + 1
+      IF UNINIT(polygon[next_vert].polygon) THEN polygon[next_vert].polygon = 1 ; ENDIF
+
+      IF polygon[curr_vert].polygon <> polygon[next_vert].polygon THEN
         --intersect between last vert and first vert in poly
-        poly_seg.r0 = curr_vert.coords
+        poly_seg.r0 = polygon[curr_vert].coords
         poly_seg.r1 = frst_vert.coords
         --find intersection
         --intersection is read from left of the subject line to the right
@@ -658,41 +650,40 @@ ROUTINE draw__clip_line_with_poly
         IF intersect THEN
           j = j + 1
           --coordinates of intersection point
-          clippedverts[j].coords = (1-line_alpha)*line.r0 + line_alpha*line.r1
-          clippedverts[j].alpha = line_alpha
-          clippedverts[j].intersect = intersect
-          clippedverts[j].polygon = curr_vert.polygon
+          out_verts[j].coords = (1-line_alpha)*line.r0 + line_alpha*line.r1
+          out_verts[j].alpha = line_alpha
+          out_verts[j].intersect = intersect
+          out_verts[j].polygon = polygon[curr_vert].polygon
 %ifdef DEBUG_BUILD
-          usrdis__print(DEBUG,'clip['+ i_to_s(j) +']: ' + vec_to_s(clippedverts[j].coords, ','))
-          usrdis__print(DEBUG, 'alpha = ' + r_to_s(clippedverts[j].alpha))
+          usrdis__print(DEBUG,'clip['+ i_to_s(j) +']: ' + vec_to_s(out_verts[j].coords, ','))
+          usrdis__print(DEBUG, 'alpha = ' + r_to_s(out_verts[j].alpha))
           usrdis__print(DEBUG,'seg_nxt: r0[' + vec_to_s(poly_seg.r0, ',') + '] r1[' + vec_to_s(poly_seg.r1, ',') + ']')
 %endif
         ENDIF
       ELSE  --curr_vert.polygon = next_vert.polygon
-          poly_seg.r0 = curr_vert.coords
-          poly_seg.r1 = next_vert.coords
+          poly_seg.r0 = polygon[curr_vert].coords
+          poly_seg.r1 = polygon[next_vert].coords
           --find intersection
           --intersection is read from left of the subject line to the right
           intersect = draw__intersect(line, poly_seg, line_alpha, poly_alpha)
           IF intersect THEN
             j = j + 1
             --coordinates of intersection point
-            clippedverts[j].coords = (1-line_alpha)*line.r0 + line_alpha*line.r1
-            clippedverts[j].alpha = line_alpha
-            clippedverts[j].intersect = intersect
-            clippedverts[j].polygon = curr_vert.polygon
+            out_verts[j].coords = (1-line_alpha)*line.r0 + line_alpha*line.r1
+            out_verts[j].alpha = line_alpha
+            out_verts[j].intersect = intersect
+            out_verts[j].polygon = polygon[curr_vert].polygon
 %ifdef DEBUG_BUILD
-            usrdis__print(DEBUG,'clip['+ i_to_s(j) +']: ' + vec_to_s(clippedverts[j].coords, ','))
-            usrdis__print(DEBUG, 'alpha = ' + r_to_s(clippedverts[j].alpha))
+            usrdis__print(DEBUG,'clip['+ i_to_s(j) +']: ' + vec_to_s(out_verts[j].coords, ','))
+            usrdis__print(DEBUG, 'alpha = ' + r_to_s(out_verts[j].alpha))
             usrdis__print(DEBUG,'seg: r0[' + vec_to_s(poly_seg.r0, ',') + '] r1[' + vec_to_s(poly_seg.r1, ',') + ']')
 %endif
           ENDIF
       ENDIF
       
-      IF curr_vert.polygon > curr_poly THEN
+      IF polygon[curr_vert].polygon > frst_vert.polygon THEN
         --update polygon count and first vert for next polygon
-        curr_poly = curr_vert.polygon
-        frst_vert = curr_vert
+        frst_vert = polygon[curr_vert]
 %ifdef DEBUG_BUILD
         usrdis__print(DEBUG,'Finding intersections for polygon ' + i_to_s(curr_poly))
         usrdis__print(DEBUG,'First vertex: ' + vec_to_s(frst_vert.coords, ','))
@@ -704,58 +695,91 @@ ROUTINE draw__clip_line_with_poly
     usrdis__print(DEBUG,'total clips: ' + i_to_s(j))
 %endif
 
-    --if any intersection are found
-    IF j > 0 THEN
-      --sort points by alpha value
-      srtclp__bubblesort(clippedverts, 1, j, TRUE)
-
-      --label verticies as entry (TRUE) or exit (FALSE) nodes
-      --first node will be an entry node
-      entryexit = TRUE
-
-      FOR i=2 TO j DO
-        entryexit = NOT entryexit
-        
-        --add new clipped line segment on exit node
-        --dont add if length of line = 0
-        IF (NOT entryexit) AND (clippedverts[i-1].coords <> clippedverts[i].coords) THEN
-          APPEND_NODE(out_lines, status)
-          out_lines[PATH_LEN(out_lines)].r0 = clippedverts[i-1].coords
-          out_lines[PATH_LEN(out_lines)].r1 = clippedverts[i].coords
-          IF UNINIT(clippedverts[i-1].polygon) THEN
-            out_lines[PATH_LEN(out_lines)].polygon =  clippedverts[i].polygon
-          ELSE
-            out_lines[PATH_LEN(out_lines)].polygon =  clippedverts[i-1].polygon
-          ENDIF
-        ENDIF
-      ENDFOR
-
-      --if there is an entry node with no corresponding exit node
-      IF entryexit THEN
-        --check if endpoint of the line is inside the polygon
-        collision = draw__point_collision_polygon(line.r1, polygon, hull)
-        IF collision THEN
-          APPEND_NODE(out_lines, status)
-          out_lines[PATH_LEN(out_lines)].r0 = clippedverts[j].coords
-          out_lines[PATH_LEN(out_lines)].r1 = line.r1
-          IF UNINIT(clippedverts[j].polygon) THEN
-            out_lines[PATH_LEN(out_lines)].polygon =  clippedverts[j-1].polygon
-          ELSE
-            out_lines[PATH_LEN(out_lines)].polygon =  clippedverts[j].polygon
-          ENDIF
-        ENDIF
+    --fill polygon info of first point if it is a collision not a clip
+    IF UNINIT(out_verts[1].polygon) THEN
+      IF j > 1 THEN
+        out_verts[1].polygon = out_verts[2].polygon
+      ELSE
+        out_verts[1].polygon = 1
       ENDIF
-
     ENDIF
+
+    -- if an odd number of clips are found
+    -- line end point is inside of polygon
+    -- add 1 to get correct number of endpoints
+    IF ((j MOD 2) > 0) THEN
+      --check if endpoint of the line is inside the polygon
+      collision = draw__point_collision_polygon(line.r1, polygon, hull)
+      IF collision THEN
+%ifdef DEBUG_BUILD
+        usrdis__print(DEBUG, 'polygon collision at: ' + vec_to_s(line.r1,',') )
+%endif
+        j = j + 1
+        out_verts[j].coords = line.r1
+        out_verts[j].alpha = 0
+        out_verts[j].intersect = FALSE
+        out_verts[j].polygon = out_verts[j-1].polygon
+      ENDIF
+    ENDIF
+
+    RETURN(j)
+
+END draw__clip_poly_verts
+
+ROUTINE draw__clips_to_lines
+  VAR
+    entryexit : BOOLEAN
+    i : INTEGER
+    status : INTEGER
+  BEGIN
+    --sort points by alpha value
+    srtclp__bubblesort(clips, start_i, end_i, TRUE)
+
+    --label verticies as entry (TRUE) or exit (FALSE) nodes
+    --first node will be an entry node
+    entryexit = TRUE
+
+    FOR i=start_i+1 TO end_i DO
+      entryexit = NOT entryexit
+      
+      --add new clipped line segment on exit node
+      --dont add if length of line = 0
+      IF (NOT entryexit) AND (clips[i-1].coords <> clips[i].coords) THEN
+        APPEND_NODE(out_lines, status)
+        out_lines[PATH_LEN(out_lines)].r0 = clips[i-1].coords
+        out_lines[PATH_LEN(out_lines)].r1 = clips[i].coords
+        out_lines[PATH_LEN(out_lines)].polygon = clips[i-1].polygon
+      ENDIF
+    ENDFOR
+
+  END draw__clips_to_lines
+
+ROUTINE draw__clip_line_with_poly
+  VAR
+    --assumed maximum number of times a polygon will
+    --intersect a single line
+%define total_clips 20
+    clippedverts : ARRAY[total_clips] OF t_VERT_CLIP
+    no_of_clips : INTEGER
+  BEGIN
+    no_of_clips = draw__clip_poly_verts(line, polygon, hull, clippedverts)
+    --if any intersection are found
+    IF no_of_clips > 0 THEN
+      draw__clips_to_lines(clippedverts, 1, no_of_clips, out_lines)
+    ENDIF
+    --return out_lines
+
+    RETURN(TRUNC(no_of_clips/2))
   END draw__clip_line_with_poly
 
 ROUTINE draw__raster_lines
   VAR
-    i : INTEGER
-    inc : INTEGER
     bbox : t_RECT
     new_line : t_SEGMENT2D
-    startpoint,endpoint : VECTOR
+    startpoint, endpoint : VECTOR
+    line_count : INTEGER
+    i : INTEGER
+    inc : INTEGER
     status : INTEGER
   BEGIN
 %ifdef DEBUG_BUILD
@@ -798,15 +822,10 @@ ROUTINE draw__raster_lines
       usrdis__print(DEBUG, vec_to_s(new_line.r1, ','))
 %endif
       --clip lines to polygon
-      draw__clip_line_with_poly(new_line, polygon, out_hull, out_lines)
+      line_count = draw__clip_line_with_poly(new_line, polygon, out_hull, out_lines)
 
       i = i + 1
     UNTIL(i > inc)
-
-    --fill next_poly if more than one polygon is present
-    IF PATH_LEN(out_lines) > 1 THEN
-      draw__line_nextPoly(out_lines)
-    ENDIF
 
     --return out_lines
 

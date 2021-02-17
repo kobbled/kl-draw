@@ -421,6 +421,8 @@ ROUTINE t_clip_line : BOOLEAN
   VAR
     line : ARRAY[3] OF t_SEGMENT2D
     exp_line : ARRAY[4] OF t_SEGMENT2D
+    line_count : INTEGER
+    perp : VECTOR
   BEGIN
     --clear lines 
     clear_lines(lines)
@@ -446,7 +448,7 @@ ROUTINE t_clip_line : BOOLEAN
     line[1].r0 = VEC2D(-2,6)
     line[1].r1 = VEC2D(3,0)
     --clip line
-    draw__clip_line_with_poly(line[1], polygon1, hull, lines)
+    line_count = draw__clip_line_with_poly(line[1], polygon1, hull, lines)
     --expected lines
     exp_line[1].r0 = VEC2D(-0.75,4.5) ; exp_line[1].r1 = VEC2D(1.333,2) ;
 
@@ -454,7 +456,7 @@ ROUTINE t_clip_line : BOOLEAN
     line[2].r0 = VEC2D(-3,2)
     line[2].r1 = VEC2D(3,0.5)
     --clip line
-    draw__clip_line_with_poly(line[2], polygon1, hull, lines)
+    line_count = draw__clip_line_with_poly(line[2], polygon1, hull, lines)
     --expected lines
     exp_line[2].r0 = VEC2D(-1.462,1.615) ; exp_line[2].r1 = VEC2D(-0.6,1.4) ;
     exp_line[3].r0 = VEC2D(1,1) ; exp_line[3].r1 = VEC2D(1.727,0.818) ;
@@ -463,7 +465,7 @@ ROUTINE t_clip_line : BOOLEAN
     line[3].r0 = VEC2D(-2,5)
     line[3].r1 = VEC2D(2,5)
     --clip line
-    draw__clip_line_with_poly(line[3], polygon1, hull, lines)
+    line_count = draw__clip_line_with_poly(line[3], polygon1, hull, lines)
 
     exp_line[4].r0 = VEC2D(-0.5,5) ; exp_line[4].r1 = VEC2D(0.5,5) ;
 
@@ -479,6 +481,7 @@ ROUTINE t_clip_line2 : BOOLEAN
   VAR
     line : ARRAY[2] OF t_SEGMENT2D
     exp_line : ARRAY[5] OF t_SEGMENT2D
+    line_count : INTEGER
   BEGIN
     --clear lines 
     clear_lines(lines)
@@ -505,7 +508,7 @@ ROUTINE t_clip_line2 : BOOLEAN
     line[1].r0 = VEC2D(7.32,0.37)
     line[1].r1 = VEC2D(9.66,2.41)
     --clip line
-    draw__clip_line_with_poly(line[1], polygon2, hull, lines)
+    line_count = draw__clip_line_with_poly(line[1], polygon2, hull, lines)
 
     --expected lines
     exp_line[1].r0 = VEC2D(7.32,0.37) ; exp_line[1].r1 = VEC2D(8.043,1)
@@ -515,7 +518,7 @@ ROUTINE t_clip_line2 : BOOLEAN
     line[2].r0 = VEC2D(8.44,3.59)
     line[2].r1 = VEC2D(10.09,0.5)
     --clip line
-    draw__clip_line_with_poly(line[2], polygon2, hull, lines)
+    line_count = draw__clip_line_with_poly(line[2], polygon2, hull, lines)
 
     draw__trace(polygon2, 0, 1, PTH_LINETO, contours)
 
@@ -536,6 +539,7 @@ ROUTINE t_clpln_mult : BOOLEAN
   VAR
     line : ARRAY[1] OF t_SEGMENT2D
     exp_line : ARRAY[3] OF t_SEGMENT2D
+    line_count : INTEGER
   BEGIN
     --clear lines 
     clear_lines(lines)
@@ -563,7 +567,7 @@ ROUTINE t_clpln_mult : BOOLEAN
     line[1].r0 = VEC2D(-1.96,10.89)
     line[1].r1 = VEC2D(11.68,12.84)
     --clip line
-    draw__clip_line_with_poly(line[1], polygon3, hull, lines)
+    line_count = draw__clip_line_with_poly(line[1], polygon3, hull, lines)
 
     --expected lines
     exp_line[1].r0 = VEC2D(0,11.17) ; exp_line[1].r1 = VEC2D(2,11.456)
@@ -981,6 +985,35 @@ ROUTINE t_hexagon : BOOLEAN
 
   END t_hexagon
 
+ROUTINE t_upturns : BOOLEAN
+  BEGIN
+    tstpoly__clear
+    tstpoly__set_canvas((ZEROPOS(1)))
+
+    --draw polygon
+    --set polygon
+    clear_path(polygon3)
+    append_nodes(polygon3, 10)
+    polygon3[1].coords = VEC2D(-3,-1)
+    polygon3[2].coords = VEC2D(-2,-2)
+    polygon3[3].coords = VEC2D(-1,-1)
+    polygon3[4].coords = VEC2D(0,-2)
+    polygon3[5].coords = VEC2D(1,-1)
+    polygon3[6].coords = VEC2D(2,-2)
+    polygon3[7].coords = VEC2D(3,-1)
+    polygon3[8].coords = VEC2D(1.5,1)
+    polygon3[9].coords = VEC2D(0,0)
+    polygon3[10].coords = VEC2D(-1.5,1)
+
+    tstpoly__append_polygon(polygon3)
+
+    tstpoly__set_params(0, 1, 1, 0, 0.5)
+    tstpoly__raster(PTH_LINETO)
+
+    RETURN(TRUE)
+
+  END t_upturns
+
 BEGIN
 
 %ifdef DEBUG_BUILD
@@ -998,7 +1031,7 @@ BEGIN
   kunit_test('test point collision on star', t_p_on_poly) -- asserts 4
   kunit_test('test point collision on c shaped', t_p_on_poly2) -- asserts 4
   kunit_test('line clip star polygon', t_clip_line) --asserts 8
-  kunit_test('line clip on C shape', t_clip_line2) -- asserts 10
+  --kunit_test('line clip on C shape', t_clip_line2) -- asserts 10
   kunit_test('multi polygon line clip', t_clpln_mult) -- asserts 6
   kunit_test('raster polygon', t_raster1) --asserts 24
   kunit_test('inset oblong T shape', t_inset) --asserts 5
@@ -1007,6 +1040,7 @@ BEGIN
   kunit_test('test polygon class with c-shape', t_class_poly) --asserts 2
   kunit_test('test create hexagon', t_hexagon) --asserts 4
   kunit_test('multi polygon raster', t_rast_multi) --asserts 2
+  kunit_test('faceted polygon raster', t_upturns)
   kunit_done
 
   --destruct classes
