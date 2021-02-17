@@ -211,11 +211,18 @@ ROUTINE append_polygon
   VAR
     i : INTEGER
     polygon : INTEGER
+    lastPoly : INTEGER
   BEGIN
     polygon = update_last_poly
 
+    --retain last index to point to prevPoly
+    IF PATH_LEN(this) > 0 THEN lastPoly = PATH_LEN(this); ENDIF
+
     FOR i=1 TO PATH_LEN(verticies) DO
       append_vertex(verticies[i].coords, (polygon))
+      IF NOT UNINIT(lastPoly) AND (lastPoly > 0) THEN
+        this[PATH_LEN(this)].prevPoly = lastPoly
+      ENDIF
     ENDFOR
   END append_polygon
 
@@ -223,11 +230,18 @@ ROUTINE append_polygon_array
   VAR
     i : INTEGER
     polygon : INTEGER
+    lastPoly : INTEGER
   BEGIN
     polygon = update_last_poly
 
+    --retain last index to point to prevPoly
+    IF PATH_LEN(this) > 0 THEN lastPoly = PATH_LEN(this); ENDIF
+
     FOR i=1 TO ARRAY_LEN(verticies) DO
       append_vertex(verticies[i], (polygon))
+      IF NOT UNINIT(lastPoly) THEN
+        this[PATH_LEN(this)].prevPoly = lastPoly
+      ENDIF
     ENDFOR
   END append_polygon_array
 
@@ -335,17 +349,11 @@ ROUTINE convert_vec_path
       out_lines[PATH_LEN(out_lines)].v = lines[i].r0
       out_lines[PATH_LEN(out_lines)].code = PTH_MOVETO
       out_lines[PATH_LEN(out_lines)].polygon = lines[i].polygon
-      IF NOT UNINIT(lines[i].nextPoly) THEN
-        out_lines[PATH_LEN(out_lines)].nextPoly = lines[i].nextPoly
-      ENDIF
       --r1
       APPEND_NODE(out_lines, status)
       out_lines[PATH_LEN(out_lines)].v = lines[i].r1
       out_lines[PATH_LEN(out_lines)].code = PTH_CLOSE
       out_lines[PATH_LEN(out_lines)].polygon = lines[i].polygon
-      IF NOT UNINIT(lines[i].nextPoly) THEN
-        out_lines[PATH_LEN(out_lines)].nextPoly = lines[i].nextPoly
-      ENDIF
     ENDFOR
 
     --convert contours
@@ -354,9 +362,6 @@ ROUTINE convert_vec_path
       out_cntrs[PATH_LEN(out_cntrs)].v = contours[i].v
       out_cntrs[PATH_LEN(out_cntrs)].code = contours[i].code
       out_cntrs[PATH_LEN(out_cntrs)].polygon = contours[i].polygon
-      IF NOT UNINIT(contours[i].nextPoly) THEN
-        out_cntrs[PATH_LEN(out_cntrs)].nextPoly = contours[i].nextPoly
-      ENDIF
     ENDFOR
 
   END convert_vec_path

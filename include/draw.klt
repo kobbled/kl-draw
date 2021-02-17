@@ -24,13 +24,13 @@ TYPE
   t_SEG2D_POLY FROM draw = STRUCTURE
     r0 : VECTOR
     r1 : VECTOR
-    nextPoly : SHORT
     polygon : SHORT
   ENDSTRUCTURE
 
   t_VERTEX FROM draw = STRUCTURE
     coords : VECTOR
     nextPoly : SHORT
+    prevPoly : SHORT
     polygon : SHORT
   ENDSTRUCTURE
 
@@ -38,10 +38,9 @@ TYPE
   --..warning:: If changing update sortintrsct.klt macro for sorting operation
   t_VERT_CLIP FROM draw = STRUCTURE
     coords : VECTOR
-    entry_exit : BOOLEAN
     intersect : BOOLEAN
     alpha : REAL
-    polygon : INTEGER
+    polygon : SHORT
   ENDSTRUCTURE
 
   t_TRIANGLE FROM draw = STRUCTURE

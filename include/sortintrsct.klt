@@ -8,10 +8,9 @@
 %define array_type_define `TYPE
 t_VERT_CLIP FROM draw = STRUCTURE
     coords : VECTOR
-    entry_exit : BOOLEAN
     intersect : BOOLEAN
     alpha : REAL
-    polygon : INTEGER
+    polygon : SHORT
   ENDSTRUCTURE`
 
 %define define_callback `declare_member(class_name,callback,class_name,call)
