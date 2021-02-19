@@ -1002,14 +1002,6 @@ ROUTINE draw__trace
       ENDIF
     ENDIF
 
-    --if out_contour is not empty change code of last
-    --node from PTH_STOP to PTH_CLOSE
-    IF PATH_LEN(out_contour) > 0 THEN
-      IF out_contour[PATH_LEN(out_contour)].code = PTH_STOP THEN
-        out_contour[PATH_LEN(out_contour)].code = PTH_CLOSE
-      ENDIF
-    ENDIF
-
     --y-axis vector
     align_vec = draw__angle_to_vector(start_angle + 90)
 
@@ -1080,7 +1072,7 @@ ROUTINE draw__trace
     UNTIL( UNINIT(polygon[vert].nextPoly) )
 
     --close off polygon and stop path
-    out_contour[PATH_LEN(out_contour)].code = PTH_STOP
+    out_contour[PATH_LEN(out_contour)].code = PTH_CLOSE
 
   END draw__trace
 

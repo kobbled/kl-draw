@@ -19,6 +19,7 @@ VAR
   poly_inset : PATH nodedata = t_VERTEX
   hull : PATH nodedata = t_VERTEX
   contours : PATH nodedata = t_VEC_PATH
+  line_pth : PATH nodedata = t_VEC_PATH
   lines : PATH nodedata = t_SEG2D_POLY
 
 %include kunit.klh
@@ -928,6 +929,11 @@ ROUTINE t_rast_multi : BOOLEAN
     exp_line_r0[9] = VEC2D(8,12) ; exp_line_r1[9] = VEC2D(10,12) ;
     exp_line_r0[10] = VEC2D(0,13) ; exp_line_r1[10] = VEC2D(2,13) ;
 
+    --convert to path
+    clear_contrs(contours)
+    clear_contrs(line_pth)
+    tstpoly__convert_vec_path(contours, line_pth)
+
     RETURN(kunit_eq_arv(exp_line_r0, act_line_r0, 0.05) AND kunit_eq_arv(exp_line_r1, act_line_r1, 0.05) )
 
   END t_rast_multi
@@ -1024,24 +1030,24 @@ BEGIN
 %endif
 
   --total asserts 123
-  kunit_test('test line intersection', t_intersect) -- asserts 10 
-  kunit_test('test finding min and max points in polygon', t_anchr_pnts) -- asserts 4
-  kunit_test('test convex hull star shape', t_convhull) -- asserts 4
-  kunit_test('test convex hull of multiple polygons', t_convhull_m) -- asserts 4
-  kunit_test('test bounding box', t_bbox) -- asserts 6
-  kunit_test('test point collision on star', t_p_on_poly) -- asserts 4
-  kunit_test('test point collision on c shaped', t_p_on_poly2) -- asserts 4
-  kunit_test('line clip star polygon', t_clip_line) --asserts 8
-  --kunit_test('line clip on C shape', t_clip_line2) -- asserts 10
-  kunit_test('multi polygon line clip', t_clpln_mult) -- asserts 6
-  kunit_test('raster polygon', t_raster1) --asserts 24
-  kunit_test('inset oblong T shape', t_inset) --asserts 5
-  kunit_test('inset multiple polygons', t_inset_mult) --asserts 10
-  kunit_test('trace lines around star polygon', t_trace) --asserts 2
-  kunit_test('test polygon class with c-shape', t_class_poly) --asserts 2
-  kunit_test('test create hexagon', t_hexagon) --asserts 4
+  -- kunit_test('test line intersection', t_intersect) -- asserts 10 
+  -- kunit_test('test finding min and max points in polygon', t_anchr_pnts) -- asserts 4
+  -- kunit_test('test convex hull star shape', t_convhull) -- asserts 4
+  -- kunit_test('test convex hull of multiple polygons', t_convhull_m) -- asserts 4
+  -- kunit_test('test bounding box', t_bbox) -- asserts 6
+  -- kunit_test('test point collision on star', t_p_on_poly) -- asserts 4
+  -- kunit_test('test point collision on c shaped', t_p_on_poly2) -- asserts 4
+  -- kunit_test('line clip star polygon', t_clip_line) --asserts 8
+  -- --kunit_test('line clip on C shape', t_clip_line2) -- asserts 10
+  -- kunit_test('multi polygon line clip', t_clpln_mult) -- asserts 6
+  -- kunit_test('raster polygon', t_raster1) --asserts 24
+  -- kunit_test('inset oblong T shape', t_inset) --asserts 5
+  -- kunit_test('inset multiple polygons', t_inset_mult) --asserts 10
+  -- kunit_test('trace lines around star polygon', t_trace) --asserts 2
+  -- kunit_test('test polygon class with c-shape', t_class_poly) --asserts 2
+  -- kunit_test('test create hexagon', t_hexagon) --asserts 4
   kunit_test('multi polygon raster', t_rast_multi) --asserts 2
-  kunit_test('faceted polygon raster', t_upturns)
+  --kunit_test('faceted polygon raster', t_upturns)
   kunit_done
 
   --destruct classes
