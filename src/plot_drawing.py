@@ -14,6 +14,8 @@ import ftplib
 from ftplib import FTP
 import re
 from random import randint
+import argparse
+
 import matplotlib.path as mpath
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
@@ -24,17 +26,18 @@ ROBOT_PORT = 80
 USERNAME = ""
 PASSWORD = ""
 
-DRAWING_OBJECT = 'TSTPOLY'
-#DRAWING_OBJECT = 'TEST_DRAW'
 SAVE_DIRECTORY = 'plots'
 
 CONTOUR_VARNAME = 'CONTOURS'
 CONTOUR_VEC_SUFFIX = 'V'
+CONTOUR_VEC_TYPE = 'VECTOR'
 CONTOUR_CODE_SUFFIX = 'CODE'
+CONTOUR_CODE_TYPE = 'SHORT'
 
 LINES_VARNAME = 'LINES'
 LINE_START_SUFFIX = 'R0'
 LINE_END_SUFFIX = 'R1'
+LINE_TYPE = 'VECTOR'
 
 #pattern1 = r"Field: {LINES_VARNAME}\.NODEDATA\[(\d{1,5})\]\.{LINE_START_SUFFIX} Access: RW: VECTOR =\s*(.*)"
 #pattern2 = r"Field: {LINES_VARNAME}\.NODEDATA\[(\d{1,5})\]\.{LINE_END_SUFFIX} Access: RW: VECTOR =\s*(.*)"
@@ -55,12 +58,12 @@ def random_color_gen():
   b = randint(0, 255)
   return (r, g, b)
 
-def parseContour():
+def parseContour(args):
 
-  parsefile = folder_files +'/' + SAVE_DIRECTORY + '/' + DRAWING_OBJECT + '.VA'
+  parsefile = folder_files +'/' + SAVE_DIRECTORY + '/' + args.rbt_fl + '.VA'
 
-  pattern_code = rf"Field: {CONTOUR_VARNAME}\.NODEDATA\[(\d+)\]\.{CONTOUR_CODE_SUFFIX} Access: RW: INTEGER =\s*(.*)"
-  pattern_vector = rf"Field: {CONTOUR_VARNAME}\.NODEDATA\[(\d+)\]\.{CONTOUR_VEC_SUFFIX} Access: RW: VECTOR =\s"
+  pattern_code = rf"Field: {CONTOUR_VARNAME}\.NODEDATA\[(\d+)\]\.{CONTOUR_CODE_SUFFIX} Access: RW: {CONTOUR_CODE_TYPE} =\s*(.*)"
+  pattern_vector = rf"Field: {CONTOUR_VARNAME}\.NODEDATA\[(\d+)\]\.{CONTOUR_VEC_SUFFIX} Access: RW: {CONTOUR_VEC_TYPE} =\s"
   patternx = r"X:\s*(-?\d{0,3}\.\d{1,3})"
   patterny = r"Y:\s*(-?\d{0,3}\.\d{1,3})"
 
@@ -104,12 +107,12 @@ def parseContour():
         else:
           polygons.insert(nid, [code,[0, 0]] )
 
-def parseLines():
+def parseLines(args):
 
-  parsefile = folder_files +'/' + SAVE_DIRECTORY + '/' + DRAWING_OBJECT + '.VA'
+  parsefile = folder_files +'/' + SAVE_DIRECTORY + '/' + args.rbt_fl + '.VA'
 
-  pattern_start = rf"Field: {LINES_VARNAME}\.NODEDATA\[(\d+)\]\.{LINE_START_SUFFIX} Access: RW: VECTOR =\s*(.*)"
-  pattern_end = rf"Field: {LINES_VARNAME}\.NODEDATA\[(\d+)\]\.{LINE_END_SUFFIX} Access: RW: VECTOR =\s*(.*)"
+  pattern_start = rf"Field: {LINES_VARNAME}\.NODEDATA\[(\d+)\]\.{LINE_START_SUFFIX} Access: RW: {LINE_TYPE} =\s*(.*)"
+  pattern_end = rf"Field: {LINES_VARNAME}\.NODEDATA\[(\d+)\]\.{LINE_END_SUFFIX} Access: RW: {LINE_TYPE} =\s*(.*)"
   patternx = r"X:\s*(-?\d{0,3}\.\d{1,3})"
   patterny = r"Y:\s*(-?\d{0,3}\.\d{1,3})"
 
@@ -239,16 +242,27 @@ class RobotFTP(object):
     except ftplib.all_errors as e:
       print('FTP error:', e)
 
+def main():
+  description=("Visualization tool for interpretting paths on the"
+               "FANUC controller")
 
-if __name__ == "__main__":
+  parser = argparse.ArgumentParser(prog='plot_drawing', description=description,
+                                  formatter_class=argparse.MetavarTypeHelpFormatter)
+
+  parser.add_argument('rbt_fl', type=str, nargs='?',
+        help="Name of karel file")
+
+  args = parser.parse_args()
+
   folder_files = os.path.dirname(os.path.realpath(__file__))
   folder_files = os.path.abspath(os.path.join(folder_files, os.pardir))
   print('parent fldr: ', folder_files)
   # start an ftp instance
-  robot = RobotFTP(DRAWING_OBJECT, ROBOT_IP, ROBOT_PORT, username = USERNAME, password = PASSWORD)
+  robot = RobotFTP(args.rbt_fl, ROBOT_IP, ROBOT_PORT, username = USERNAME, password = PASSWORD)
+  
   # get contours
-  parseContour()
-  parseLines()
+  parseContour(args)
+  parseLines(args)
   print('polygons')
   print_cont(polygons)
   print('lines')
@@ -256,3 +270,6 @@ if __name__ == "__main__":
   plot()
 
 
+
+if __name__ == "__main__":
+  main()
