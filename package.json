@@ -18,11 +18,14 @@
   "depends" : [
     "shapes",
     "math",
-    "KUnit",
     "paths",
     "Strings",
     "display",
+    "errors",
     "ktransw-macros",
     "systemlib"
+  ],
+  "tests-depends" : [
+    "KUnit"
   ]
 }
