@@ -22,7 +22,6 @@ PROGRAM draw
 
 %from errors.klh %import CHK_STAT, karelError
 %include systemlib.klh
-%include paths.klh
 %include math.klh
 %from strings.klh %import i_to_s, r_to_s, vec_to_s, b_to_s
 
@@ -594,13 +593,14 @@ ROUTINE draw__clip_lines
 
 ROUTINE draw__clip_poly_verts
   VAR
-    i,j : INTEGER
+    i,j,k : INTEGER
     curr_vert, next_vert : INTEGER
     frst_vert : t_VERTEX
     poly_seg : t_SEGMENT2D
     line_alpha, poly_alpha : REAL
     intersect : BOOLEAN
     collision : BOOLEAN
+    inserted  : BOOLEAN
   BEGIN
     --clipped vertex index
     j = 0
@@ -659,17 +659,27 @@ ROUTINE draw__clip_poly_verts
           --intersection is read from left of the subject line to the right
           intersect = draw__intersect(line, poly_seg, line_alpha, poly_alpha)
           IF intersect THEN
-            j = j + 1
-            --coordinates of intersection point
-            out_verts[j].coords = (1-line_alpha)*line.r0 + line_alpha*line.r1
-            out_verts[j].alpha = line_alpha
-            out_verts[j].intersect = intersect
-            out_verts[j].polygon = polygon[curr_vert].polygon
+            --check if clipped point has already been added. Fixes issue if
+            --two lines in polygon have the same end point
+            inserted = FALSE
+            FOR k=1 TO j DO
+              IF out_verts[k].alpha = line_alpha THEN
+                inserted = TRUE
+              ENDIF
+            ENDFOR
+            IF NOT inserted THEN
+              j = j + 1
+              --coordinates of intersection point
+              out_verts[j].coords = (1-line_alpha)*line.r0 + line_alpha*line.r1
+              out_verts[j].alpha = line_alpha
+              out_verts[j].intersect = intersect
+              out_verts[j].polygon = polygon[curr_vert].polygon
 %ifdef DEBUG_BUILD
-            usrdis__print(DEBUG,'clip['+ i_to_s(j) +']: ' + vec_to_s(out_verts[j].coords, ','))
-            usrdis__print(DEBUG, 'alpha = ' + r_to_s(out_verts[j].alpha))
-            usrdis__print(DEBUG,'seg: r0[' + vec_to_s(poly_seg.r0, ',') + '] r1[' + vec_to_s(poly_seg.r1, ',') + ']')
+              usrdis__print(DEBUG,'clip['+ i_to_s(j) +']: ' + vec_to_s(out_verts[j].coords, ','))
+              usrdis__print(DEBUG, 'alpha = ' + r_to_s(out_verts[j].alpha))
+              usrdis__print(DEBUG,'seg: r0[' + vec_to_s(poly_seg.r0, ',') + '] r1[' + vec_to_s(poly_seg.r1, ',') + ']')
 %endif
+            ENDIF
           ENDIF
       ENDIF
       
@@ -677,7 +687,7 @@ ROUTINE draw__clip_poly_verts
         --update polygon count and first vert for next polygon
         frst_vert = polygon[curr_vert]
 %ifdef DEBUG_BUILD
-        usrdis__print(DEBUG,'Finding intersections for polygon ' + i_to_s(curr_poly))
+        usrdis__print(DEBUG,'Finding intersections for polygon ' + i_to_s((polygon[curr_vert].polygon)))
         usrdis__print(DEBUG,'First vertex: ' + vec_to_s(frst_vert.coords, ','))
 %endif
       ENDIF

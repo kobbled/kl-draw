@@ -875,6 +875,42 @@ ROUTINE t_class_poly : BOOLEAN
   
   END t_class_poly
 
+ROUTINE t_classpoly2 : BOOLEAN
+  VAR
+    i : INTEGER
+    rast_ang : REAL
+    act_line_r0, exp_line_r0 : ARRAY[8] OF VECTOR
+    act_line_r1, exp_line_r1 : ARRAY[8] OF VECTOR
+  BEGIN
+
+    tstpoly__clear
+
+    --set canvas
+    tstpoly__set_canvas((ZEROPOS(1)))
+
+    --draw polygon
+    --set polygon
+    clear_path(polygon2)
+    append_nodes(polygon2, 8)
+    polygon2[1].coords = VEC2D(-40,10)   
+    polygon2[2].coords = VEC2D(-10,40)   
+    polygon2[3].coords = VEC2D(0,0)
+    polygon2[4].coords = VEC2D(10,40)
+    polygon2[5].coords = VEC2D(40,10)   
+    polygon2[6].coords = VEC2D(20,60)   
+    polygon2[7].coords = VEC2D(0,120)
+    polygon2[8].coords = VEC2D(-20,60)
+
+    tstpoly__append_polygon(polygon2)
+    --raster lines
+    rast_ang = 90
+    tstpoly__set_params(rast_ang, 1, 1, 0, 10)
+    tstpoly__raster(PTH_LINETO)
+
+    RETURN(TRUE )
+  
+  END t_classpoly2
+
 ROUTINE t_rast_multi : BOOLEAN
   VAR
     i : INTEGER
