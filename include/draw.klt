@@ -53,13 +53,16 @@ TYPE
     convex : BOOLEAN
   ENDSTRUCTURE
 
-  t_RECT FROM shapes = STRUCTURE
-    verts : ARRAY[4] OF VECTOR
-    vec : ARRAY[2] OF VECTOR
+  t_RECT_CORNR FROM draw = ARRAY[4] OF VECTOR
+  t_RECT_VECS FROM draw = ARRAY[2] OF VECTOR
+
+  t_RECT FROM draw = STRUCTURE
+    verts : t_RECT_CORNR
+    vec : t_RECT_VECS
     center : VECTOR
   ENDSTRUCTURE
 
-  t_RASTER FROM shapes = STRUCTURE
+  t_RASTER FROM draw = STRUCTURE
     --angle to start trace and raster
     start_angle : REAL
     --travel direction of trace
