@@ -32,6 +32,7 @@ TYPE
     nextPoly : SHORT
     prevPoly : SHORT
     polygon : SHORT
+    typ : SHORT
   ENDSTRUCTURE
 
   --(ref: https://www.researchgate.net/publication/220184531_Efficient_Clipping_of_Arbitrary_Polygons)

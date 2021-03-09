@@ -43,19 +43,14 @@ ROUTINE draw__bounding_box(verticies : PATH nodedata = t_VERTEX; angle : REAL) :
 declare_function(prog_name,clip_lines,prog_name_alias,clpll)
 ROUTINE draw__clip_lines(line1 : t_SEGMENT2D; line2 : t_SEGMENT2D) FROM draw
 declare_function(prog_name,point_collision_polygon,prog_name_alias,pcolp)
-ROUTINE draw__point_collision_polygon(v : VECTOR ; polygon : PATH nodedata = t_VERTEX; & 
-                                      hull : PATH nodedata = t_VERTEX) : BOOLEAN FROM draw
+ROUTINE draw__point_collision_polygon(v : VECTOR ; polygon : PATH nodedata = t_VERTEX; hull : PATH nodedata = t_VERTEX) : BOOLEAN FROM draw
 declare_function(prog_name,raster_lines,prog_name_alias,rstln)
-ROUTINE draw__raster_lines(polygon : PATH nodedata = t_VERTEX; out_hull : PATH nodedata = t_VERTEX; &
-                           raster_angle : REAL; line_width : REAL; line_pitch : REAL; dir : INTEGER ; & 
-                           out_lines : PATH nodedata = t_SEG2D_POLY) FROM draw
+ROUTINE draw__raster_lines(polygon : PATH nodedata = t_VERTEX; out_hull : PATH nodedata = t_VERTEX; raster_angle : REAL; line_width : REAL; line_pitch : REAL; dir : INTEGER ; out_lines : PATH nodedata = t_SEG2D_POLY) FROM draw
 declare_function(prog_name,inset_polygon,prog_name_alias,inset)
-ROUTINE draw__inset_polygon(polygon : PATH nodedata = t_VERTEX; inset_amount : REAL; out_hull : PATH nodedata = t_VERTEX ; & 
-                            out_polygon : PATH nodedata = t_VERTEX) FROM draw
+ROUTINE draw__inset_polygon(polygon : PATH nodedata = t_VERTEX; inset_amount : REAL; out_hull : PATH nodedata = t_VERTEX ; out_polygon : PATH nodedata = t_VERTEX) FROM draw
 declare_function(prog_name,trace,prog_name_alias,trace)
 --dir =1 ccw or =-1 cw
-ROUTINE draw__trace(polygon : PATH nodedata = t_VERTEX; start_angle : REAL; & 
-                    dir : INTEGER ; curve_type : INTEGER ; out_contour : PATH nodedata = t_VEC_PATH) FROM draw
+ROUTINE draw__trace(polygon : PATH nodedata = t_VERTEX; start_angle : REAL; dir : INTEGER ; curve_type : INTEGER ; out_contour : PATH nodedata = t_VEC_PATH) FROM draw
 declare_function(prog_name,hexagon,prog_name_alias,hexagon)
 ROUTINE draw__hexagon(radius : REAL; verticies : INTEGER; origin : XYZWPR; out_poly : PATH nodedata = t_VERTEX) FROM draw
 

@@ -1,0 +1,13 @@
+%ifndef draw_const_t
+%define draw_const_t
+
+--vertex types
+CONST
+    VRT_NULL = 0
+    VRT_UPTURN = 1
+    VRT_DOWNTURN = 2
+    VRT_PERPEDGE = 4
+    VRT_SLOPENEG = 5
+    VRT_SLOPEPOS = 6
+
+%endif --draw_const_t

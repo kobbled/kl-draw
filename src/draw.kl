@@ -3,10 +3,9 @@ PROGRAM draw
 %COMMENT = '2d library'
 %NOLOCKGROUP
 %NOPAUSE = COMMAND + TPENABLE + ERROR
-%STACKSIZE = 500
+%STACKSIZE = 600
 
 %ifdef DEBUG_BUILD
-%define LOG_NAME 'RD:draw_debug.DT'
 %include display.c.klt
 %endif
 
@@ -16,6 +15,7 @@ PROGRAM draw
 %include math.klt
 %include paths.klt
 %include draw.klt
+%include draw.c.klt
 
 --CONST
 %define epsilon 0.0001
@@ -266,6 +266,57 @@ ROUTINE draw__on_hull
 
     RETURN(b)
   END draw__on_hull
+
+ROUTINE draw__turn_vertex
+-- (ref: https://www.researchgate.net/publication/333009739_A_sequential_path-planning_methodology_for_wire_and_arc_additive_manufacturing_based_on_a_water-pouring_rule)
+-- V_j = (PO@scan_dir)*(PQ@scan_dir)
+-- When V_j > 0 point P is a turn vertex
+-- if (PO@scan_dir) > 0 point P is an upturn vertex,
+-- else it is a downturn vertex
+-- When V_j = 0 at least one vector PO, PQ is
+-- perpendicular to deposition direction
+  VAR
+    V_j, UD1, UD2 : REAL
+    O,P,Q : INTEGER
+    dummy : VECTOR
+  BEGIN
+    P = ((idx-1) MOD PATH_LEN(polygon)) + 1
+
+    Q = ((idx-1+1) MOD PATH_LEN(polygon)) + 1
+    IF (polygon[Q].polygon <> polygon[P].polygon) THEN
+      IF NOT UNINIT(polygon[Q].prevPoly) THEN
+        Q = polygon[Q].prevPoly
+      ENDIF
+    ENDIF
+
+    -- get three adjacent points from the polygon
+    O = ((idx-1-1) MOD PATH_LEN(polygon)) + 1
+    --handle negative MOD
+    IF O < 1 THEN
+      IF NOT UNINIT(polygon[P].nextPoly) THEN
+        O = polygon[P].nextPoly - 1
+      ELSE
+        O = PATH_LEN(polygon)
+      ENDIF
+    ELSE IF (polygon[O].polygon <> polygon[P].polygon) THEN
+      O = polygon[P].nextPoly - 1
+    ENDIF
+    ENDIF
+    
+    UD1 = (polygon[O].coords-polygon[P].coords)@scan_dir
+    UD2 = (polygon[Q].coords-polygon[P].coords)@scan_dir
+    V_j = UD1*UD2
+
+    IF V_j > 0 THEN
+      IF (UD1 > 0) AND (UD2 > 0) THEN RETURN(VRT_UPTURN) ; ENDIF
+      IF (UD1 < 0) AND (UD2 < 0) THEN RETURN(VRT_DOWNTURN) ; ENDIF
+    ELSE
+      IF V_j = 0 THEN RETURN(VRT_PERPEDGE) ; ENDIF
+      IF (UD1 > 0) AND (UD2 < 0) THEN RETURN(VRT_SLOPENEG) ; ENDIF
+      IF (UD1 < 0) AND (UD2 > 0) THEN RETURN(VRT_SLOPEPOS) ; ENDIF
+    ENDIF
+
+  END draw__turn_vertex
 
 ROUTINE draw__point_collision_convex
   VAR
@@ -799,6 +850,11 @@ ROUTINE draw__raster_lines
     usrdis__print(DEBUG, vec_to_s(bbox.verts[3], ','))
     usrdis__print(DEBUG, vec_to_s(bbox.verts[4], ','))
 %endif
+    -- --determine vertex types for verticies in polygon
+    -- FOR i=1 TO PATH_LEN(polygon) DO
+    --   polygon[i].typ = draw__turn_vertex(polygon, i, bbox.vec[1])
+    -- ENDFOR
+
     --define how many lines will be made based on height of box
     --and line pitch
     -- no_of_lines = ceil((box_height-line_width)/pitch)

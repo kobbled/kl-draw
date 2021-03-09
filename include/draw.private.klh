@@ -15,6 +15,8 @@ ROUTINE draw__find_max(point_arr : PATH nodedata = t_VERTEX; strti : INTEGER ; e
                        center : VECTOR ; search_vec : VECTOR) : INTEGER FROM draw
 declare_function(prog_name,on_hull,prog_name_alias,onhul)
 ROUTINE draw__on_hull(v : VECTOR ; hull : PATH nodedata = t_VERTEX) : BOOLEAN FROM draw
+declare_function(prog_name,turn_vertex,prog_name_alias,tnvrt)
+ROUTINE draw__turn_vertex(polygon : PATH nodedata = t_VERTEX; idx : INTEGER; scan_dir : VECTOR) : INTEGER FROM draw
 declare_function(prog_name,point_collision_convex,prog_name_alias,pcolc)
 ROUTINE draw__point_collision_convex(v : VECTOR ; polygon : PATH nodedata = t_VERTEX; &
                                      start_node, end_node : INTEGER; on_boundary : BOOLEAN) : BOOLEAN FROM draw
