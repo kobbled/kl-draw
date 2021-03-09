@@ -41,6 +41,13 @@ LINE_TYPE = 'VECTOR'
 LINES_TYPENAME = 'T_SEG2D_POLY'
 LINES_TYPENAME2 = 'T_VEC_PATH'
 
+PATH_MAP = 'PATH_PLAN'
+PATH_MAP_SUFFIX = 'V'
+PATH_MAP_TYPE = 'INTEGER'
+PATH_DATA = 'LINES'
+PATH_DATA_SUFFIX = 'V'
+PATH_DATA_TYPE = 'VECTOR'
+
 #pattern1 = r"Field: {LINES_VARNAME}\.NODEDATA\[(\d{1,5})\]\.{LINE_START_SUFFIX} Access: RW: VECTOR =\s*(.*)"
 #pattern2 = r"Field: {LINES_VARNAME}\.NODEDATA\[(\d{1,5})\]\.{LINE_END_SUFFIX} Access: RW: VECTOR =\s*(.*)"
 
@@ -48,6 +55,7 @@ folder_files = ''
 
 raster_lines = []
 polygons = []
+ppath = []
 
 def random_color_gen():
   """Generates a random RGB color
@@ -216,6 +224,47 @@ def parseLines2(args):
         j = (j + 1) % 2
         
 
+def parsePath(args):
+  parsefile = folder_files +'/' + SAVE_DIRECTORY + '/' + args.rbt_fl + '.VA'
+
+  pattern_map = rf"Field: {PATH_MAP}\.NODEDATA\[(\d+)\]\.{PATH_MAP_SUFFIX} Access: RW: {PATH_MAP_TYPE} =\s*(\d+)"
+  patternx = r"X:\s*(-?\d{0,3}\.\d{1,3})"
+  patterny = r"Y:\s*(-?\d{0,3}\.\d{1,3})"
+
+  with open(parsefile,'r') as f:
+    lines = f.readlines()
+
+    #get path index order
+    path_order = []
+    for i in range(len(lines)):
+      m1 = re.search(pattern_map, lines[i])
+      if m1:
+        path_order.append(int(m1.group(2)))
+
+  # load full file into memory
+  textfile = open(parsefile, 'r')
+  filetext = textfile.read()
+  textfile.close()
+  
+  lines = None
+  # get path coordinates
+  for i in range(len(path_order)):
+    pattern_data = rf"Field: {PATH_DATA}\.NODEDATA\[{path_order[i]}\]\.{PATH_DATA_SUFFIX} Access: RW: {PATH_DATA_TYPE} =\s*(.*)"
+    m2 = re.search(pattern_data, filetext)
+    vec = m2.group(1)
+    # get x coordinate
+    mvec = re.search(patternx, vec)
+    new_x = 0.0
+    if mvec:
+      new_x = float(mvec.group(1))
+    # get y coordinate
+    mvec = re.search(patterny, vec)
+    new_y = 0.0
+    if mvec:
+      new_y = float(mvec.group(1))
+    ppath.append([path_order[i], [new_x, new_y]])
+
+
 def print_cont(list_obj):
   for i in range(len(list_obj)):
     print("{}: {:.3f}, {:.3f}".format(list_obj[i][0], list_obj[i][1][0], list_obj[i][1][1]))
@@ -247,6 +296,12 @@ def plot():
       path = mpath.Path(verts[start_idx:end_idx], codes[start_idx:end_idx])
       patch = mpatches.PathPatch(path, facecolor=face_color, edgecolor=edge_color, alpha=0.5)
       ax.add_patch(patch)
+  
+  #path
+  if len(ppath) > 0:
+    idx, verts = zip(*ppath)
+    xs, ys = zip(*verts)
+    ax.plot(xs, ys, 'o--', lw=2, color='red', ms=5)
 
   #lines
   for line in raster_lines:
@@ -254,6 +309,7 @@ def plot():
 
     color = random_color_gen()
     color = list(map(lambda i: i*1.0/255, color))
+    #color = 'yellow'
     draw = plt.Line2D(x, y, color=color)
     ax.add_line(draw)
 
@@ -337,6 +393,8 @@ def main():
     print_line(raster_lines)
   else:
     print_cont(raster_lines)
+  print('path')
+  print_cont(ppath)
   plot()
 
 
