@@ -24,9 +24,10 @@ VAR
   canvas : XYZWPR
   params : t_RASTER
 
-%include errors.klh
 %from systemlib.klh %import VEC2D
+%include errors.klh
 %include draw.klh
+
 %include polygon.klh
 %include polygon.private.klh
 
@@ -289,7 +290,7 @@ ROUTINE get_bounding_box
   VAR
     bbox : t_RECT
   BEGIN
-    bbox = draw__bounding_box(this, params.start_angle)
+    bbox = draw__bounding_box(this, (params.start_angle))
     --convert to world coordinates
     RETURN(bbox)
   END get_bounding_box
@@ -334,9 +335,11 @@ ROUTINE raster
 
   END raster
 
-ROUTINE convert_vec_path
+ROUTINE lines_to_vec_path
   VAR
-    i, status : INTEGER
+    i : INTEGER
+    status : INTEGER
+    curr_vert, next_vert : INTEGER
   BEGIN
     IF UNINIT(canvas) THEN
       karelError(VAR_UNINIT,'class_name member "canvas" needs to' + &
@@ -347,25 +350,52 @@ ROUTINE convert_vec_path
     FOR i=1 TO PATH_LEN(lines) DO
       --r0
       APPEND_NODE(out_lines, status)
-      out_lines[PATH_LEN(out_lines)].v = lines[i].r0
+      out_lines[PATH_LEN(out_lines)].v = canvas:lines[i].r0
       out_lines[PATH_LEN(out_lines)].code = PTH_MOVETO
       out_lines[PATH_LEN(out_lines)].polygon = lines[i].polygon
+
+      --approach vector will be the vector of the polygon line
+      --this line intersects
+      curr_vert = lines[i].poly_r0
+      next_vert = ((lines[i].poly_r0+1-1) MOD PATH_LEN(sub_poly)) + 1
+      out_lines[PATH_LEN(out_lines)].approach = canvas:(sub_poly[next_vert].coords - sub_poly[curr_vert].coords)
       --r1
       APPEND_NODE(out_lines, status)
-      out_lines[PATH_LEN(out_lines)].v = lines[i].r1
+      out_lines[PATH_LEN(out_lines)].v = canvas:lines[i].r1
       out_lines[PATH_LEN(out_lines)].code = PTH_CLOSE
       out_lines[PATH_LEN(out_lines)].polygon = lines[i].polygon
+
+      --approach vector will be the vector of the polygon line
+      --this line intersects
+      curr_vert = lines[i].poly_r1
+      next_vert = ((lines[i].poly_r1+1-1) MOD PATH_LEN(sub_poly)) + 1
+      out_lines[PATH_LEN(out_lines)].approach = canvas:(sub_poly[next_vert].coords - sub_poly[curr_vert].coords)
     ENDFOR
+  END lines_to_vec_path
+
+ROUTINE contours_to_vec_path
+  VAR
+    i, status : INTEGER
+    next_vert : INTEGER
+  BEGIN
+    IF UNINIT(canvas) THEN
+      karelError(VAR_UNINIT,'class_name member "canvas" needs to' + &
+                ' be set before converting', ER_ABORT)
+    ENDIF
 
     --convert contours
     FOR i=1 TO PATH_LEN(contours) DO
       APPEND_NODE(out_cntrs, status)
-      out_cntrs[PATH_LEN(out_cntrs)].v = contours[i].v
+      out_cntrs[PATH_LEN(out_cntrs)].v = canvas:contours[i].v
       out_cntrs[PATH_LEN(out_cntrs)].code = contours[i].code
       out_cntrs[PATH_LEN(out_cntrs)].polygon = contours[i].polygon
+      --approach vector will be the perpendicular vector of the contour
+      --segment.
+      next_vert = ((i+1-1) MOD PATH_LEN(contours)) + 1
+      out_cntrs[PATH_LEN(out_cntrs)].approach = canvas:(contours[next_vert].v-contours[i].v)
     ENDFOR
 
-  END convert_vec_path
+  END contours_to_vec_path
 
 ROUTINE hexagon
   VAR

@@ -20,12 +20,12 @@
     "math",
     "paths",
     "Strings",
-    "display",
     "errors",
     "ktransw-macros",
     "systemlib"
   ],
   "tests-depends" : [
+    "display",
     "KUnit"
   ]
 }

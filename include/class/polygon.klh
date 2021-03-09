@@ -36,8 +36,10 @@ declare_member(class_name,trace,class_name,trce)
 ROUTINE trace(line_type : INTEGER) FROM class_name
 declare_member(class_name,raster,class_name,rast)
 ROUTINE raster(line_type : INTEGER) FROM class_name
-declare_member(class_name,convert_vec_path,class_name,cvph)
-ROUTINE convert_vec_path(out_cntrs : PATH nodedata = t_VEC_PATH; out_lines : PATH nodedata = t_VEC_PATH) FROM class_name
+declare_member(class_name,lines_to_vec_path,class_name,lvph)
+ROUTINE lines_to_vec_path(out_lines : PATH nodedata = t_VEC_PATH) FROM class_name
+declare_member(class_name,contours_to_vec_path,class_name,cvph)
+ROUTINE contours_to_vec_path(out_cntrs : PATH nodedata = t_VEC_PATH) FROM class_name
 declare_member(class_name,hexagon,class_name,hxgn)
 ROUTINE hexagon(radius : REAL; verticies : INTEGER; translation : VECTOR; rotation : REAL) FROM class_name
 %endif --end header
