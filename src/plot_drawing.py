@@ -38,6 +38,8 @@ LINES_VARNAME = 'LINES'
 LINE_START_SUFFIX = 'R0'
 LINE_END_SUFFIX = 'R1'
 LINE_TYPE = 'VECTOR'
+LINES_TYPENAME = 'T_SEG2D_POLY'
+LINES_TYPENAME2 = 'T_VEC_PATH'
 
 #pattern1 = r"Field: {LINES_VARNAME}\.NODEDATA\[(\d{1,5})\]\.{LINE_START_SUFFIX} Access: RW: VECTOR =\s*(.*)"
 #pattern2 = r"Field: {LINES_VARNAME}\.NODEDATA\[(\d{1,5})\]\.{LINE_END_SUFFIX} Access: RW: VECTOR =\s*(.*)"
@@ -57,6 +59,21 @@ def random_color_gen():
   g = randint(0, 255)
   b = randint(0, 255)
   return (r, g, b)
+
+def check_line_type(args):
+  parsefile = folder_files +'/' + SAVE_DIRECTORY + '/' + args.rbt_fl + '.VA'
+
+  t1= rf"\s*Field:\s{LINES_VARNAME}\.NODEDATA\s*ARRAY\[(\d+)\]\sOF\s{LINES_TYPENAME}\s"
+  t2= rf"\s*Field:\s{LINES_VARNAME}\.NODEDATA\s*ARRAY\[(\d+)\]\sOF\s{LINES_TYPENAME2}\s"
+  
+  for line in open(parsefile):
+    if re.search(t1, line):
+      type1 = True
+    if re.search(t2, line):
+      type1 = False
+
+  return(type1)
+  
 
 def parseContour(args):
 
@@ -143,7 +160,7 @@ def parseLines(args):
 
       if m1:
         if len(raster_lines) > nid:
-          node = lines[nid]
+          node = raster_lines[nid]
           node[0] = [new_x, new_y]
           raster_lines[nid] = node
         else:
@@ -156,6 +173,48 @@ def parseLines(args):
           raster_lines[nid] = node
         else:
           raster_lines.insert(nid, [[0, 0],[new_x, new_y]] )
+
+def parseLines2(args):
+
+  parsefile = folder_files +'/' + SAVE_DIRECTORY + '/' + args.rbt_fl + '.VA'
+
+  pattern_code = rf"Field: {LINES_VARNAME}\.NODEDATA\[(\d+)\]\.{CONTOUR_CODE_SUFFIX} Access: RW: {CONTOUR_CODE_TYPE} =\s*(.*)"
+  pattern_vector = rf"Field: {LINES_VARNAME}\.NODEDATA\[(\d+)\]\.{CONTOUR_VEC_SUFFIX} Access: RW: {CONTOUR_VEC_TYPE} =\s"
+  patternx = r"X:\s*(-?\d{0,3}\.\d{1,3})"
+  patterny = r"Y:\s*(-?\d{0,3}\.\d{1,3})"
+
+  with open(parsefile,'r') as f:
+    
+    j = 0
+    lines = f.readlines()
+    for i in range(len(lines)):
+
+      m1 = re.search(pattern_vector, lines[i])
+
+      if m1:
+        # get index
+        if ((j % 2) == 0):
+          nid = int( (int(m1.group(1)) - 1)/2)
+        # get x coordinate
+        mvec = re.search(patternx, lines[i+1])
+        new_x = 0.0
+        if mvec:
+          new_x = float(mvec.group(1))
+        # get x=y coordinate
+        mvec = re.search(patterny, lines[i+1])
+        new_y = 0.0
+        if mvec:
+          new_y = float(mvec.group(1))
+        
+        if len(raster_lines) > nid:
+          node = raster_lines[nid]
+          node[1] = [new_x, new_y]
+          raster_lines[nid] = node
+        else:
+          raster_lines.insert(nid, [[new_x, new_y],[0, 0]] )
+        
+        j = (j + 1) % 2
+        
 
 def print_cont(list_obj):
   for i in range(len(list_obj)):
@@ -262,11 +321,22 @@ def main():
   
   # get contours
   parseContour(args)
-  parseLines(args)
+
+  ltype = check_line_type(args)
+  if ltype:
+    parseLines(args)
+  else:
+    parseLines2(args)
+  
+  parsePath(args)
+
   print('polygons')
   print_cont(polygons)
   print('lines')
-  print_line(raster_lines)
+  if ltype:
+    print_line(raster_lines)
+  else:
+    print_cont(raster_lines)
   plot()
 
 
