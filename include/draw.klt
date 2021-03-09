@@ -25,6 +25,8 @@ TYPE
     r0 : VECTOR
     r1 : VECTOR
     polygon : SHORT
+    poly_r0 : BYTE
+    poly_r1 : BYTE
   ENDSTRUCTURE
 
   t_VERTEX FROM draw = STRUCTURE
@@ -42,6 +44,7 @@ TYPE
     intersect : BOOLEAN
     alpha : REAL
     polygon : SHORT
+    poly_idx : SHORT
   ENDSTRUCTURE
 
   t_TRIANGLE FROM draw = STRUCTURE

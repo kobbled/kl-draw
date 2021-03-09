@@ -18,7 +18,7 @@ PROGRAM draw
 %include draw.c.klt
 
 --CONST
-%define epsilon 0.0001
+%define epsilon 0.01
 
 %from errors.klh %import CHK_STAT, karelError
 %include systemlib.klh
@@ -651,7 +651,6 @@ ROUTINE draw__clip_poly_verts
     line_alpha, poly_alpha : REAL
     intersect : BOOLEAN
     collision : BOOLEAN
-    inserted  : BOOLEAN
   BEGIN
     --clipped vertex index
     j = 0
@@ -669,6 +668,7 @@ ROUTINE draw__clip_poly_verts
       out_verts[j].coords = line.r0
       out_verts[j].alpha = 0
       out_verts[j].intersect = FALSE
+      out_verts[j].poly_idx = 0
     ENDIF
 
     --start at min vertex in polygon relative to clip line
@@ -697,6 +697,7 @@ ROUTINE draw__clip_poly_verts
           out_verts[j].alpha = line_alpha
           out_verts[j].intersect = intersect
           out_verts[j].polygon = polygon[curr_vert].polygon
+          out_verts[j].poly_idx = curr_vert
 %ifdef DEBUG_BUILD
           usrdis__print(DEBUG,'clip['+ i_to_s(j) +']: ' + vec_to_s(out_verts[j].coords, ','))
           usrdis__print(DEBUG, 'alpha = ' + r_to_s(out_verts[j].alpha))
@@ -710,31 +711,22 @@ ROUTINE draw__clip_poly_verts
           --intersection is read from left of the subject line to the right
           intersect = draw__intersect(line, poly_seg, line_alpha, poly_alpha)
           IF intersect THEN
-            --check if clipped point has already been added. Fixes issue if
-            --two lines in polygon have the same end point
-            inserted = FALSE
-            FOR k=1 TO j DO
-              IF out_verts[k].alpha = line_alpha THEN
-                inserted = TRUE
-              ENDIF
-            ENDFOR
-            IF NOT inserted THEN
-              j = j + 1
-              --coordinates of intersection point
-              out_verts[j].coords = (1-line_alpha)*line.r0 + line_alpha*line.r1
-              out_verts[j].alpha = line_alpha
-              out_verts[j].intersect = intersect
-              out_verts[j].polygon = polygon[curr_vert].polygon
+            j = j + 1
+            --coordinates of intersection point
+            out_verts[j].coords = (1-line_alpha)*line.r0 + line_alpha*line.r1
+            out_verts[j].alpha = line_alpha
+            out_verts[j].intersect = intersect
+            out_verts[j].polygon = polygon[curr_vert].polygon
+            out_verts[j].poly_idx = curr_vert
 %ifdef DEBUG_BUILD
-              usrdis__print(DEBUG,'clip['+ i_to_s(j) +']: ' + vec_to_s(out_verts[j].coords, ','))
-              usrdis__print(DEBUG, 'alpha = ' + r_to_s(out_verts[j].alpha))
-              usrdis__print(DEBUG,'seg: r0[' + vec_to_s(poly_seg.r0, ',') + '] r1[' + vec_to_s(poly_seg.r1, ',') + ']')
+            usrdis__print(DEBUG,'clip['+ i_to_s(j) +']: ' + vec_to_s(out_verts[j].coords, ','))
+            usrdis__print(DEBUG, 'alpha = ' + r_to_s(out_verts[j].alpha))
+            usrdis__print(DEBUG,'seg: r0[' + vec_to_s(poly_seg.r0, ',') + '] r1[' + vec_to_s(poly_seg.r1, ',') + ']')
 %endif
-            ENDIF
           ENDIF
       ENDIF
       
-      IF polygon[curr_vert].polygon > frst_vert.polygon THEN
+      IF polygon[curr_vert].polygon <> frst_vert.polygon THEN
         --update polygon count and first vert for next polygon
         frst_vert = polygon[curr_vert]
 %ifdef DEBUG_BUILD
@@ -772,6 +764,7 @@ ROUTINE draw__clip_poly_verts
         out_verts[j].alpha = 0
         out_verts[j].intersect = FALSE
         out_verts[j].polygon = out_verts[j-1].polygon
+        out_verts[j].poly_idx = 0
       ENDIF
     ENDIF
 
@@ -781,9 +774,13 @@ END draw__clip_poly_verts
 
 ROUTINE draw__clips_to_lines
   VAR
-    entryexit : BOOLEAN
     i : INTEGER
     status : INTEGER
+    nxt : INTEGER
+    det : VECTOR
+    mid : VECTOR
+    entryexit : BOOLEAN
+    dup : BOOLEAN
   BEGIN
     --sort points by alpha value
     srtclp__bubblesort(clips, start_i, end_i, TRUE)
@@ -792,16 +789,33 @@ ROUTINE draw__clips_to_lines
     --first node will be an entry node
     entryexit = TRUE
 
+    dup = FALSE
     FOR i=start_i+1 TO end_i DO
       entryexit = NOT entryexit
-      
-      --add new clipped line segment on exit node
-      --dont add if length of line = 0
-      IF (NOT entryexit) AND (clips[i-1].coords <> clips[i].coords) THEN
-        APPEND_NODE(out_lines, status)
-        out_lines[PATH_LEN(out_lines)].r0 = clips[i-1].coords
-        out_lines[PATH_LEN(out_lines)].r1 = clips[i].coords
-        out_lines[PATH_LEN(out_lines)].polygon = clips[i-1].polygon
+      --Do not add line if its length is < epsilon
+      IF (ABS(clips[i-1].alpha - clips[i].alpha) > epsilon) THEN
+
+        mid = 0.5*(clips[i-1].coords + clips[i].coords)
+        nxt = ((clips[i-1].poly_idx+1-1) MOD PATH_LEN(polygon)) + 1
+        -- If mid point of line is to the right of the polygon it is outside
+        -- of the polygon. Exclude this line.
+        det = (polygon[nxt].coords - polygon[clips[i-1].poly_idx].coords)#(mid - polygon[clips[i-1].poly_idx].coords)
+        IF det.z > 0 THEN
+          --force include this line
+          dup = TRUE
+        ENDIF
+
+        --add new clipped line segment on exit node
+        IF (NOT entryexit) OR dup THEN
+          APPEND_NODE(out_lines, status)
+          out_lines[PATH_LEN(out_lines)].r0 = clips[i-1].coords
+          out_lines[PATH_LEN(out_lines)].r1 = clips[i].coords
+          out_lines[PATH_LEN(out_lines)].polygon = clips[i-1].polygon
+          out_lines[PATH_LEN(out_lines)].poly_r0 = clips[i-1].poly_idx
+          out_lines[PATH_LEN(out_lines)].poly_r1 = clips[i].poly_idx
+        ENDIF
+
+        dup = FALSE
       ENDIF
     ENDFOR
 
@@ -818,7 +832,7 @@ ROUTINE draw__clip_line_with_poly
     no_of_clips = draw__clip_poly_verts(line, polygon, hull, clippedverts)
     --if any intersection are found
     IF no_of_clips > 0 THEN
-      draw__clips_to_lines(clippedverts, 1, no_of_clips, out_lines)
+      draw__clips_to_lines(clippedverts, 1, no_of_clips, polygon, out_lines)
     ENDIF
     --return out_lines
 
