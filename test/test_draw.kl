@@ -1,6 +1,6 @@
 PROGRAM test_draw
 %NOLOCKGROUP
-%STACKSIZE = 600
+%STACKSIZE = 1000
 
 %ifdef DEBUG_BUILD
 %define LOG_NAME 'RD:draw_debug.DT'
@@ -879,8 +879,8 @@ ROUTINE t_classpoly2 : BOOLEAN
   VAR
     i : INTEGER
     rast_ang : REAL
-    act_line_r0, exp_line_r0 : ARRAY[8] OF VECTOR
-    act_line_r1, exp_line_r1 : ARRAY[8] OF VECTOR
+    act_line_r0, exp_line_r0 : ARRAY[12] OF VECTOR
+    act_line_r1, exp_line_r1 : ARRAY[12] OF VECTOR
   BEGIN
 
     tstpoly__clear
@@ -903,11 +903,34 @@ ROUTINE t_classpoly2 : BOOLEAN
 
     tstpoly__append_polygon(polygon2)
     --raster lines
-    rast_ang = 90
+    rast_ang = 0
     tstpoly__set_params(rast_ang, 1, 1, 0, 10)
     tstpoly__raster(PTH_LINETO)
 
-    RETURN(TRUE )
+    --clear lines 
+    clear_lines(lines)
+    tstpoly__get_lines(1, 12, lines)
+
+    FOR i=1 TO ARRAY_LEN(act_line_r0) DO
+      act_line_r0[i] = lines[i].r0
+      act_line_r1[i] = lines[i].r1
+    ENDFOR
+
+    --expected lines
+    exp_line_r0[1] = VEC2D(-2.5,10) ; exp_line_r1[1] = VEC2D(2.5,10) ; 
+    exp_line_r0[2] = VEC2D(-36,20) ;  exp_line_r1[2] = VEC2D(-30,20) ; 
+    exp_line_r0[3] = VEC2D(-5,20) ;   exp_line_r1[3] = VEC2D(5,20) ;
+    exp_line_r0[4] = VEC2D(30,20) ;   exp_line_r1[4] = VEC2D(36,20) ;
+    exp_line_r0[5] = VEC2D(-32,30) ;  exp_line_r1[5] = VEC2D(-20,30) ;
+    exp_line_r0[6] = VEC2D(-7.5,30) ; exp_line_r1[6] = VEC2D(7.5,30) ;
+    exp_line_r0[7] = VEC2D(20,30) ;   exp_line_r1[7] = VEC2D(32,30) ;
+    exp_line_r0[8] = VEC2D(-28,40) ;  exp_line_r1[8] = VEC2D(-10,40) ;
+    exp_line_r0[9] = VEC2D(-10,40) ;  exp_line_r1[9] = VEC2D(10,40) ;
+    exp_line_r0[10] = VEC2D(10,40) ;  exp_line_r1[10] = VEC2D(28,40) ;
+    exp_line_r0[11] = VEC2D(-24,50) ;  exp_line_r1[11] = VEC2D(24,50) ;
+    exp_line_r0[12] = VEC2D(-20,60) ;  exp_line_r1[12] = VEC2D(20,60) ;
+
+    RETURN(kunit_eq_arv(exp_line_r0, act_line_r0, 0.05) AND kunit_eq_arv(exp_line_r1, act_line_r1, 0.05) )
   
   END t_classpoly2
 
@@ -922,7 +945,73 @@ ROUTINE t_rast_multi : BOOLEAN
 
     --set polygon
     clear_path(polygon3)
-    append_nodes(polygon3, 4)   
+    append_nodes(polygon3, 4)
+    
+    polygon3[1].coords = VEC2D(0,30)   
+    polygon3[2].coords = VEC2D(30,30)   
+    polygon3[3].coords = VEC2D(30,60)
+    polygon3[4].coords = VEC2D(0,60)
+    tstpoly__append_polygon(polygon3)
+   
+    polygon3[1].coords = VEC2D(60,30)   
+    polygon3[2].coords = VEC2D(90,30)   
+    polygon3[3].coords = VEC2D(90,60)
+    polygon3[4].coords = VEC2D(60,60)
+    tstpoly__append_polygon(polygon3)
+         
+    polygon3[1].coords = VEC2D(120,30) 
+    polygon3[2].coords = VEC2D(150,30)
+    polygon3[3].coords = VEC2D(150,60)
+    polygon3[4].coords = VEC2D(120,60)
+    tstpoly__append_polygon(polygon3)
+
+    tstpoly__set_params(0, 1, 1, 0, 3)
+    tstpoly__raster(PTH_LINETO)
+
+    --clear lines 
+    clear_lines(lines)
+    tstpoly__get_lines(10, 20, lines)
+
+    FOR i=1 TO ARRAY_LEN(act_line_r0) DO
+      act_line_r0[i] = lines[i].r0
+      act_line_r1[i] = lines[i].r1
+    ENDFOR
+
+    --expected lines
+    exp_line_r0[1] = VEC2D(0,39) ; exp_line_r1[1] = VEC2D(30,39) ; 
+    exp_line_r0[2] = VEC2D(60,39) ; exp_line_r1[2] = VEC2D(90,39) ; 
+    exp_line_r0[3] = VEC2D(120,39) ; exp_line_r1[3] = VEC2D(150,39) ;
+    exp_line_r0[4] = VEC2D(0,42) ; exp_line_r1[4] = VEC2D(30,42) ;
+    exp_line_r0[5] = VEC2D(60,42) ; exp_line_r1[5] = VEC2D(90,42) ;
+    exp_line_r0[6] = VEC2D(120,42) ; exp_line_r1[6] = VEC2D(150,42) ;
+    exp_line_r0[7] = VEC2D(0,45) ; exp_line_r1[7] = VEC2D(30,45) ;
+    exp_line_r0[8] = VEC2D(60,45) ; exp_line_r1[8] = VEC2D(90,45) ;
+    exp_line_r0[9] = VEC2D(120,45) ; exp_line_r1[9] = VEC2D(150,45) ;
+    exp_line_r0[10] = VEC2D(0,48) ; exp_line_r1[10] = VEC2D(30,48) ;
+
+    --convert to path
+    clear_contrs(contours)
+    clear_contrs(line_pth)
+    tstpoly__lines_to_vec_path(line_pth)
+    tstpoly__contours_to_vec_path(contours)
+
+    RETURN(kunit_eq_arv(exp_line_r0, act_line_r0, 0.05) AND kunit_eq_arv(exp_line_r1, act_line_r1, 0.05) )
+
+  END t_rast_multi
+
+ROUTINE t_rast_mult2 : BOOLEAN
+  VAR
+    i : INTEGER
+    act_line_r0, exp_line_r0 : ARRAY[10] OF VECTOR
+    act_line_r1, exp_line_r1 : ARRAY[10] OF VECTOR
+  BEGIN
+    tstpoly__clear
+    tstpoly__set_canvas((ZEROPOS(1)))
+
+    --set polygon
+    clear_path(polygon3)
+    append_nodes(polygon3, 4)
+    
     polygon3[1].coords = VEC2D(0,10)   
     polygon3[2].coords = VEC2D(2,10)   
     polygon3[3].coords = VEC2D(2,14)
@@ -968,11 +1057,12 @@ ROUTINE t_rast_multi : BOOLEAN
     --convert to path
     clear_contrs(contours)
     clear_contrs(line_pth)
-    tstpoly__convert_vec_path(contours, line_pth)
+    tstpoly__lines_to_vec_path(line_pth)
+    tstpoly__contours_to_vec_path(contours)
 
     RETURN(kunit_eq_arv(exp_line_r0, act_line_r0, 0.05) AND kunit_eq_arv(exp_line_r1, act_line_r1, 0.05) )
 
-  END t_rast_multi
+  END t_rast_mult2
 
 ROUTINE t_hexagon : BOOLEAN
   VAR
@@ -1029,6 +1119,12 @@ ROUTINE t_hexagon : BOOLEAN
   END t_hexagon
 
 ROUTINE t_upturns : BOOLEAN
+-- ..warning:: There is still an issue with this test. The first
+--             line should not be included in clipping
+  VAR
+    i : INTEGER
+    act_line_r0, exp_line_r0 : ARRAY[10] OF VECTOR
+    act_line_r1, exp_line_r1 : ARRAY[10] OF VECTOR
   BEGIN
     tstpoly__clear
     tstpoly__set_canvas((ZEROPOS(1)))
@@ -1053,6 +1149,29 @@ ROUTINE t_upturns : BOOLEAN
     tstpoly__set_params(0, 1, 1, 0, 0.5)
     tstpoly__raster(PTH_LINETO)
 
+    --clear lines
+    clear_lines(lines)
+    tstpoly__get_lines(2, 11, lines)
+
+    FOR i=1 TO ARRAY_LEN(act_line_r0) DO
+      act_line_r0[i] = lines[i].r0
+      act_line_r1[i] = lines[i].r1
+    ENDFOR
+
+    --expected lines
+    exp_line_r0[1] = VEC2D(-2.5,-1.5) ;   exp_line_r1[1] = VEC2D(-1.5,-1.5) ; 
+    exp_line_r0[2] = VEC2D(-0.5,-1.5) ;   exp_line_r1[2] = VEC2D(0.5,-1.5) ;
+    exp_line_r0[3] = VEC2D(1.5,-1.5) ;    exp_line_r1[3] = VEC2D(2.5,-1.5) ;
+    exp_line_r0[4] = VEC2D(-3,-1) ;       exp_line_r1[4] = VEC2D(-1,-1) ;
+    exp_line_r0[5] = VEC2D(-1,-1) ;       exp_line_r1[5] = VEC2D(1,-1) ;
+    exp_line_r0[6] = VEC2D(1,-1) ;        exp_line_r1[6] = VEC2D(3,-1) ;
+    exp_line_r0[7] = VEC2D(-2.625,-0.5) ; exp_line_r1[7] = VEC2D(2.625,-0.5) ;
+    exp_line_r0[8] = VEC2D(-2.25,0) ;     exp_line_r1[8] = VEC2D(0,0) ;
+    exp_line_r0[9] = VEC2D(0,0) ;         exp_line_r1[9] = VEC2D(2.25,0) ;
+    exp_line_r0[10] = VEC2D(-1.875,0.5) ; exp_line_r1[10] = VEC2D(-0.75,0.5) ;
+
+    RETURN(kunit_eq_arv(exp_line_r0, act_line_r0, 0.05) AND kunit_eq_arv(exp_line_r1, act_line_r1, 0.05) )
+
     RETURN(TRUE)
 
   END t_upturns
@@ -1065,29 +1184,32 @@ BEGIN
   usrdis__clear_file
 %endif
 
-  --total asserts 123
-  -- kunit_test('test line intersection', t_intersect) -- asserts 10 
-  -- kunit_test('test finding min and max points in polygon', t_anchr_pnts) -- asserts 4
-  -- kunit_test('test convex hull star shape', t_convhull) -- asserts 4
-  -- kunit_test('test convex hull of multiple polygons', t_convhull_m) -- asserts 4
-  -- kunit_test('test bounding box', t_bbox) -- asserts 6
-  -- kunit_test('test point collision on star', t_p_on_poly) -- asserts 4
-  -- kunit_test('test point collision on c shaped', t_p_on_poly2) -- asserts 4
-  -- kunit_test('line clip star polygon', t_clip_line) --asserts 8
+  --total asserts 119
+  kunit_test('test line intersection', t_intersect) -- asserts 10 
+  kunit_test('test finding min and max points in polygon', t_anchr_pnts) -- asserts 4
+  kunit_test('test convex hull star shape', t_convhull) -- asserts 4
+  kunit_test('test convex hull of multiple polygons', t_convhull_m) -- asserts 4
+  kunit_test('test bounding box', t_bbox) -- asserts 6
+  kunit_test('test point collision on star', t_p_on_poly) -- asserts 4
+  kunit_test('test point collision on c shaped', t_p_on_poly2) -- asserts 4
+  kunit_test('line clip star polygon', t_clip_line) --asserts 8
   -- --kunit_test('line clip on C shape', t_clip_line2) -- asserts 10
-  -- kunit_test('multi polygon line clip', t_clpln_mult) -- asserts 6
-  -- kunit_test('raster polygon', t_raster1) --asserts 24
-  -- kunit_test('inset oblong T shape', t_inset) --asserts 5
-  -- kunit_test('inset multiple polygons', t_inset_mult) --asserts 10
-  -- kunit_test('trace lines around star polygon', t_trace) --asserts 2
-  -- kunit_test('test polygon class with c-shape', t_class_poly) --asserts 2
-  -- kunit_test('test create hexagon', t_hexagon) --asserts 4
+  kunit_test('multi polygon line clip', t_clpln_mult) -- asserts 6
+  kunit_test('raster polygon', t_raster1) --asserts 24
+  kunit_test('inset oblong T shape', t_inset) --asserts 5
+  kunit_test('inset multiple polygons', t_inset_mult) --asserts 10
+  kunit_test('trace lines around star polygon', t_trace) --asserts 2
+  kunit_test('test polygon class with c-shape', t_class_poly) --asserts 2
+  kunit_test('edge case. Turn vertex intersects line.', t_classpoly2) --asserts 2
+  kunit_test('test create hexagon', t_hexagon) --asserts 4
   kunit_test('multi polygon raster', t_rast_multi) --asserts 2
-  --kunit_test('faceted polygon raster', t_upturns)
+  kunit_test('small multi polygon raster', t_rast_mult2) --asserts 2
+  kunit_test('faceted polygon raster', t_upturns) -- asserts 2
   kunit_done
 
   --destruct classes
   tstpoly__clear
+
 
 %ifdef DEBUG_BUILD
   usrdis__write_pipe
