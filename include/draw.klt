@@ -53,28 +53,21 @@ TYPE
     convex : BOOLEAN
   ENDSTRUCTURE
 
-  t_RECT_CORNR FROM draw = ARRAY[4] OF VECTOR
-  t_RECT_VECS FROM draw = ARRAY[2] OF VECTOR
-
-  t_RECT FROM draw = STRUCTURE
-    verts : t_RECT_CORNR
-    vec : t_RECT_VECS
-    center : VECTOR
-  ENDSTRUCTURE
-
   t_RASTER FROM draw = STRUCTURE
     --angle to start trace and raster
     start_angle : REAL
+    --width of a line
+    line_width : REAL
+    --line overlap distance
+    line_pitch : REAL
     --travel direction of trace
     -- ccw = 1 cw = -1
     dir : SHORT
     -- no contour lines are drawn if wall_lines=0
     wall_lines : SHORT
-    --width of a line
-    line_width : REAL
-    --line overlap distance
-    line_pitch : REAL
   ENDSTRUCTURE
 
+--rectangle type. In seperate file to use in other modules.
+%include draw.rect.klt
 
 %endif --draw_t

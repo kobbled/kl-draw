@@ -2,7 +2,6 @@ PROGRAM class_name
 %NOBUSYLAMP
 %COMMENT = 'polygon object'
 %NOLOCKGROUP
-%UNINITVARS
 
 --*** ..todo:: Does not work for polygons with holes
 
@@ -12,6 +11,7 @@ PROGRAM class_name
 %include systemvars.klt
 %include systemlib.klt
 %include paths.klt
+%include paths.c.klt
 %include draw.klt
 
 VAR
@@ -25,6 +25,7 @@ VAR
   params : t_RASTER
 
 %from systemlib.klh %import VEC2D
+%from math.klh %import arclength, arcangle
 %include errors.klh
 %include draw.klh
 
@@ -339,7 +340,7 @@ ROUTINE lines_to_vec_path
   VAR
     i : INTEGER
     status : INTEGER
-    curr_vert, next_vert : INTEGER
+    prev_vert, curr_vert, next_vert : INTEGER
   BEGIN
     IF UNINIT(canvas) THEN
       karelError(VAR_UNINIT,'class_name member "canvas" needs to' + &
@@ -376,7 +377,7 @@ ROUTINE lines_to_vec_path
 ROUTINE contours_to_vec_path
   VAR
     i, status : INTEGER
-    next_vert : INTEGER
+    next_vert,prev_vert : INTEGER
   BEGIN
     IF UNINIT(canvas) THEN
       karelError(VAR_UNINIT,'class_name member "canvas" needs to' + &
@@ -411,6 +412,42 @@ ROUTINE hexagon
     draw__hexagon(radius, verticies, cntr_pnt, this)
 
   END hexagon
+
+ROUTINE pads
+  VAR
+    i : INTEGER
+    poly : ARRAY[4] OF VECTOR
+  BEGIN
+    FOR i=0 TO no_of_pads-1 DO
+      poly[1] = start + i*VEC2D(seperation, 0)
+      poly[2] = start + i*VEC2D(seperation, 0) + VEC2D(width,0)
+      poly[3] = start + i*VEC2D(seperation, 0) + VEC2D(width,length)
+      poly[4] = start + i*VEC2D(seperation, 0) + VEC2D(0,length)
+      append_polygon_array(poly)
+    ENDFOR
+  END pads
+
+ROUTINE padsDeg
+  VAR
+    i : INTEGER
+    poly : ARRAY[4] OF VECTOR
+    start : VECTOR
+    seperation : REAL
+    width : REAL
+  BEGIN
+    canvas.z = canvas.z + radius
+
+    seperation = math__arclength(seperatn_deg, radius)
+    width = math__arclength(width_deg, radius)
+    start.x = math__arclength(start_deg.x, radius) ; start.y = start_deg.y ; start.z = start_deg.z ;
+    FOR i=0 TO no_of_pads-1 DO
+      poly[1] = start + i*VEC2D(seperation, 0)
+      poly[2] = start + i*VEC2D(seperation, 0) + VEC2D(width,0)
+      poly[3] = start + i*VEC2D(seperation, 0) + VEC2D(width,length)
+      poly[4] = start + i*VEC2D(seperation, 0) + VEC2D(0,length)
+      append_polygon_array(poly)
+    ENDFOR
+  END padsDeg
 
 
   BEGIN

@@ -1,0 +1,14 @@
+%ifndef draw_rect_t
+%define draw_rect_t
+
+TYPE
+  t_RECT_CORNR FROM draw = ARRAY[4] OF VECTOR
+  t_RECT_VECS FROM draw = ARRAY[2] OF VECTOR
+
+  t_RECT FROM draw = STRUCTURE
+    verts : t_RECT_CORNR
+    vec : t_RECT_VECS
+    center : VECTOR
+  ENDSTRUCTURE
+
+%endif --draw_rect_t

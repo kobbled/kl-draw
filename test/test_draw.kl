@@ -1172,9 +1172,26 @@ ROUTINE t_upturns : BOOLEAN
 
     RETURN(kunit_eq_arv(exp_line_r0, act_line_r0, 0.05) AND kunit_eq_arv(exp_line_r1, act_line_r1, 0.05) )
 
-    RETURN(TRUE)
-
   END t_upturns
+
+ROUTINE t_pads : BOOLEAN
+  VAR
+%define PAD_WIDTH 30
+%define PAD_LENGTH 60
+%defeval PAD_SEPERATION (20+PAD_WIDTH)
+%define NO_OF_PADS 3
+    i : INTEGER
+  BEGIN
+    tstpoly__clear
+    tstpoly__set_canvas( POS(0,0,0,0,0,0,(ZEROPOS(1).config_data)) )
+    tstpoly__pads(PAD_WIDTH, PAD_LENGTH, PAD_SEPERATION, NO_OF_PADS, VEC2D(50,50) )
+    --raster lines
+    --(start_angle, dir, wall_lines, line_width, line_pitch)
+    tstpoly__set_params(0, 1, 1, 0, 10)
+    tstpoly__raster(PTH_LINETO)
+
+    RETURN(TRUE)
+  END t_pads
 
 BEGIN
 
@@ -1193,7 +1210,7 @@ BEGIN
   kunit_test('test point collision on star', t_p_on_poly) -- asserts 4
   kunit_test('test point collision on c shaped', t_p_on_poly2) -- asserts 4
   kunit_test('line clip star polygon', t_clip_line) --asserts 8
-  -- --kunit_test('line clip on C shape', t_clip_line2) -- asserts 10
+  -- kunit_test('line clip on C shape', t_clip_line2) -- asserts 10
   kunit_test('multi polygon line clip', t_clpln_mult) -- asserts 6
   kunit_test('raster polygon', t_raster1) --asserts 24
   kunit_test('inset oblong T shape', t_inset) --asserts 5
@@ -1205,11 +1222,11 @@ BEGIN
   kunit_test('multi polygon raster', t_rast_multi) --asserts 2
   kunit_test('small multi polygon raster', t_rast_mult2) --asserts 2
   kunit_test('faceted polygon raster', t_upturns) -- asserts 2
+  -- kunit_test('test create pads', t_pads)
   kunit_done
 
   --destruct classes
-  tstpoly__clear
-
+  -- tstpoly__clear
 
 %ifdef DEBUG_BUILD
   usrdis__write_pipe

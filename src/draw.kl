@@ -1185,7 +1185,7 @@ ROUTINE draw_hexagon
     ENDIF
 
     --make radius vector
-    trans.x = radius ; trans.y = 0 ; trans.z = 0 ;
+    trans.x = 0 ; trans.y = radius ; trans.z = 0 ;
 
     FOR i=0 TO (verticies-1) DO
       ang = (i*2*M_PI/verticies)*M_RAD2DEG
