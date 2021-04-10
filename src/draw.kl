@@ -498,6 +498,8 @@ ROUTINE draw__point_collision_polygon
       j = PATH_LEN(reflex_verts)
       WHILE PATH_LEN(reflex_verts) > 0 DO
         DELETE_NODE(reflex_verts,j,status)
+        CHK_STAT(status)
+        j = j - 1
       ENDWHILE
     ENDIF
 
@@ -804,48 +806,43 @@ ROUTINE draw__clips_to_lines
   VAR
     i : INTEGER
     status : INTEGER
-    nxt : INTEGER
+    prev, nxt : INTEGER
     det : VECTOR
     mid : VECTOR
     entryexit : BOOLEAN
     dup : BOOLEAN
+    first : BOOLEAN
+    opn : BOOLEAN
   BEGIN
     --sort points by alpha value
     srtclp__bubblesort(clips, start_i, end_i, TRUE)
 
-    --label verticies as entry (TRUE) or exit (FALSE) nodes
-    --first node will be an entry node
-    entryexit = TRUE
+    i=start_i
+    REPEAT
 
-    dup = FALSE
-    FOR i=start_i+1 TO end_i DO
-      entryexit = NOT entryexit
-      --Do not add line if its length is < epsilon
-      IF (ABS(clips[i-1].alpha - clips[i].alpha) > epsilon) THEN
-
-        mid = 0.5*(clips[i-1].coords + clips[i].coords)
-        nxt = ((clips[i-1].poly_idx+1-1) MOD PATH_LEN(polygon)) + 1
-        -- If mid point of line is to the right of the polygon it is outside
-        -- of the polygon. Exclude this line.
-        det = (polygon[nxt].coords - polygon[clips[i-1].poly_idx].coords)#(mid - polygon[clips[i-1].poly_idx].coords)
-        IF det.z > 0 THEN
-          --force include this line
-          dup = TRUE
+      --if duplicate clip points
+      IF NOT UNINIT(clips[i+1].coords) THEN
+        IF (math__norm(clips[i+1].coords - clips[i].coords) < epsilon) THEN
+          IF (i + 2 < end_i) THEN
+            mid = 0.5*(clips[i+1].coords + clips[i+2].coords)
+            IF draw__point_collision_polygon(mid, polygon, hull) THEN
+              i = i + 1
+            ENDIF
+          ENDIF
         ENDIF
-
-        --add new clipped line segment on exit node
-        IF (NOT entryexit) OR dup THEN
+        
+        IF (ABS(clips[i+1].alpha - clips[i].alpha) > epsilon) THEN
           APPEND_NODE(out_lines, status)
-          out_lines[PATH_LEN(out_lines)].r0 = clips[i-1].coords
-          out_lines[PATH_LEN(out_lines)].r1 = clips[i].coords
-          out_lines[PATH_LEN(out_lines)].polygon = clips[i-1].polygon
-          out_lines[PATH_LEN(out_lines)].poly_r0 = clips[i-1].poly_idx
-          out_lines[PATH_LEN(out_lines)].poly_r1 = clips[i].poly_idx
+          out_lines[PATH_LEN(out_lines)].r0 = clips[i].coords
+          out_lines[PATH_LEN(out_lines)].r1 = clips[i + 1].coords
+          out_lines[PATH_LEN(out_lines)].polygon = clips[i].polygon
         ENDIF
-
-        dup = FALSE
       ENDIF
-    ENDFOR
+      
+      i = i + 2
+    UNTIL(i > (end_i-1))
+
+    -- (ABS(clips[i].alpha - clips[i-1].alpha) > epsilon)
 
   END draw__clips_to_lines
 
@@ -860,7 +857,7 @@ ROUTINE draw__clip_line_with_poly
     no_of_clips = draw__clip_poly_verts(line, polygon, hull, clippedverts)
     --if any intersection are found
     IF no_of_clips > 0 THEN
-      draw__clips_to_lines(clippedverts, 1, no_of_clips, polygon, out_lines)
+      draw__clips_to_lines(clippedverts, 1, no_of_clips, polygon, hull, out_lines)
     ENDIF
     --return out_lines
 
