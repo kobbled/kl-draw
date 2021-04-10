@@ -1192,6 +1192,20 @@ ROUTINE t_pads : BOOLEAN
     RETURN(TRUE)
   END t_pads
 
+ROUTINE t_custom : BOOLEAN
+%define SVG_NAME 'FR:\rebel.csv'
+  BEGIN
+    tstpoly__clear
+    tstpoly__set_canvas( POS(0,0,0,0,0,90,(ZEROPOS(1).config_data)) )
+    tstpoly__import_shape(SVG_NAME)
+    --raster lines
+    --(start_angle, dir, wall_lines, line_width, line_pitch)
+    tstpoly__set_params(90, 1, 1, 0, 10)
+    tstpoly__raster(PTH_LINETO)
+
+    RETURN(TRUE)
+  END t_custom
+
 BEGIN
 
 %ifdef DEBUG_BUILD
@@ -1222,6 +1236,7 @@ BEGIN
   kunit_test('small multi polygon raster', t_rast_mult2) --asserts 2
   kunit_test('faceted polygon raster', t_upturns) -- asserts 2
   kunit_test('test create pads', t_pads)
+  kunit_test('Custom shape', t_custom)
   kunit_done
 
   --destruct classes

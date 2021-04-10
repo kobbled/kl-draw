@@ -11,6 +11,8 @@ declare_member(class_name,clear,class_name,clr)
 ROUTINE clear FROM class_name
 declare_member(class_name,new,class_name,new)
 ROUTINE new FROM class_name
+declare_member(class_name,import_shape,class_name,imps)
+ROUTINE import_shape(filename : STRING) FROM class_name
 declare_member(class_name,set_canvas,class_name,scnv)
 ROUTINE set_canvas(frm : XYZWPR) FROM class_name
 declare_member(class_name,set_params,class_name,sprm)

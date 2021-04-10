@@ -21,11 +21,13 @@ VAR
 
   lines : PATH nodedata = t_SEG2D_POLY
   contours : PATH nodedata = t_VEC_PATH
+  fl : FILE
   canvas : XYZWPR
   params : t_RASTER
 
 %from systemlib.klh %import VEC2D
 %from math.klh %import arclength, arcangle
+%include csv.klh
 %include errors.klh
 %include draw.klh
 
@@ -174,6 +176,54 @@ ROUTINE new
     clear
     set_canvas((ZEROPOS(1)))
   END new
+
+ROUTINE import_shape
+  VAR
+    header : STRING[16]
+    b : BOOLEAN
+    v : VECTOR
+    vert : INTEGER
+    poly : INTEGER
+    status : INTEGER
+  BEGIN
+    csv__read_open(filename, fl)
+    --read header
+    header = csv__read_line(filename, fl)
+
+    clear_poly(sub_poly)
+    --vertex count
+    vert = 0
+    --intialize polygon count
+    poly = 1
+    REPEAT
+      vert = vert + 1
+      b = csv__read_vector(filename, fl, ',', v)
+      IF b THEN
+        IF TRUNC(v.z) > poly THEN
+          append_polygon(sub_poly)
+          clear_poly(sub_poly)
+
+          --add first vertex of next polygon
+          poly = TRUNC(v.z)
+          APPEND_NODE(sub_poly,status)
+          sub_poly[PATH_LEN(sub_poly)].coords = VEC2D(v.x, v.y)
+          sub_poly[PATH_LEN(sub_poly)].polygon = poly
+        ELSE
+          --add vertex
+          APPEND_NODE(sub_poly,status)
+          sub_poly[PATH_LEN(sub_poly)].coords = VEC2D(v.x, v.y)
+          sub_poly[PATH_LEN(sub_poly)].polygon = poly
+        ENDIF
+      ELSE
+        --end of file append polygon
+        append_polygon(sub_poly)
+        clear_poly(sub_poly)
+      ENDIF
+    UNTIL(NOT b)
+
+    csv__read_close(fl)
+
+  END import_shape
 
 ROUTINE set_canvas
   BEGIN

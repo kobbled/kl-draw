@@ -6,7 +6,8 @@
   "license" : "Apache 2.0",
   "author" : "kobbled",
   "source" : [
-    "src/draw.kl"
+    "src/draw.kl",
+    "src/svg/rebel.csv"
   ],
   "tests" : [
     "test/test_draw.kl"
@@ -21,6 +22,7 @@
     "paths",
     "Strings",
     "errors",
+    "csv",
     "ktransw-macros",
     "systemlib"
   ],
