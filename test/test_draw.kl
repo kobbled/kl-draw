@@ -8,7 +8,8 @@ PROGRAM test_draw
 %endif
 
 %include systemvars.klt
-%include paths.klt
+%include paths.c.klt
+%include paths.t.klt
 %include draw.klt
 
 VAR
@@ -1119,8 +1120,6 @@ ROUTINE t_hexagon : BOOLEAN
   END t_hexagon
 
 ROUTINE t_upturns : BOOLEAN
--- ..warning:: There is still an issue with this test. The first
---             line should not be included in clipping
   VAR
     i : INTEGER
     act_line_r0, exp_line_r0 : ARRAY[10] OF VECTOR
@@ -1151,7 +1150,7 @@ ROUTINE t_upturns : BOOLEAN
 
     --clear lines
     clear_lines(lines)
-    tstpoly__get_lines(2, 11, lines)
+    tstpoly__get_lines(1, 10, lines)
 
     FOR i=1 TO ARRAY_LEN(act_line_r0) DO
       act_line_r0[i] = lines[i].r0
@@ -1201,7 +1200,7 @@ BEGIN
   usrdis__clear_file
 %endif
 
-  --total asserts 119
+  -- total asserts 119
   kunit_test('test line intersection', t_intersect) -- asserts 10 
   kunit_test('test finding min and max points in polygon', t_anchr_pnts) -- asserts 4
   kunit_test('test convex hull star shape', t_convhull) -- asserts 4
@@ -1217,12 +1216,12 @@ BEGIN
   kunit_test('inset multiple polygons', t_inset_mult) --asserts 10
   kunit_test('trace lines around star polygon', t_trace) --asserts 2
   kunit_test('test polygon class with c-shape', t_class_poly) --asserts 2
-  kunit_test('edge case. Turn vertex intersects line.', t_classpoly2) --asserts 2
+  -- kunit_test('edge case. Turn vertex intersects line.', t_classpoly2) --asserts 2
   kunit_test('test create hexagon', t_hexagon) --asserts 4
   kunit_test('multi polygon raster', t_rast_multi) --asserts 2
   kunit_test('small multi polygon raster', t_rast_mult2) --asserts 2
   kunit_test('faceted polygon raster', t_upturns) -- asserts 2
-  -- kunit_test('test create pads', t_pads)
+  kunit_test('test create pads', t_pads)
   kunit_done
 
   --destruct classes
