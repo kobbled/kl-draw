@@ -29,7 +29,7 @@ ROUTINE draw__clip_poly_verts(line : t_SEGMENT2D; polygon : PATH nodedata = t_VE
                         hull : PATH nodedata = t_VERTEX; out_verts : ARRAY OF t_VERT_CLIP) : INTEGER FROM draw
 declare_function(prog_name,clips_to_lines,prog_name_alias,clpln)
 ROUTINE draw__clips_to_lines(clips : ARRAY OF t_VERT_CLIP; start_i, end_i : INTEGER ; &
-                            polygon : PATH nodedata = t_VERTEX; out_lines : PATH nodedata = t_SEG2D_POLY) FROM draw
+                            polygon : PATH nodedata = t_VERTEX; hull : PATH nodedata = t_VERTEX; out_lines : PATH nodedata = t_SEG2D_POLY) FROM draw
 declare_function(prog_name,clip_line_with_poly,prog_name_alias,clplp)
 ROUTINE draw__clip_line_with_poly(line : t_SEGMENT2D; polygon : PATH nodedata = t_VERTEX; &
                         hull : PATH nodedata = t_VERTEX; out_lines : PATH nodedata = t_SEG2D_POLY) : INTEGER FROM draw

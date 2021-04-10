@@ -10,8 +10,8 @@ PROGRAM class_name
 %include errors.klt
 %include systemvars.klt
 %include systemlib.klt
-%include paths.klt
 %include paths.c.klt
+%include paths.t.klt
 %include draw.klt
 
 VAR
@@ -355,22 +355,11 @@ ROUTINE lines_to_vec_path
       out_lines[PATH_LEN(out_lines)].code = PTH_MOVETO
       out_lines[PATH_LEN(out_lines)].polygon = lines[i].polygon
 
-      --approach vector will be the vector of the polygon line
-      --this line intersects
-      curr_vert = lines[i].poly_r0
-      next_vert = ((lines[i].poly_r0+1-1) MOD PATH_LEN(sub_poly)) + 1
-      out_lines[PATH_LEN(out_lines)].approach = canvas:(sub_poly[next_vert].coords - sub_poly[curr_vert].coords)
       --r1
       APPEND_NODE(out_lines, status)
       out_lines[PATH_LEN(out_lines)].v = canvas:lines[i].r1
       out_lines[PATH_LEN(out_lines)].code = PTH_CLOSE
       out_lines[PATH_LEN(out_lines)].polygon = lines[i].polygon
-
-      --approach vector will be the vector of the polygon line
-      --this line intersects
-      curr_vert = lines[i].poly_r1
-      next_vert = ((lines[i].poly_r1+1-1) MOD PATH_LEN(sub_poly)) + 1
-      out_lines[PATH_LEN(out_lines)].approach = canvas:(sub_poly[next_vert].coords - sub_poly[curr_vert].coords)
     ENDFOR
   END lines_to_vec_path
 
@@ -390,10 +379,6 @@ ROUTINE contours_to_vec_path
       out_cntrs[PATH_LEN(out_cntrs)].v = canvas:contours[i].v
       out_cntrs[PATH_LEN(out_cntrs)].code = contours[i].code
       out_cntrs[PATH_LEN(out_cntrs)].polygon = contours[i].polygon
-      --approach vector will be the perpendicular vector of the contour
-      --segment.
-      next_vert = ((i+1-1) MOD PATH_LEN(contours)) + 1
-      out_cntrs[PATH_LEN(out_cntrs)].approach = canvas:(contours[next_vert].v-contours[i].v)
     ENDFOR
 
   END contours_to_vec_path
