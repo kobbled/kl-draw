@@ -11,14 +11,21 @@ PROGRAM draw
 
 %include errors.klt
 %include systemvars.klt
-%include systemlib.c.klt
+%include systemlib.klt
 %include math.klt
-%include paths.klt
+%include paths.t.klt
+%include paths.c.klt
 %include draw.klt
 %include draw.c.klt
 
 --CONST
+-- ..warning:: seems to effects rastering depending on scale.
+--             *** IF HAVING ISSUES WITH RASTER LINES CHANGE
+--             *** THIS VARIABLE TO REFLECT SCALE
 %define epsilon 0.01
+
+VAR
+  reflex_verts :  PATH nodedata = t_INTEGER
 
 %from errors.klh %import CHK_STAT, karelError
 %include systemlib.klh
@@ -116,13 +123,22 @@ ROUTINE draw__intersect
     --how far away a poitn is from a line
     -- +ive to left of line. -ive to right of line
     WEC1, WEC2 : ARRAY[2] OF REAL
+    length : REAL
   BEGIN
     --create vector normals, and perpendicular normals
     --for both lines
-    n_l1 = (l1.r1 - l1.r0)/math__norm((l1.r1 - l1.r0))
+    length = math__norm((l1.r1 - l1.r0))
+    IF length = 0 THEN
+      RETURN(FALSE)
+    ENDIF
+    n_l1 = (l1.r1 - l1.r0)/length
     perp_l1 = draw__perpendicular_vector(n_l1)
 
-    n_l2 = (l2.r1 - l2.r0)/math__norm((l2.r1 - l2.r0))
+    length = math__norm((l2.r1 - l2.r0))
+    IF length = 0 THEN
+      RETURN(FALSE)
+    ENDIF
+    n_l2 = (l2.r1 - l2.r0)/length
     perp_l2 = draw__perpendicular_vector(n_l2)
 
     --for each endpoint determine which side of the opposing line
@@ -378,7 +394,7 @@ ROUTINE draw__point_avoid_convex
   BEGIN
     --If looping from end of path to start of path
     IF end_node < start_node THEN
-      end_node = end_node + PATH_LEN(polygon)
+      end_node = ((end_node + PATH_LEN(polygon)-1) MOD PATH_LEN(polygon)) + 1
     ENDIF
 
     FOR i = (start_node+1) TO end_node DO
@@ -409,8 +425,8 @@ ROUTINE draw__point_avoid_convex
 ROUTINE draw__point_collision_polygon
   VAR
     i, j : INTEGER
+    status : INTEGER
     b : BOOLEAN
-    reflex_verts : ARRAY[30] OF INTEGER
     reflex_start, reflex_end : INTEGER
   BEGIN
     --assume polygon verticies are ordered counterclockwise
@@ -432,11 +448,20 @@ ROUTINE draw__point_collision_polygon
     ENDIF
 
     --check for reflexive verticies
+    --clear reflex list
+    j = PATH_LEN(reflex_verts)
+    WHILE PATH_LEN(reflex_verts) > 0 DO
+		  DELETE_NODE(reflex_verts,j,status)
+      CHK_STAT(status)
+      j = j - 1
+	  ENDWHILE
+
     j = 0
     FOR i = 1 TO PATH_LEN(polygon) DO
       IF NOT draw__on_hull(polygon[i].coords, hull) THEN
         j = j + 1
-        reflex_verts[j] = i
+        APPEND_NODE(reflex_verts, status)
+        reflex_verts[j].v = i
       ENDIF
     ENDFOR
 
@@ -444,22 +469,19 @@ ROUTINE draw__point_collision_polygon
     --around these reflexive points. see
     --if point is inside this area
     IF j > 0 THEN
-      --endflag
-      j = j + 1
-      reflex_verts[j] = MAX_INTEGER
       --start and end polygons are points on the hull
       --before and after the reflexive points
       --mod operator does not handle negatives
-      IF reflex_verts[1] = 1 THEN
+      IF reflex_verts[1].v = 1 THEN
         reflex_start = PATH_LEN(polygon)
       ELSE
-        reflex_start = ((reflex_verts[1]-1-1) MOD PATH_LEN(polygon)) + 1
+        reflex_start = ((reflex_verts[1].v-1-1) MOD PATH_LEN(polygon)) + 1
       ENDIF
 
       FOR i=1 TO j-1 DO
         --if next vertex is not reflexive, we have reached the hull
-        IF (reflex_verts[i] <> reflex_verts[i+1]-1) THEN
-          reflex_end = ((reflex_verts[i]+1-1) MOD PATH_LEN(polygon)) + 1
+        IF (reflex_verts[i].v <> reflex_verts[i+1].v-1) THEN
+          reflex_end = ((reflex_verts[i].v+1-1) MOD PATH_LEN(polygon)) + 1
           
           --test poly
           b = draw__point_avoid_convex(v, polygon, reflex_start, reflex_end)
@@ -468,9 +490,15 @@ ROUTINE draw__point_collision_polygon
             RETURN(FALSE)
           ENDIF
 
-          reflex_start = ((reflex_verts[i+1]-1-1) MOD PATH_LEN(polygon)) + 1
+          reflex_start = ((reflex_verts[i+1].v-1-1) MOD PATH_LEN(polygon)) + 1
         ENDIF
       ENDFOR
+
+      --free memory
+      j = PATH_LEN(reflex_verts)
+      WHILE PATH_LEN(reflex_verts) > 0 DO
+        DELETE_NODE(reflex_verts,j,status)
+      ENDWHILE
     ENDIF
 
     RETURN(TRUE)
@@ -908,15 +936,26 @@ ROUTINE draw__line_inset
     line1_alpha, line2_alpha : REAL
     line_vec1, line_vec2 : VECTOR
     intersect : BOOLEAN
+    length : REAL
   BEGIN
     --get line vector
-    line_vec1 = (line1.r1-line1.r0)/math__norm(line1.r1-line1.r0)
+    length = math__norm(line1.r1-line1.r0)
+    IF length > 0 THEN
+      line_vec1 = (line1.r1-line1.r0)/length
+    ELSE
+      line_vec1 = (line1.r1-line1.r0)
+    ENDIF
     --inset lines based on perpendicular vector
     out_line1.r0 = draw__perpendicular_vector(line_vec1)*inset_amount + line1.r0
     out_line1.r1 = draw__perpendicular_vector(line_vec1)*inset_amount + line1.r1
 
     --get line vector
-    line_vec2 = (line2.r1-line2.r0)/math__norm(line2.r1-line2.r0)
+    length = math__norm(line2.r1-line2.r0)
+    IF length > 0 THEN
+      line_vec2 = (line2.r1-line2.r0)/length
+    ELSE
+      line_vec2 = (line2.r1-line2.r0)
+    ENDIF
     --inset lines based on perpendicular vector
     out_line2.r0 = draw__perpendicular_vector(line_vec2)*inset_amount + line2.r0
     out_line2.r1 = draw__perpendicular_vector(line_vec2)*inset_amount + line2.r1
