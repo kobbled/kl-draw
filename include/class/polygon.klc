@@ -149,7 +149,7 @@ ROUTINE update_last_poly
 
 -- ** public **
 
-ROUTINE clear
+ROUTINE delete
   VAR
     i : INTEGER
     status : INTEGER
@@ -169,11 +169,11 @@ ROUTINE clear
 
     clear_lines
     clear_contours
-  END clear
+  END delete
 
 ROUTINE new
   BEGIN
-    clear
+    delete
     set_canvas((ZEROPOS(1)))
   END new
 

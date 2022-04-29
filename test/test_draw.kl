@@ -826,7 +826,7 @@ ROUTINE t_class_poly : BOOLEAN
     act_line_r1, exp_line_r1 : ARRAY[10] OF VECTOR
   BEGIN
 
-    tstpoly__clear
+    tstpoly__delete
 
     --set canvas
     tstpoly__set_canvas(POS(212.132,40,212.132,0,-45,0,(ZEROPOS(1).Config_data)))
@@ -884,7 +884,7 @@ ROUTINE t_classpoly2 : BOOLEAN
     act_line_r1, exp_line_r1 : ARRAY[12] OF VECTOR
   BEGIN
 
-    tstpoly__clear
+    tstpoly__delete
 
     --set canvas
     tstpoly__set_canvas((ZEROPOS(1)))
@@ -941,7 +941,7 @@ ROUTINE t_rast_multi : BOOLEAN
     act_line_r0, exp_line_r0 : ARRAY[10] OF VECTOR
     act_line_r1, exp_line_r1 : ARRAY[10] OF VECTOR
   BEGIN
-    tstpoly__clear
+    tstpoly__delete
     tstpoly__set_canvas((ZEROPOS(1)))
 
     --set polygon
@@ -1006,7 +1006,7 @@ ROUTINE t_rast_mult2 : BOOLEAN
     act_line_r0, exp_line_r0 : ARRAY[10] OF VECTOR
     act_line_r1, exp_line_r1 : ARRAY[10] OF VECTOR
   BEGIN
-    tstpoly__clear
+    tstpoly__delete
     tstpoly__set_canvas((ZEROPOS(1)))
 
     --set polygon
@@ -1076,7 +1076,7 @@ ROUTINE t_hexagon : BOOLEAN
     act_cntr_c, exp_cntr_c : ARRAY[5] OF INTEGER
   BEGIN
 
-    tstpoly__clear
+    tstpoly__delete
     tstpoly__set_canvas((ZEROPOS(1)))
     tstpoly__hexagon(radius, num_of_points, VEC2D(radius, radius), 180)
     --raster lines
@@ -1125,7 +1125,7 @@ ROUTINE t_upturns : BOOLEAN
     act_line_r0, exp_line_r0 : ARRAY[10] OF VECTOR
     act_line_r1, exp_line_r1 : ARRAY[10] OF VECTOR
   BEGIN
-    tstpoly__clear
+    tstpoly__delete
     tstpoly__set_canvas((ZEROPOS(1)))
 
     --draw polygon
@@ -1181,7 +1181,7 @@ ROUTINE t_pads : BOOLEAN
 %define NO_OF_PADS 3
     i : INTEGER
   BEGIN
-    tstpoly__clear
+    tstpoly__delete
     tstpoly__set_canvas( POS(0,0,0,0,0,0,(ZEROPOS(1).config_data)) )
     tstpoly__pads(PAD_WIDTH, PAD_LENGTH, PAD_SEPERATION, NO_OF_PADS, VEC2D(50,50) )
     --raster lines
@@ -1195,7 +1195,7 @@ ROUTINE t_pads : BOOLEAN
 ROUTINE t_custom : BOOLEAN
 %define SVG_NAME 'FR:\rebel.csv'
   BEGIN
-    tstpoly__clear
+    tstpoly__delete
     tstpoly__set_canvas( POS(0,0,0,0,0,90,(ZEROPOS(1).config_data)) )
     tstpoly__import_shape(SVG_NAME)
     --raster lines
@@ -1210,7 +1210,7 @@ BEGIN
 
 %ifdef DEBUG_BUILD
   --(log_filename, show_date, show_debug, show_info)
-  usrdis__constructor(LOG_NAME, FALSE, TRUE, TRUE)
+  usrdis__new(LOG_NAME, FALSE, TRUE, TRUE)
   usrdis__clear_file
 %endif
 
@@ -1240,10 +1240,10 @@ BEGIN
   kunit_done
 
   --destruct classes
-  -- tstpoly__clear
+  -- tstpoly__delete
 
 %ifdef DEBUG_BUILD
   usrdis__write_pipe
-  usrdis__destructor
+  usrdis__delete
 %endif
 END test_draw

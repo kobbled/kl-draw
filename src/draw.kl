@@ -15,6 +15,7 @@ PROGRAM draw
 %include math.klt
 %include paths.t.klt
 %include paths.c.klt
+%include shapes.klt
 %include draw.klt
 %include draw.c.klt
 
