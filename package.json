@@ -19,7 +19,7 @@
   "depends" : [
     "shapes",
     "math",
-    "paths",
+    "pathlib",
     "Strings",
     "errors",
     "csv",

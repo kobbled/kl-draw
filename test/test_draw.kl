@@ -8,8 +8,8 @@ PROGRAM test_draw
 %endif
 
 %include systemvars.klt
-%include paths.c.klt
-%include paths.t.klt
+%include pathlib.c.klt
+%include pathlib.t.klt
 %include draw.klt
 
 VAR

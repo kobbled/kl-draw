@@ -10,8 +10,8 @@ PROGRAM class_name
 %include errors.klt
 %include systemvars.klt
 %include systemlib.klt
-%include paths.c.klt
-%include paths.t.klt
+%include pathlib.c.klt
+%include pathlib.t.klt
 %include draw.klt
 
 VAR

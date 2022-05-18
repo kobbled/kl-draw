@@ -13,8 +13,8 @@ PROGRAM draw
 %include systemvars.klt
 %include systemlib.klt
 %include math.klt
-%include paths.t.klt
-%include paths.c.klt
+%include pathlib.t.klt
+%include pathlib.c.klt
 %include shapes.klt
 %include draw.klt
 %include draw.c.klt
