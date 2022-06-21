@@ -24,6 +24,9 @@ VAR
   fl : FILE
   canvas : XYZWPR
   params : t_RASTER
+  -- toggle if you want to raster lines on the boundary of the shape
+  -- if false it will exclude the boundary
+  rast_bounds : BOOLEAN
 
 %from systemlib.klh %import VEC2D
 %from math.klh %import arclength, arcangle
@@ -162,6 +165,8 @@ ROUTINE delete
     --uninitialize the canvas
     SET_UNINIT_F('class_name', 'canvas')
 
+    rast_bounds = FALSE
+
     --clear hull
     clear_hull
     --clear to sub path
@@ -175,7 +180,15 @@ ROUTINE new
   BEGIN
     delete
     set_canvas((ZEROPOS(1)))
+    rast_bounds = TRUE
   END new
+
+ROUTINE init
+  BEGIN
+    delete
+    set_canvas(frm)
+    rast_bounds = boundary
+  END init
 
 ROUTINE import_shape
   VAR
@@ -229,6 +242,11 @@ ROUTINE set_canvas
   BEGIN
     canvas = frm
   END set_canvas
+
+ROUTINE raster_on_boundary
+  BEGIN
+    rast_bounds = boundary
+  END raster_on_boundary
 
 ROUTINE set_params
   BEGIN
@@ -382,7 +400,7 @@ ROUTINE raster
     --trace contours if wall_lines > 0
     trace(line_type)
     --raster the interior
-    draw__raster_lines(sub_poly, hull, params.start_angle, params.line_width, params.line_pitch, (params.dir), lines)
+    draw__raster_lines(sub_poly, hull, params.start_angle, params.line_width, params.line_pitch, (params.dir), rast_bounds, lines)
 
   END raster
 

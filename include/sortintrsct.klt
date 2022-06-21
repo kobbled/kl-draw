@@ -1,6 +1,7 @@
 %include define_type.m
 
 %defeval ARRAYTYPE t_VERT_CLIP
+%defeval ARRAYEPSILON 0.01
 
 %mode push
 %mode string QQQ "`" "`" "\\"

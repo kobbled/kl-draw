@@ -818,25 +818,30 @@ ROUTINE draw__clips_to_lines
     --sort points by alpha value
     srtclp__bubblesort(clips, start_i, end_i, TRUE)
 
+    --remove duplicates
+    end_i = srtclp__keep_unique(clips, start_i, end_i)
+
     i=start_i
     REPEAT
 
       --if duplicate clip points
       IF NOT UNINIT(clips[i+1].coords) THEN
-        IF (math__norm(clips[i+1].coords - clips[i].coords) < epsilon) THEN
-          IF (i + 2 < end_i) THEN
-            mid = 0.5*(clips[i+1].coords + clips[i+2].coords)
-            IF draw__point_collision_polygon(mid, polygon, hull) THEN
-              i = i + 1
-            ENDIF
-          ENDIF
-        ENDIF
         
         IF (ABS(clips[i+1].alpha - clips[i].alpha) > epsilon) THEN
-          APPEND_NODE(out_lines, status)
-          out_lines[PATH_LEN(out_lines)].r0 = clips[i].coords
-          out_lines[PATH_LEN(out_lines)].r1 = clips[i + 1].coords
-          out_lines[PATH_LEN(out_lines)].polygon = clips[i].polygon
+          IF on_boundary THEN
+            APPEND_NODE(out_lines, status)
+            out_lines[PATH_LEN(out_lines)].r0 = clips[i].coords
+            out_lines[PATH_LEN(out_lines)].r1 = clips[i + 1].coords
+            out_lines[PATH_LEN(out_lines)].polygon = clips[i].polygon
+          ELSE
+            mid = 0.5*(clips[i].coords + clips[i+1].coords)
+            IF draw__point_collision_polygon(mid, polygon, hull) THEN 
+              APPEND_NODE(out_lines, status)
+              out_lines[PATH_LEN(out_lines)].r0 = clips[i].coords
+              out_lines[PATH_LEN(out_lines)].r1 = clips[i + 1].coords
+              out_lines[PATH_LEN(out_lines)].polygon = clips[i].polygon
+            ENDIF 
+          ENDIF
         ENDIF
       ENDIF
       
@@ -858,7 +863,7 @@ ROUTINE draw__clip_line_with_poly
     no_of_clips = draw__clip_poly_verts(line, polygon, hull, clippedverts)
     --if any intersection are found
     IF no_of_clips > 0 THEN
-      draw__clips_to_lines(clippedverts, 1, no_of_clips, polygon, hull, out_lines)
+      draw__clips_to_lines(clippedverts, 1, no_of_clips, polygon, hull, on_boundary, out_lines)
     ENDIF
     --return out_lines
 
@@ -920,7 +925,7 @@ ROUTINE draw__raster_lines
       usrdis__print(DEBUG, vec_to_s(new_line.r1, ','))
 %endif
       --clip lines to polygon
-      line_count = draw__clip_line_with_poly(new_line, polygon, out_hull, out_lines)
+      line_count = draw__clip_line_with_poly(new_line, polygon, out_hull, on_boundary, out_lines)
 
       i = i + 1
     UNTIL(i > inc)

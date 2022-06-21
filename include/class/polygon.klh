@@ -7,14 +7,18 @@
 header_if -- ifndef class
 header_def -- define class
 
-declare_member(class_name,delete,class_name,clr)
+declare_member(class_name,delete,class_name,del)
 ROUTINE delete FROM class_name
 declare_member(class_name,new,class_name,new)
 ROUTINE new FROM class_name
+declare_member(class_name,init,class_name,init)
+ROUTINE init(frm : XYZWPR; boundary : BOOLEAN) FROM class_name
 declare_member(class_name,import_shape,class_name,imps)
 ROUTINE import_shape(filename : STRING) FROM class_name
 declare_member(class_name,set_canvas,class_name,scnv)
 ROUTINE set_canvas(frm : XYZWPR) FROM class_name
+declare_member(class_name,raster_on_boundary,class_name,rbnd)
+ROUTINE raster_on_boundary(boundary : BOOLEAN) FROM class_name
 declare_member(class_name,set_params,class_name,sprm)
 ROUTINE set_params(start_angle : REAL; dir : INTEGER; wall_lines : INTEGER; &
                   line_width : REAL; line_pitch : REAL) FROM class_name
