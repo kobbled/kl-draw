@@ -51,6 +51,8 @@ ROUTINE draw__inset_polygon(polygon : PATH nodedata = t_VERTEX; inset_amount : R
 declare_function(prog_name,trace,prog_name_alias,trace)
 --dir =1 ccw or =-1 cw
 ROUTINE draw__trace(polygon : PATH nodedata = t_VERTEX; start_angle : REAL; dir : INTEGER ; curve_type : INTEGER ; out_contour : PATH nodedata = t_VEC_PATH) FROM draw
+declare_function(prog_name,calc_tangent,prog_name_alias,caltg)
+ROUTINE draw__calc_tangent(segment : PATH nodedata = t_VEC_PATH) FROM draw
 declare_function(prog_name,hexagon,prog_name_alias,hexagon)
 ROUTINE draw__hexagon(radius : REAL; verticies : INTEGER; origin : XYZWPR; out_poly : PATH nodedata = t_VERTEX) FROM draw
 

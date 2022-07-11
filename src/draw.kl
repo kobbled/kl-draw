@@ -833,6 +833,7 @@ ROUTINE draw__clips_to_lines
             out_lines[PATH_LEN(out_lines)].r0 = clips[i].coords
             out_lines[PATH_LEN(out_lines)].r1 = clips[i + 1].coords
             out_lines[PATH_LEN(out_lines)].polygon = clips[i].polygon
+            out_lines[PATH_LEN(out_lines)].tangent = ((clips[i + 1].coords - clips[i].coords)/math__norm(clips[i + 1].coords - clips[i].coords))
           ELSE
             mid = 0.5*(clips[i].coords + clips[i+1].coords)
             IF draw__point_collision_polygon(mid, polygon, hull) THEN 
@@ -840,6 +841,7 @@ ROUTINE draw__clips_to_lines
               out_lines[PATH_LEN(out_lines)].r0 = clips[i].coords
               out_lines[PATH_LEN(out_lines)].r1 = clips[i + 1].coords
               out_lines[PATH_LEN(out_lines)].polygon = clips[i].polygon
+              out_lines[PATH_LEN(out_lines)].tangent = ((clips[i + 1].coords - clips[i].coords)/math__norm(clips[i + 1].coords - clips[i].coords))
             ENDIF 
           ENDIF
         ENDIF
@@ -1197,6 +1199,19 @@ ROUTINE draw__trace
     out_contour[PATH_LEN(out_contour)].code = PTH_CLOSE
 
   END draw__trace
+
+ROUTINE draw__calc_tangent
+  VAR
+    i : INTEGER
+  BEGIN
+    FOR i=1 TO PATH_LEN(segment) DO
+      IF i = PATH_LEN(segment) THEN
+        segment[i].tangent = (segment[i].v-segment[i-1].v)/math__norm((segment[i].v-segment[i-1].v))
+      ELSE
+        segment[i].tangent = (segment[i+1].v-segment[i].v)/math__norm((segment[i+1].v-segment[i].v))
+      ENDIF
+    ENDFOR
+  END draw__calc_tangent
 
 ROUTINE draw_hexagon
   VAR 
