@@ -15,6 +15,8 @@ from ftplib import FTP
 import re
 from random import randint
 import argparse
+import numpy as np
+import collections
 
 import matplotlib.path as mpath
 import matplotlib.patches as mpatches
@@ -54,7 +56,19 @@ MOTION_DATA_TYPE = 'VECTOR'
 folder_files = ''
 
 raster_lines = []
+t_line = collections.namedtuple('t_line',
+  'r0 '
+  'r1 '
+  'polygon '
+  'tangent'
+)
 polygons = []
+t_polygon = collections.namedtuple('t_polygon',
+  'coords '
+  'code '
+  'polygon '
+  'tangent'
+)
 
 def random_color_gen():
   """Generates a random RGB color
@@ -67,29 +81,21 @@ def random_color_gen():
   b = randint(0, 255)
   return (r, g, b)
 
-def check_line_type(args):
-  parsefile = folder_files +'/' + SAVE_DIRECTORY + '/' + args.rbt_fl + '.VA'
-
-  t1= rf"\s*Field:\s{LINES_VARNAME}\.NODEDATA\s*ARRAY\[(\d+)\]\sOF\s{LINES_TYPENAME}\s"
-  t2= rf"\s*Field:\s{LINES_VARNAME}\.NODEDATA\s*ARRAY\[(\d+)\]\sOF\s{LINES_TYPENAME2}\s"
-  
-  for line in open(parsefile):
-    if re.search(t1, line):
-      type1 = True
-    if re.search(t2, line):
-      type1 = False
-
-  return(type1)
-  
-
 def parseContour(args):
 
   parsefile = folder_files +'/' + SAVE_DIRECTORY + '/' + args.rbt_fl + '.VA'
 
   pattern_code = rf"Field: {CONTOUR_VARNAME}\.NODEDATA\[(\d+)\]\.{CONTOUR_CODE_SUFFIX} Access: RW: {CONTOUR_CODE_TYPE} =\s*(.*)"
   pattern_vector = rf"Field: {CONTOUR_VARNAME}\.NODEDATA\[(\d+)\]\.{CONTOUR_VEC_SUFFIX} Access: RW: {CONTOUR_VEC_TYPE} =\s"
+  pattern_polygon = rf"Field: {CONTOUR_VARNAME}\.NODEDATA\[(\d+)\]\.POLYGON Access: RW: {CONTOUR_CODE_TYPE} =\s*(.*)"
+  pattern_tangent = rf"Field: {CONTOUR_VARNAME}\.NODEDATA\[(\d+)\]\.TANGENT Access: RW: VECTOR =\s"
   patternx = r"X:\s*(-?\d{0,3}\.\d{1,3})"
   patterny = r"Y:\s*(-?\d{0,3}\.\d{1,3})"
+
+  coords = ('', '')
+  code = ''
+  polygon = ''
+  tangent = ('', '')
 
   with open(parsefile,'r') as f:
 
@@ -98,7 +104,10 @@ def parseContour(args):
 
       m2 = re.search(pattern_code, lines[i])
       m1 = re.search(pattern_vector, lines[i])
-
+      m3 = re.search(pattern_tangent, lines[i])
+      m4 = re.search(pattern_polygon, lines[i])
+      
+      nid = None
       if m1:
         # get index
         nid = int(m1.group(1)) - 1
@@ -113,23 +122,47 @@ def parseContour(args):
         if mvec:
           new_y = float(mvec.group(1))
         # append to list
-        if len(polygons) > nid:
-          node = polygons[nid]
-          node[1] = (new_x, new_y)
-          polygons[nid] = node
-        else:
-          polygons.insert(nid, [0,[new_x, new_y]] )
-
+        coords = (new_x, new_y)
+      
       if m2:
         # get index
         nid = int(m2.group(1)) - 1
         code = int(m2.group(2))
+      
+      if m3:
+        # get index
+        nid = int(m3.group(1)) - 1
+        # get x coordinate
+        mvec = re.search(patternx, lines[i+1])
+        new_x = 0.0
+        if mvec:
+          new_x = float(mvec.group(1))
+        # get x=y coordinate
+        mvec = re.search(patterny, lines[i+1])
+        new_y = 0.0
+        if mvec:
+          new_y = float(mvec.group(1))
+        # append to list
+        tangent = (new_x, new_y)
+      
+      if m4:
+        # get index
+        nid = int(m4.group(1)) - 1
+        polygon = int(m4.group(2))
+
+      poly = t_polygon(
+          coords = coords,
+          code = code,
+          polygon = polygon,
+          tangent = tangent
+        )
+      if nid is not None:
         if len(polygons) > nid:
-          node = polygons[nid]
-          node[0] = code
-          polygons[nid] = node
+          polygons[nid] = poly
         else:
-          polygons.insert(nid, [code,[0, 0]] )
+          polygons.insert(nid, poly )
+        
+        nid = None
 
 def parseLines(args):
 
@@ -137,8 +170,16 @@ def parseLines(args):
 
   pattern_start = rf"Field: {LINES_VARNAME}\.NODEDATA\[(\d+)\]\.{LINE_START_SUFFIX} Access: RW: {LINE_TYPE} =\s*(.*)"
   pattern_end = rf"Field: {LINES_VARNAME}\.NODEDATA\[(\d+)\]\.{LINE_END_SUFFIX} Access: RW: {LINE_TYPE} =\s*(.*)"
+  pattern_poly = rf"Field: {LINES_VARNAME}\.NODEDATA\[(\d+)\]\.POLYGON Access: RW: SHORT =\s*(.*)"
+  pattern_tangent = rf"Field: {LINES_VARNAME}\.NODEDATA\[(\d+)\]\.TANGENT Access: RW: VECTOR =\s"
+
   patternx = r"X:\s*(-?\d{0,3}\.\d{1,3})"
   patterny = r"Y:\s*(-?\d{0,3}\.\d{1,3})"
+
+  r0 = ('', '')
+  r1 = ('', '')
+  poly = ''
+  tangent = ('', '')
 
   with open(parsefile,'r') as f:
 
@@ -147,13 +188,14 @@ def parseLines(args):
 
       m1 = re.search(pattern_start, lines[i])
       m2 = re.search(pattern_end, lines[i])
+      m3 = re.search(pattern_poly, lines[i])
+      m4 = re.search(pattern_tangent, lines[i])
+
+      nid = None
       
-      if m1 or m2:
+      if m1:
         # get index
-        if m1:
-          nid = int(m1.group(1)) - 1
-        else:
-          nid = int(m2.group(1)) - 1
+        nid = int(m1.group(1)) - 1
         # get x coordinate
         mvec = re.search(patternx, lines[i+1])
         new_x = 0.0
@@ -164,44 +206,33 @@ def parseLines(args):
         new_y = 0.0
         if mvec:
           new_y = float(mvec.group(1))
-
-      if m1:
-        if len(raster_lines) > nid:
-          node = raster_lines[nid]
-          node[0] = [new_x, new_y]
-          raster_lines[nid] = node
-        else:
-          raster_lines.insert(nid, [[new_x, new_y],[0, 0]] )
+        
+        r0 = (new_x, new_y)
       
       if m2:
-        if len(raster_lines) > nid:
-          node = raster_lines[nid]
-          node[1] = [new_x, new_y]
-          raster_lines[nid] = node
-        else:
-          raster_lines.insert(nid, [[0, 0],[new_x, new_y]] )
-
-def parseLines2(args):
-
-  parsefile = folder_files +'/' + SAVE_DIRECTORY + '/' + args.rbt_fl + '.VA'
-
-  pattern_code = rf"Field: {LINES_VARNAME}\.NODEDATA\[(\d+)\]\.{CONTOUR_CODE_SUFFIX} Access: RW: {CONTOUR_CODE_TYPE} =\s*(.*)"
-  pattern_vector = rf"Field: {LINES_VARNAME}\.NODEDATA\[(\d+)\]\.{CONTOUR_VEC_SUFFIX} Access: RW: {CONTOUR_VEC_TYPE} =\s"
-  patternx = r"X:\s*(-?\d{0,3}\.\d{1,3})"
-  patterny = r"Y:\s*(-?\d{0,3}\.\d{1,3})"
-
-  with open(parsefile,'r') as f:
-    
-    j = 0
-    lines = f.readlines()
-    for i in range(len(lines)):
-
-      m1 = re.search(pattern_vector, lines[i])
-
-      if m1:
         # get index
-        if ((j % 2) == 0):
-          nid = int( (int(m1.group(1)) - 1)/2)
+        nid = int(m2.group(1)) - 1
+        # get x coordinate
+        mvec = re.search(patternx, lines[i+1])
+        new_x = 0.0
+        if mvec:
+          new_x = float(mvec.group(1))
+        # get x=y coordinate
+        mvec = re.search(patterny, lines[i+1])
+        new_y = 0.0
+        if mvec:
+          new_y = float(mvec.group(1))
+
+        r1 = (new_x, new_y)
+      
+      if m3:
+        # get index
+        nid = int(m3.group(1)) - 1
+        poly = int(m3.group(2))
+
+      if m4:
+        # get index
+        nid = int(m4.group(1)) - 1
         # get x coordinate
         mvec = re.search(patternx, lines[i+1])
         new_x = 0.0
@@ -213,22 +244,37 @@ def parseLines2(args):
         if mvec:
           new_y = float(mvec.group(1))
         
+        tangent = (new_x, new_y)
+
+      line = t_line(
+          r0 = r0,
+          r1 = r1,
+          polygon = poly,
+          tangent = tangent
+        )
+
+      if nid is not None:
         if len(raster_lines) > nid:
-          node = raster_lines[nid]
-          node[1] = [new_x, new_y]
-          raster_lines[nid] = node
+          raster_lines[nid] = line
         else:
-          raster_lines.insert(nid, [[new_x, new_y],[0, 0]] )
+          raster_lines.insert(nid, line)
         
-        j = (j + 1) % 2
+        nid = None
 
 def print_cont(list_obj):
   for i in range(len(list_obj)):
-    print("{}: {:.3f}, {:.3f}".format(list_obj[i][0], list_obj[i][1][0], list_obj[i][1][1]))
+    print("{}: {:.3f}, {:.3f} : {:.3f}, {:.3f}".format(list_obj[i].code, list_obj[i].coords[0], list_obj[i].coords[1], list_obj[i].tangent[0], list_obj[i].tangent[1]))
 
 def print_line(list_obj):
   for i in range(len(list_obj)):
-    print("{:.3f}, {:.3f} : {:.3f}, {:.3f}".format(list_obj[i][0][0], list_obj[i][0][1], list_obj[i][1][0], list_obj[i][1][1]))
+    print("{}: {:.3f}, {:.3f} : {:.3f}, {:.3f} : {:.3f}, {:.3f}".format(list_obj[i].polygon, list_obj[i].r0[0], list_obj[i].r0[1], list_obj[i].r1[0], list_obj[i].r1[1], list_obj[i].tangent[0], list_obj[i].tangent[1]))
+
+def slice(obj, name):
+  list = []
+  for o in obj:
+    list.append(getattr(o, name))
+  
+  return list
 
 def plot():
   fig, ax = plt.subplots()
@@ -236,7 +282,9 @@ def plot():
   #ploygons
   Path = mpath.Path
   if len(polygons) > 0:
-    codes, verts = zip(*polygons)
+    codes = slice(polygons, 'code')
+    verts = slice(polygons, 'coords')
+    tang = slice(polygons, 'tangent')
     start_idx = 0 ; end_idx = len(polygons)
 
   for i in range(len(polygons)):
@@ -254,15 +302,28 @@ def plot():
       patch = mpatches.PathPatch(path, facecolor=face_color, edgecolor=edge_color, alpha=0.5)
       ax.add_patch(patch)
 
-  #lines
-  for line in raster_lines:
-    x, y = zip(*line)
+    # add tangent vectors
+    ax.arrow(verts[i][0], verts[i][1], tang[i][0]*10, tang[i][1]*10, head_width=5, head_length=10, fc='r', ec='r')
 
+  #lines
+  if len(raster_lines) > 0:
+    r0 = np.array(slice(raster_lines, 'r0'))
+    r1 = np.array(slice(raster_lines, 'r1'))
+    poly = slice(raster_lines, 'polygon')
+    tang = slice(raster_lines, 'tangent')
+  
+    x = list(zip(r0[:,0], r1[:,0]))
+    y = list(zip(r0[:,1], r1[:,1]))
+
+  for i in range(len(raster_lines)):
     color = random_color_gen()
-    color = list(map(lambda i: i*1.0/255, color))
+    color = list(map(lambda x: x*1.0/255, color))
     #color = 'yellow'
-    draw = plt.Line2D(x, y, color=color)
+    draw = plt.Line2D(x[i], y[i], color=color)
     ax.add_line(draw)
+
+    # add tangent vectors
+    ax.arrow((r0[i][0]+r1[i][0])/2, (r0[i][1]+r1[i][1])/2, tang[i][0]*10, tang[i][1]*10, head_width=5, head_length=10, fc='g', ec='g')
 
   ax.grid()
   ax.axis('equal')
@@ -328,19 +389,13 @@ def main():
   # get contours
   parseContour(args)
 
-  ltype = check_line_type(args)
-  if ltype:
-    parseLines(args)
-  else:
-    parseLines2(args)
+  parseLines(args)
 
   print('polygons')
   print_cont(polygons)
   print('lines')
-  if ltype:
-    print_line(raster_lines)
-  else:
-    print_cont(raster_lines)
+  print_line(raster_lines)
+  
   plot()
 
 
