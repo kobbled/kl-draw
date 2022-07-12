@@ -1227,7 +1227,7 @@ BEGIN
   kunit_done
 
   --destruct classes
-  -- tstpoly__delete
+  tstpoly__delete
 
 %ifdef DEBUG_BUILD
   usrdis__write_pipe
