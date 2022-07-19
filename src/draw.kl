@@ -1203,12 +1203,23 @@ ROUTINE draw__trace
 ROUTINE draw__calc_tangent
   VAR
     i : INTEGER
+    n : REAL
   BEGIN
     FOR i=1 TO PATH_LEN(segment) DO
       IF i = PATH_LEN(segment) THEN
-        segment[i].tangent = (segment[i].v-segment[i-1].v)/math__norm((segment[i].v-segment[i-1].v))
+        n = math__norm((segment[i].v-segment[i-1].v))
+        IF n > 0 THEN
+          segment[i].tangent = (segment[i].v-segment[i-1].v)/math__norm((segment[i].v-segment[i-1].v))
+        ELSE
+          segment[i].tangent = segment[i-1].tangent
+        ENDIF
       ELSE
-        segment[i].tangent = (segment[i+1].v-segment[i].v)/math__norm((segment[i+1].v-segment[i].v))
+        n = math__norm((segment[i+1].v-segment[i].v))
+        IF n > 0 THEN
+          segment[i].tangent = (segment[i+1].v-segment[i].v)/n
+        ELSE
+          segment[i].tangent = segment[i-1].tangent
+        ENDIF
       ENDIF
     ENDFOR
   END draw__calc_tangent
