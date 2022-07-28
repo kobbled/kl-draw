@@ -193,6 +193,7 @@ ROUTINE init
 ROUTINE import_shape
   VAR
     header : STRING[16]
+    str : STRING[32]
     b : BOOLEAN
     v : VECTOR
     vert : INTEGER
@@ -210,8 +211,14 @@ ROUTINE import_shape
     poly = 1
     REPEAT
       vert = vert + 1
-      b = csv__read_vector(filename, fl, ',', v)
+      
+      --read line
+      b = csv__read_line_ref(filename, fl, str)
+
       IF b THEN
+        --put string into vector
+        v = s_to_vec(str, ',')
+
         IF TRUNC(v.z) > poly THEN
           append_polygon(sub_poly)
           clear_poly(sub_poly)
