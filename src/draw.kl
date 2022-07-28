@@ -1205,11 +1205,43 @@ ROUTINE draw__calc_tangent
     i : INTEGER
     n : REAL
   BEGIN
+    FOR i=1 TO PATH_LEN(pth) DO
+      SELECT pth[i].code OF
+        CASE(PTH_MOVETO):
+          n = math__norm((pth[i+1].v-pth[i].v))
+          IF n > 0 THEN
+            pth[i].tangent = (pth[i+1].v-pth[i].v)/n
+          ELSE
+            pth[i].tangent = pth[i].tangent
+          ENDIF
+        CASE(PTH_CLOSE):
+          n = math__norm((pth[i].v-pth[i-1].v))
+          IF n > 0 THEN
+            pth[i].tangent = (pth[i].v-pth[i-1].v)/math__norm((pth[i].v-pth[i-1].v))
+          ELSE
+            pth[i].tangent = pth[i-1].tangent
+          ENDIF
+        ELSE:
+          n = math__norm((pth[i+1].v-pth[i].v))
+          IF n > 0 THEN
+            pth[i].tangent = (pth[i+1].v-pth[i].v)/n
+          ELSE
+            pth[i].tangent = pth[i].tangent
+          ENDIF
+      ENDSELECT
+    ENDFOR
+  END draw__calc_tangent
+
+ROUTINE draw__calc_tangent_segment
+  VAR
+    i : INTEGER
+    n : REAL
+  BEGIN
     FOR i=1 TO PATH_LEN(segment) DO
       IF i = PATH_LEN(segment) THEN
         n = math__norm((segment[i].v-segment[i-1].v))
         IF n > 0 THEN
-          segment[i].tangent = (segment[i].v-segment[i-1].v)/math__norm((segment[i].v-segment[i-1].v))
+          segment[i].tangent = (segment[i].v-segment[i-1].v)/n
         ELSE
           segment[i].tangent = segment[i-1].tangent
         ENDIF
@@ -1222,7 +1254,7 @@ ROUTINE draw__calc_tangent
         ENDIF
       ENDIF
     ENDFOR
-  END draw__calc_tangent
+  END draw__calc_tangent_segment
 
 ROUTINE draw_hexagon
   VAR 

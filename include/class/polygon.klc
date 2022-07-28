@@ -387,7 +387,7 @@ ROUTINE trace
       draw__inset_polygon(this, (params.line_width/2 + i*params.line_pitch), hull, sub_poly)
       --trace polygon
       draw__trace(sub_poly, params.start_angle, (params.dir), line_type, contours)
-      draw__calc_tangent(contours)
+      draw__calc_tangent_segment(contours)
       i = i + 1
     ENDWHILE
 
