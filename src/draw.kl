@@ -11,7 +11,7 @@ PROGRAM draw
 
 %include errors.klt
 %include systemvars.klt
-%include systemlib.klt
+%include systemlib.types.klt
 %include math.klt
 %include pathlib.t.klt
 %include pathlib.c.klt

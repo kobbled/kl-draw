@@ -9,7 +9,7 @@ PROGRAM class_name
 
 %include errors.klt
 %include systemvars.klt
-%include systemlib.klt
+%include systemlib.types.klt
 %include pathlib.c.klt
 %include pathlib.t.klt
 %include draw.klt
@@ -29,6 +29,7 @@ VAR
   rast_bounds : BOOLEAN
 
 %from systemlib.klh %import VEC2D
+%from strings.klh %import s_to_vec
 %from math.klh %import arclength, arcangle, norm
 %include csv.klh
 %include errors.klh
