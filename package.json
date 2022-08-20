@@ -6,11 +6,11 @@
   "license" : "Apache 2.0",
   "author" : "kobbled",
   "source" : [
-    "src/draw.kl",
-    "src/svg/rebel.csv"
+    "src/draw.kl"
   ],
   "tests" : [
-    "test/test_draw.kl"
+    "test/test_draw.kl",
+    "src/svg/rebel.csv"
   ],
   "includes" : [
     "include",
