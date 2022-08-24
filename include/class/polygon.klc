@@ -17,6 +17,8 @@ PROGRAM class_name
 VAR
   this : PATH nodedata = t_VERTEX
   sub_poly : PATH nodedata = t_VERTEX
+  -- ..Note:: `sub_poly` maybe should be a seperate type without
+  --          nextPoly, prevPoly, polygon, and include holes member list
   hull : PATH nodedata = t_VERTEX
 
   lines : PATH nodedata = t_SEG2D_POLY
