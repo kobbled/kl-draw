@@ -28,6 +28,10 @@ VAR
   -- if false it will exclude the boundary
   rast_bounds : BOOLEAN
 
+  -- ..Note:: centroids are calculated in bounding box calculations
+  --          check that bounding boxes are calculated per polygon,
+  --          not whole drawing
+
 %from systemlib.klh %import VEC2D
 %from strings.klh %import s_to_vec
 %from math.klh %import arclength, arcangle, norm
@@ -386,6 +390,7 @@ ROUTINE trace
       clear_poly(sub_poly)
       --inset by width of line to fill
       --within boundaries
+       -- **fix** :: currently insetting over full list. Shouldn't it be the sub polygon
       draw__inset_polygon(this, (params.line_width/2 + i*params.line_pitch), hull, sub_poly)
       --trace polygon
       draw__trace(sub_poly, params.start_angle, (params.dir), line_type, contours)
@@ -403,6 +408,8 @@ ROUTINE raster
     --trace contours if wall_lines > 0
     trace(line_type)
     --raster the interior
+    -- **fix** :: does this have to be changed to `this` to raster over
+    --            whole layer
     draw__raster_lines(sub_poly, hull, params.start_angle, params.line_width, params.line_pitch, (params.dir), rast_bounds, lines)
 
   END raster
