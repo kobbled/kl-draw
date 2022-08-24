@@ -376,12 +376,6 @@ ROUTINE trace
   VAR
     i : INTEGER
   BEGIN
-    --use full polygon if sub_poly is
-    --not defined
-    IF PATH_LEN(sub_poly) = 0 THEN
-      new_sub_poly(0)
-    ENDIF
-
     --clear previous contours
     clear_contours
 
@@ -491,29 +485,6 @@ ROUTINE pads
       append_polygon_array(poly)
     ENDFOR
   END pads
-
-ROUTINE padsDeg
-  VAR
-    i : INTEGER
-    poly : ARRAY[4] OF VECTOR
-    start : VECTOR
-    seperation : REAL
-    width : REAL
-  BEGIN
-    canvas.z = canvas.z + radius
-
-    seperation = math__arclength(seperatn_deg, radius)
-    width = math__arclength(width_deg, radius)
-    start.x = math__arclength(start_deg.x, radius) ; start.y = start_deg.y ; start.z = start_deg.z ;
-    FOR i=0 TO no_of_pads-1 DO
-      poly[1] = start + i*VEC2D(seperation, 0)
-      poly[2] = start + i*VEC2D(seperation, 0) + VEC2D(width,0)
-      poly[3] = start + i*VEC2D(seperation, 0) + VEC2D(width,length)
-      poly[4] = start + i*VEC2D(seperation, 0) + VEC2D(0,length)
-      append_polygon_array(poly)
-    ENDFOR
-  END padsDeg
-
 
   BEGIN
   END class_name

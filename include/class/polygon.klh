@@ -51,6 +51,4 @@ declare_member(class_name,hexagon,class_name,hxgn)
 ROUTINE hexagon(radius : REAL; verticies : INTEGER; translation : VECTOR; rotation : REAL) FROM class_name
 declare_member(class_name,pads,class_name,pads)
 ROUTINE pads(width, length : REAL; seperation : REAL; no_of_pads : INTEGER; start : VECTOR) FROM class_name
-declare_member(class_name,padsDeg,class_name,pdsd)
-ROUTINE padsDeg(radius, width_deg, length : REAL; seperatn_deg : REAL; no_of_pads : INTEGER; start_deg : VECTOR) FROM class_name
 %endif --end header
