@@ -452,6 +452,22 @@ ROUTINE get_bounding_box_poly
     RETURN(bbox)
   END get_bounding_box_poly
 
+ROUTINE get_canvas_length
+  VAR
+    bbox : t_RECT
+  BEGIN
+    --get bounding box
+    bbox = get_bounding_box_drawing
+
+    -- get length of bounding box along its longitude
+    RETURN(math__norm(bbox.verts[4]-bbox.verts[1]))
+  END get_canvas_length
+
+ROUTINE get_polygon_count
+  BEGIN
+    RETURN(this[PATH_LEN(this)].polygon)
+  END get_polygon_count
+
 ROUTINE trace
   VAR
     i : INTEGER

@@ -48,6 +48,9 @@ ROUTINE get_bounding_box_drawing : t_RECT FROM class_name
 declare_member(class_name,get_bounding_box_poly,class_name,gbxp)
 ROUTINE get_bounding_box_poly(polygon : INTEGER) : t_RECT FROM class_name
 declare_member(class_name,get_canvas_length,class_name,gcvl)
+ROUTINE get_canvas_length : REAL FROM class_name
+declare_member(class_name,get_polygon_count,class_name,gplc)
+ROUTINE get_polygon_count : INTEGER FROM class_name
 declare_member(class_name,trace,class_name,trce)
 ROUTINE trace(line_type : INTEGER) FROM class_name
 declare_member(class_name,raster,class_name,rast)
