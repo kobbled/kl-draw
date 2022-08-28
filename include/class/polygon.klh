@@ -59,9 +59,4 @@ declare_member(class_name,lines_to_vec_path,class_name,lvph)
 ROUTINE lines_to_vec_path(out_lines : PATH nodedata = t_VEC_PATH) FROM class_name
 declare_member(class_name,contours_to_vec_path,class_name,cvph)
 ROUTINE contours_to_vec_path(out_cntrs : PATH nodedata = t_VEC_PATH) FROM class_name
---objects
-declare_member(class_name,hexagon,class_name,hxgn)
-ROUTINE hexagon(radius : REAL; verticies : INTEGER; translation : VECTOR; rotation : REAL) FROM class_name
-declare_member(class_name,pads,class_name,pads)
-ROUTINE pads(width, length : REAL; seperation : REAL; no_of_pads : INTEGER; start : VECTOR) FROM class_name
 %endif --end header
