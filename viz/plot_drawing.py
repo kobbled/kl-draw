@@ -276,7 +276,7 @@ def slice(obj, name):
   
   return list
 
-def plot():
+def plot(args):
   fig, ax = plt.subplots()
 
   #ploygons
@@ -302,8 +302,9 @@ def plot():
       patch = mpatches.PathPatch(path, facecolor=face_color, edgecolor=edge_color, alpha=0.5)
       ax.add_patch(patch)
 
-    # add tangent vectors
-    ax.arrow(verts[i][0], verts[i][1], tang[i][0]*10, tang[i][1]*10, head_width=5, head_length=10, fc='r', ec='r')
+    if args.showtangents:
+      # add tangent vectors
+      ax.arrow(verts[i][0], verts[i][1], tang[i][0]*10, tang[i][1]*10, head_width=5, head_length=10, fc='r', ec='r')
 
   #lines
   if len(raster_lines) > 0:
@@ -322,8 +323,9 @@ def plot():
     draw = plt.Line2D(x[i], y[i], color=color)
     ax.add_line(draw)
 
-    # add tangent vectors
-    ax.arrow((r0[i][0]+r1[i][0])/2, (r0[i][1]+r1[i][1])/2, tang[i][0]*10, tang[i][1]*10, head_width=5, head_length=10, fc='g', ec='g')
+    if args.showtangents:
+      # add tangent vectors
+      ax.arrow((r0[i][0]+r1[i][0])/2, (r0[i][1]+r1[i][1])/2, tang[i][0]*10, tang[i][1]*10, head_width=5, head_length=10, fc='g', ec='g')
 
   ax.grid()
   ax.axis('equal')
@@ -377,6 +379,8 @@ def main():
 
   parser.add_argument('rbt_fl', type=str, nargs='?',
         help="Name of karel file")
+  parser.add_argument('-t', '--showtangents', action='store_true', dest='showtangents',
+        help='visualize tangent vectors')
 
   args = parser.parse_args()
 
@@ -396,7 +400,7 @@ def main():
   print('lines')
   print_line(raster_lines)
   
-  plot()
+  plot(args)
 
 
 
