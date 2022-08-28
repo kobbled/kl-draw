@@ -468,6 +468,113 @@ ROUTINE get_polygon_count
     RETURN(this[PATH_LEN(this)].polygon)
   END get_polygon_count
 
+ROUTINE translate_canvas
+  BEGIN
+    canvas = canvas:POS(vec.x,vec.y,vec.z,0,0,0,(ZEROPOS(1).config_data))
+  END translate_canvas
+
+ROUTINE rotate_polygon
+  VAR
+    i, j : INTEGER
+    p : XYZWPR
+    center : VECTOR
+    idx : VECTOR2Di
+  BEGIN
+    --get isolated polygon and calculate center point
+    idx = new_sub_poly(polygon)
+    --get center
+    center = draw__psuedo_center(sub_poly)
+    
+    --use for updating canvas
+    j = idx.x
+    FOR i=1 TO PATH_LEN(sub_poly) DO
+      --put vertex in object (polygon) space
+      p = pose__vector_to_pose((sub_poly[i].coords - center), VEC(0,0,0), (ZEROPOS(1).config_data))
+      --rotate vertex
+      p = math__rotz(p, angle)
+      --put back into vector and into canvas space
+      sub_poly[i].coords = VEC(p.x, p.y, p.z) + center
+      --copy back into canvas
+      this[j].coords = sub_poly[i].coords
+
+      j = j + 1
+    ENDFOR
+
+  END rotate_polygon
+
+ROUTINE scale_polygon_along_axes
+  --factor should be between in mm for the x and y axis.
+  --will calculate the distance to each axis and scale
+  --down to that axis depending on the fraction.
+  VAR
+    i, j : INTEGER
+    v : VECTOR
+    center : VECTOR
+    tang_vec, perp_vec : VECTOR
+    amt : REAL
+    idx : VECTOR2Di
+  BEGIN
+    -- ..Note:: `params.start_angle` must be set before running this
+    --           function
+
+    --get isolated polygon
+      -- ..Note:: do not use `get_bounding_box_poly` as you need 
+      --          to save idx to update `this` as well as `sub_poly`
+    idx = new_sub_poly(polygon)
+    --get center
+    center = draw__psuedo_center(sub_poly)
+
+    --scale along the raster angle
+      --x-axis vector
+    tang_vec = draw__angle_to_vector(params.start_angle)
+    tang_vec = tang_vec/math__norm(tang_vec)
+      --y-axis vector
+    perp_vec = draw__angle_to_vector(params.start_angle + 90)
+    perp_vec = perp_vec/math__norm(perp_vec)
+
+    --use for updating canvas
+    j = idx.x
+    FOR i=1 TO PATH_LEN(sub_poly) DO
+      --put vertex in object (polygon) space
+      v = (sub_poly[i].coords - center)
+      --x-axis
+       --determine above or below axis
+      IF (v@tang_vec > 0) THEN
+        -- move in positive direction
+        v.x = factor.x+v.x
+        --do not cross axis
+        IF v.x < 0 THEN v.x = 0 ; ENDIF
+      ELSE
+        -- move in negative direction
+        v.x = -1*factor.x+v.x
+        --do not cross axis
+        IF v.x > 0 THEN v.x = 0 ; ENDIF
+      ENDIF
+
+      --y-axis
+       --determine above or below axis
+      IF (v@perp_vec > 0) THEN
+        -- move in positive direction
+        v.y = factor.y+v.y
+        --do not cross axis
+        IF v.y < 0 THEN v.y = 0 ; ENDIF
+      ELSE
+        -- move in negative direction
+        v.y = -1*factor.y+v.y
+        --do not cross axis
+        IF v.y > 0 THEN v.y = 0 ; ENDIF
+      ENDIF
+
+      --put back into vector and into canvas space
+      sub_poly[i].coords = v + center
+      --copy back into canvas
+      this[j].coords = sub_poly[i].coords
+
+      j = j + 1
+    ENDFOR
+
+  END scale_polygon_along_axes
+
 ROUTINE trace
   VAR
     i : INTEGER
