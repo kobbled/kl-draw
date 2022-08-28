@@ -606,10 +606,8 @@ ROUTINE raster
     clear_lines
     --trace contours if wall_lines > 0
     trace(line_type)
-    --raster the interior
-    -- **fix** :: does this have to be changed to `this` to raster over
-    --            whole layer
-    draw__raster_lines(sub_poly, hull, params.start_angle, params.line_width, params.line_pitch, (params.dir), rast_bounds, lines)
+    --raster the interior over whole canvas
+    draw__raster_lines(this, hull, params.start_angle, params.line_width, params.line_pitch, (params.dir), rast_bounds, lines)
 
   END raster
 
