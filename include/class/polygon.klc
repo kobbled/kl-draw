@@ -369,14 +369,26 @@ ROUTINE get_contours
     CHK_STAT(status)
   END get_contours
 
-ROUTINE get_bounding_box
+ROUTINE get_bounding_box_drawing
   VAR
     bbox : t_RECT
   BEGIN
     bbox = draw__bounding_box(this, (params.start_angle))
     --convert to world coordinates
     RETURN(bbox)
-  END get_bounding_box
+  END get_bounding_box_drawing
+
+ROUTINE get_bounding_box_poly
+  VAR
+    bbox : t_RECT
+    idx : VECTOR2Di
+  BEGIN
+    --get individual polygon and store in `sub_poly`
+    idx = new_sub_poly(polygon)
+    bbox = draw__bounding_box(sub_poly, (params.start_angle))
+    --convert to world coordinates
+    RETURN(bbox)
+  END get_bounding_box_poly
 
 ROUTINE trace
   VAR

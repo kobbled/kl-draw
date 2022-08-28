@@ -36,8 +36,11 @@ declare_member(class_name,get_lines,class_name,glns)
 ROUTINE get_lines(start_i : INTEGER; end_i : INTEGER; out_lines : PATH nodedata = t_SEG2D_POLY) FROM class_name
 declare_member(class_name,get_contours,class_name,gctr)
 ROUTINE get_contours(start_i : INTEGER; end_i : INTEGER; out_cntrs : PATH nodedata = t_VEC_PATH) FROM class_name
-declare_member(class_name,get_bounding_box,class_name,gbox)
-ROUTINE get_bounding_box : t_RECT FROM class_name
+declare_member(class_name,get_bounding_box_drawing,class_name,gbxd)
+ROUTINE get_bounding_box_drawing : t_RECT FROM class_name
+declare_member(class_name,get_bounding_box_poly,class_name,gbxp)
+ROUTINE get_bounding_box_poly(polygon : INTEGER) : t_RECT FROM class_name
+declare_member(class_name,get_canvas_length,class_name,gcvl)
 declare_member(class_name,trace,class_name,trce)
 ROUTINE trace(line_type : INTEGER) FROM class_name
 declare_member(class_name,raster,class_name,rast)
