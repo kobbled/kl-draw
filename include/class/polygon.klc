@@ -34,9 +34,10 @@ VAR
   --          check that bounding boxes are calculated per polygon,
   --          not whole drawing
 
-%from systemlib.klh %import VEC2D
+%from systemlib.klh %import VEC, VEC2D
 %from strings.klh %import s_to_vec
-%from math.klh %import arclength, arcangle, norm
+%from math.klh %import arclength, arcangle, norm, rotz
+%from pose.klh %import vector_to_pose
 %include csv.klh
 %include errors.klh
 %include draw.klh
@@ -190,10 +191,18 @@ ROUTINE delete
   END delete
 
 ROUTINE new
+%define DEFAULT_PITCH 3
   BEGIN
     delete
     set_canvas((ZEROPOS(1)))
     rast_bounds = TRUE
+
+    --set default params
+    params.start_angle = 0
+    params.line_width = 0
+    params.line_pitch = DEFAULT_PITCH
+    params.dir = 1
+    params.wall_lines = 0
   END new
 
 ROUTINE init
@@ -201,7 +210,28 @@ ROUTINE init
     delete
     set_canvas(frm)
     rast_bounds = boundary
+    
+    --fill params
+    params.start_angle = start_angle_
+    params.dir = dir_
+    params.wall_lines = wall_lines_
+    params.line_width = line_width_
+    params.line_pitch = line_pitch_
   END init
+
+ROUTINE init2
+  BEGIN
+    delete
+    set_canvas(frm)
+    rast_bounds = boundary
+    
+    --fill params
+    params.start_angle = rast.start_angle
+    params.dir = rast.dir
+    params.wall_lines = rast.wall_lines
+    params.line_width = rast.line_width
+    params.line_pitch = rast.line_pitch
+  END init2
 
 ROUTINE import_shape
   VAR
