@@ -104,6 +104,7 @@ ROUTINE new_sub_poly
     nde_strt, nde_end : INTEGER
     i : INTEGER
     status : INTEGER
+    idx : VECTOR2Di
   BEGIN
     nde_strt = 1; nde_end = PATH_LEN(this);
     --find polygon
@@ -126,6 +127,11 @@ ROUTINE new_sub_poly
     clear_poly(sub_poly)
     COPY_PATH(this, nde_strt, nde_end, sub_poly, status)
     CHK_STAT(status)
+
+    idx.x = nde_strt
+    idx.y = nde_end
+
+    RETURN(idx)
 
   END new_sub_poly
 
