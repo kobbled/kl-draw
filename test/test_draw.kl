@@ -827,8 +827,6 @@ ROUTINE t_class_poly : BOOLEAN
     act_line_r1, exp_line_r1 : ARRAY[10] OF VECTOR
   BEGIN
 
-    tstpoly__init(POS(212.132,40,212.132,0,-45,0,(ZEROPOS(1).Config_data)), FALSE)
-
     --draw polygon
     --set polygon
     clear_path(polygon2)
@@ -844,9 +842,11 @@ ROUTINE t_class_poly : BOOLEAN
     polygon2[9].coords = VEC2D(10,4)
     polygon2[10].coords = VEC2D(6,4)
 
+    --initialize polygon object
+      --( frm, onboundary, raster_angle, dir, wall_lines, line_width, line_pitch )
+    tstpoly__init(POS(212.132,40,212.132,0,-45,0,(ZEROPOS(1).Config_data)), FALSE, -45, 1, 2, 0.2, 0.3)
     tstpoly__append_polygon(polygon2)
     --raster lines
-    tstpoly__set_params(-45, 1, 2, 0.2, 0.3)
     tstpoly__raster(PTH_LINETO)
 
     --clear lines 
@@ -877,12 +877,9 @@ ROUTINE t_class_poly : BOOLEAN
 ROUTINE t_classpoly2 : BOOLEAN
   VAR
     i : INTEGER
-    rast_ang : REAL
     act_line_r0, exp_line_r0 : ARRAY[12] OF VECTOR
     act_line_r1, exp_line_r1 : ARRAY[12] OF VECTOR
   BEGIN
-
-    tstpoly__init((ZEROPOS(1)), TRUE)
 
     --draw polygon
     --set polygon
@@ -897,10 +894,11 @@ ROUTINE t_classpoly2 : BOOLEAN
     polygon2[7].coords = VEC2D(0,120)
     polygon2[8].coords = VEC2D(-20,60)
 
+    --initialize polygon object
+      --( frm, onboundary, raster_angle, dir, wall_lines, line_width, line_pitch )
+    tstpoly__init((ZEROPOS(1)), TRUE, 0, 1, 1, 0, 10)
     tstpoly__append_polygon(polygon2)
     --raster lines
-    rast_ang = 0
-    tstpoly__set_params(rast_ang, 1, 1, 0, 10)
     tstpoly__raster(PTH_LINETO)
 
     --clear lines 
@@ -1069,10 +1067,16 @@ ROUTINE t_hexagon : BOOLEAN
     act_cntr_c, exp_cntr_c : ARRAY[5] OF INTEGER
   BEGIN
 
-    tstpoly__init((ZEROPOS(1)), FALSE)
-    tstpoly__hexagon(radius, num_of_points, VEC2D(radius, radius), 180)
+    --make hexagon
+    clear_path(polygon4)
+    draw__hexagon(radius, num_of_points, POS(radius,radius,0,0,0,180,(ZEROPOS(1).Config_data)), polygon4)
+
+    --initialize polygon object
+      --( frm, onboundary, raster_angle, dir, wall_lines, line_width, line_pitch )
+    tstpoly__init((ZEROPOS(1)), FALSE, -90, -1, 2, 0, 20)
+     --append polygon into object
+    tstpoly__append_polygon(polygon4)
     --raster lines
-    tstpoly__set_params(-90, -1, 2, 0, 20)
     tstpoly__raster(PTH_LINETO)
 
     --copy lines from tstpoly object
@@ -1117,8 +1121,6 @@ ROUTINE t_upturns : BOOLEAN
     act_line_r0, exp_line_r0 : ARRAY[8] OF VECTOR
     act_line_r1, exp_line_r1 : ARRAY[8] OF VECTOR
   BEGIN
-    tstpoly__init((ZEROPOS(1)), FALSE)
-
     --draw polygon
     --set polygon
     clear_path(polygon3)
@@ -1134,9 +1136,12 @@ ROUTINE t_upturns : BOOLEAN
     polygon3[9].coords = VEC2D(0,0)
     polygon3[10].coords = VEC2D(-1.5,1)
 
+    --initialize polygon object
+      --( frm, onboundary, raster_angle, dir, wall_lines, line_width, line_pitch )
+    tstpoly__init((ZEROPOS(1)), FALSE, 0, 1, 1, 0, 0.5)
+    --append polygon to object
     tstpoly__append_polygon(polygon3)
-
-    tstpoly__set_params(0, 1, 1, 0, 0.5)
+    --raster polygon
     tstpoly__raster(PTH_LINETO)
 
     --clear lines
@@ -1162,6 +1167,25 @@ ROUTINE t_upturns : BOOLEAN
 
   END t_upturns
 
+
+ROUTINE draw_pad(width, length : REAL; seperation : REAL; no_of_pads : INTEGER; start : VECTOR)
+  VAR
+    i : INTEGER
+  BEGIN
+    --create polygon
+    clear_path(polygon1)
+    append_nodes(polygon1, 4)
+
+    FOR i=0 TO no_of_pads-1 DO
+      polygon1[1].coords = start + i*VEC2D(seperation, 0)
+      polygon1[2].coords = start + i*VEC2D(seperation, 0) + VEC2D(width,0)
+      polygon1[3].coords = start + i*VEC2D(seperation, 0) + VEC2D(width,length)
+      polygon1[4].coords = start + i*VEC2D(seperation, 0) + VEC2D(0,length)
+      
+      tstpoly__append_polygon(polygon1)
+    ENDFOR
+  END draw_pad
+
 ROUTINE t_pads : BOOLEAN
   VAR
 %define PAD_WIDTH 30
@@ -1170,8 +1194,8 @@ ROUTINE t_pads : BOOLEAN
 %define NO_OF_PADS 3
     i : INTEGER
   BEGIN
-    tstpoly__init(POS(0,0,0,0,0,0,(ZEROPOS(1).config_data)), TRUE)
-    tstpoly__pads(PAD_WIDTH, PAD_LENGTH, PAD_SEPERATION, NO_OF_PADS, VEC2D(50,50) )
+    tstpoly__new
+    draw_pad(PAD_WIDTH, PAD_LENGTH, PAD_SEPERATION, NO_OF_PADS, VEC2D(50,50) )
     --raster lines
     --(start_angle, dir, wall_lines, line_width, line_pitch)
     tstpoly__set_params(0, 1, 1, 0, 10)
@@ -1183,11 +1207,11 @@ ROUTINE t_pads : BOOLEAN
 ROUTINE t_custom : BOOLEAN
 %define SVG_NAME 'FR:\rebel.csv'
   BEGIN
-    tstpoly__init(POS(0,0,0,0,0,90,(ZEROPOS(1).config_data)), FALSE)
+    --initialize polygon object
+      --( frm, onboundary, raster_angle, dir, wall_lines, line_width, line_pitch )
+    tstpoly__init(POS(0,0,0,0,0,90,(ZEROPOS(1).config_data)), FALSE, 90, 1, 1, 0, 10)
     tstpoly__import_shape(SVG_NAME)
     --raster lines
-    --(start_angle, dir, wall_lines, line_width, line_pitch)
-    tstpoly__set_params(90, 1, 1, 0, 10)
     tstpoly__raster(PTH_LINETO)
 
     RETURN(TRUE)
@@ -1223,7 +1247,9 @@ BEGIN
   kunit_test('small multi polygon raster', t_rast_mult2) --asserts 2
   kunit_test('faceted polygon raster', t_upturns) -- asserts 2
   kunit_test('test create pads', t_pads)
-  kunit_test('Custom shape', t_custom)
+
+  -- **fix** t_custom using a csv layout
+  -- kunit_test('Custom shape', t_custom)
   kunit_done
 
   --destruct classes
