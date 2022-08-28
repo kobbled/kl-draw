@@ -35,6 +35,8 @@ declare_function(prog_name,intersect,prog_name_alias,intsct)
 -- the return type informs if the lines intersect or not.
 ROUTINE draw__intersect(l1 : t_SEGMENT2D; l2 : t_SEGMENT2D; out_alpha1 : REAL; out_alpha2 : REAL) : BOOLEAN FROM draw
 
+declare_function(prog_name,psuedo_center,prog_name_alias,psucn)
+ROUTINE draw__psuedo_center(verticies : PATH nodedata = t_VERTEX) : VECTOR FROM draw
 declare_function(prog_name,convex_hull,prog_name_alias,convh)
 -- return list of points on the convex hull in counterclockwise order
 ROUTINE draw__convex_hull(verticies : PATH nodedata = t_VERTEX; rmv_colinear : BOOLEAN; out_hull : PATH nodedata = t_VERTEX) FROM draw

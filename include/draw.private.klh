@@ -39,6 +39,4 @@ ROUTINE draw__line_inset(line1 : t_SEGMENT2D; line2 : t_SEGMENT2D; inset_amount 
                          out_line1 : t_SEGMENT2D; out_line2 : t_SEGMENT2D) FROM draw
 declare_function(prog_name,line_nextPoly,prog_name_alias,lnply)
 ROUTINE draw__line_nextPoly(lines : PATH nodedata = t_SEG2D_POLY) FROM draw
-declare_function(prog_name,psuedo_center,prog_name_alias,psucn)
-ROUTINE draw__psuedo_center(verticies : PATH nodedata = t_VERTEX) : VECTOR FROM draw
 %endif --draw__private_h
