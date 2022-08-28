@@ -587,9 +587,10 @@ ROUTINE trace
     WHILE (i < params.wall_lines) DO
       --clear inset
       clear_poly(sub_poly)
-      --inset by width of line to fill
-      --within boundaries
+      --inset by width of line to fill within boundaries
+      --inset and trace each polygon on the canvas
        -- **fix** :: currently insetting over full list. Shouldn't it be the sub polygon
+       --            might have to add extra t_VERTEX memeber to store result
       draw__inset_polygon(this, (params.line_width/2 + i*params.line_pitch), hull, sub_poly)
       --trace polygon
       draw__trace(sub_poly, params.start_angle, (params.dir), line_type, contours)
