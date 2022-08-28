@@ -278,6 +278,7 @@ ROUTINE import_shape
         v = s_to_vec(str, ',')
 
         IF TRUNC(v.z) > poly THEN
+          --append previous polygon into canvas (this)
           append_polygon(sub_poly)
           clear_poly(sub_poly)
 
@@ -293,7 +294,7 @@ ROUTINE import_shape
           sub_poly[PATH_LEN(sub_poly)].polygon = poly
         ENDIF
       ELSE
-        --end of file append polygon
+        --end of file append polygon into canvas (this)
         append_polygon(sub_poly)
         clear_poly(sub_poly)
       ENDIF
@@ -307,6 +308,16 @@ ROUTINE set_canvas
   BEGIN
     canvas = frm
   END set_canvas
+
+ROUTINE flip_canvas
+  VAR
+    bbox : t_RECT
+    len : REAL
+  BEGIN
+    --get length of the drawing, and translate by that length
+    len = get_canvas_length
+    canvas = canvas:POS(0,0,len,0,180,0,(ZEROPOS(1).config_data))
+  END flip_canvas
 
 ROUTINE raster_on_boundary
   BEGIN
