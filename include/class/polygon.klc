@@ -233,6 +233,21 @@ ROUTINE init2
     params.line_pitch = rast.line_pitch
   END init2
 
+--clear the canvas, but keep the canvas
+ROUTINE erase
+  BEGIN
+    --clear drawing
+    clear_poly(this)
+    clear_poly(sub_poly)
+
+    --clear hull
+    clear_hull
+
+    --clear rasters
+    clear_lines
+    clear_contours
+  END erase
+
 ROUTINE import_shape
   VAR
     header : STRING[16]

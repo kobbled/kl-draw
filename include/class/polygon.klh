@@ -16,6 +16,8 @@ ROUTINE init(frm : XYZWPR; boundary : BOOLEAN; start_angle_ : REAL; dir_ : INTEG
              wall_lines_ : INTEGER; line_width_ : REAL; line_pitch_ : REAL) FROM class_name
 declare_member(class_name,init2,class_name,int2)
 ROUTINE init2(frm : XYZWPR; boundary : BOOLEAN; rast : t_RASTER) FROM class_name
+declare_member(class_name,erase,class_name,eras)
+ROUTINE erase FROM class_name
 declare_member(class_name,import_shape,class_name,imps)
 ROUTINE import_shape(filename : STRING) FROM class_name
 declare_member(class_name,set_canvas,class_name,scnv)
