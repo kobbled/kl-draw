@@ -267,10 +267,13 @@ ROUTINE makeHex
     copy(VEC2D(padprm.separation, 0), (padprm.no_of_pads), VEC2D(0, 0), 0)
   END makeHex
 
+ROUTINE makeCustom
   VAR
     p : XYZWPR
   BEGIN
-    `DRAW_OBJECT_NAME`__import_shape('FR:\' + filename + '.csv')
+    --draw svg
+    `CANVAS_OBJECT_NAME`__import_shape('FR:\' + filename + '.csv')
+  END makeCustom
 
 ROUTINE draw
   BEGIN
