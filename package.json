@@ -11,7 +11,7 @@
   "tests" : [
     "test/test_draw.kl",
     "test/test_poly.kl",
-    "test/svg_examples/rebel.csv"
+    "test/assets/svg_examples/rebel.csv"
   ],
   "includes" : [
     "lib/drawlib",
