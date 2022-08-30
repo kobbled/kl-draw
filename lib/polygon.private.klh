@@ -1,5 +1,5 @@
-%ifndef pathdraw_private_h
-%define pathdraw_private_h
+%ifndef polygon_private_h
+%define polygon_private_h
 
 --oop
 %include namespace.m
@@ -10,4 +10,4 @@ ROUTINE allocate_poly(size : INTEGER) FROM class_name
 declare_member(class_name,set_raster_params,class_name,stpm)
 ROUTINE set_raster_params(rastprm : t_PATH_RAST) FROM class_name
 
-%endif --pathdraw_private_h
+%endif --polygon_private_h

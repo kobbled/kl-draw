@@ -1,6 +1,6 @@
 PROGRAM class_name
 %NOBUSYLAMP
-%COMMENT = 'pathdraw'
+%COMMENT = 'polygon object'
 %NOLOCKGROUP
 
 %include namespace.m
@@ -11,7 +11,7 @@ PROGRAM class_name
 %include draw.klt
 %include pathlib.klt
 %include toolpath.structs.klt
-%include pathdraw.deps.klt
+%include polygon.deps.klt
 
 %define BASE_CLASSNAME class_name
 
@@ -38,8 +38,8 @@ draw_object_define(DRAW_OBJECT_NAME)
 
 %defeval class_name BASE_CLASSNAME
 
-%include pathdraw.klh
-%include pathdraw.private.klh
+%include polygon.klh
+%include polygon.private.klh
 
 --private
 
