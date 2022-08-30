@@ -3,7 +3,8 @@ robot.ini
 bin/
 build/
 plots/
-src/test_plot.py
-other_code/
+*/test_plot.py
+*/snippets.kl
 debug/
 __pycache__/
+*/helpers.py

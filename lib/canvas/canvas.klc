@@ -1,6 +1,6 @@
 PROGRAM class_name
 %NOBUSYLAMP
-%COMMENT = 'polygon object'
+%COMMENT = 'canvas object'
 %NOLOCKGROUP
 
 --*** ..todo:: Does not work for polygons with holes
@@ -42,8 +42,8 @@ VAR
 %include errors.klh
 %include draw.klh
 
-%include polygon.klh
-%include polygon.private.klh
+%include canvas.klh
+%include canvas.private.klh
 
 
 -- ** private **

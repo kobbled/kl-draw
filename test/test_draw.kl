@@ -28,7 +28,7 @@ VAR
 %include draw.klh
 %include draw.private.klh
 
-%class tstpoly('polygon.klc', 'polygon.klh')
+%class tstcanv('canvas.klc', 'canvas.klh')
 
 %ifdef DEBUG_BUILD
 -- user display log
@@ -844,14 +844,14 @@ ROUTINE t_class_poly : BOOLEAN
 
     --initialize polygon object
       --( frm, onboundary, raster_angle, dir, wall_lines, line_width, line_pitch )
-    tstpoly__init(POS(212.132,40,212.132,0,-45,0,(ZEROPOS(1).Config_data)), FALSE, -45, 1, 2, 0.2, 0.3)
-    tstpoly__append_polygon(polygon2)
+    tstcanv__init(POS(212.132,40,212.132,0,-45,0,(ZEROPOS(1).Config_data)), FALSE, -45, 1, 2, 0.2, 0.3)
+    tstcanv__append_polygon(polygon2)
     --raster lines
-    tstpoly__raster(PTH_LINETO)
+    tstcanv__raster(PTH_LINETO)
 
     --clear lines 
     clear_lines(lines)
-    tstpoly__get_lines(1, 10, lines)
+    tstcanv__get_lines(1, 10, lines)
 
     FOR i=1 TO ARRAY_LEN(act_line_r0) DO
       act_line_r0[i] = lines[i].r0
@@ -896,14 +896,14 @@ ROUTINE t_classpoly2 : BOOLEAN
 
     --initialize polygon object
       --( frm, onboundary, raster_angle, dir, wall_lines, line_width, line_pitch )
-    tstpoly__init((ZEROPOS(1)), TRUE, 0, 1, 1, 0, 10)
-    tstpoly__append_polygon(polygon2)
+    tstcanv__init((ZEROPOS(1)), TRUE, 0, 1, 1, 0, 10)
+    tstcanv__append_polygon(polygon2)
     --raster lines
-    tstpoly__raster(PTH_LINETO)
+    tstcanv__raster(PTH_LINETO)
 
     --clear lines 
     clear_lines(lines)
-    tstpoly__get_lines(1, 12, lines)
+    tstcanv__get_lines(1, 12, lines)
 
     FOR i=1 TO ARRAY_LEN(act_line_r0) DO
       act_line_r0[i] = lines[i].r0
@@ -934,7 +934,7 @@ ROUTINE t_rast_multi : BOOLEAN
     act_line_r0, exp_line_r0 : ARRAY[10] OF VECTOR
     act_line_r1, exp_line_r1 : ARRAY[10] OF VECTOR
   BEGIN
-    tstpoly__new
+    tstcanv__new
 
     --set polygon
     clear_path(polygon3)
@@ -944,26 +944,26 @@ ROUTINE t_rast_multi : BOOLEAN
     polygon3[2].coords = VEC2D(30,30)   
     polygon3[3].coords = VEC2D(30,60)
     polygon3[4].coords = VEC2D(0,60)
-    tstpoly__append_polygon(polygon3)
+    tstcanv__append_polygon(polygon3)
    
     polygon3[1].coords = VEC2D(60,30)   
     polygon3[2].coords = VEC2D(90,30)   
     polygon3[3].coords = VEC2D(90,60)
     polygon3[4].coords = VEC2D(60,60)
-    tstpoly__append_polygon(polygon3)
+    tstcanv__append_polygon(polygon3)
          
     polygon3[1].coords = VEC2D(120,30) 
     polygon3[2].coords = VEC2D(150,30)
     polygon3[3].coords = VEC2D(150,60)
     polygon3[4].coords = VEC2D(120,60)
-    tstpoly__append_polygon(polygon3)
+    tstcanv__append_polygon(polygon3)
 
-    tstpoly__set_params(0, 1, 1, 0, 3)
-    tstpoly__raster(PTH_LINETO)
+    tstcanv__set_params(0, 1, 1, 0, 3)
+    tstcanv__raster(PTH_LINETO)
 
     --clear lines 
     clear_lines(lines)
-    tstpoly__get_lines(10, 20, lines)
+    tstcanv__get_lines(10, 20, lines)
 
     FOR i=1 TO ARRAY_LEN(act_line_r0) DO
       act_line_r0[i] = lines[i].r0
@@ -985,8 +985,8 @@ ROUTINE t_rast_multi : BOOLEAN
     --convert to path
     clear_contrs(contours)
     clear_contrs(line_pth)
-    tstpoly__lines_to_vec_path(line_pth)
-    tstpoly__contours_to_vec_path(contours)
+    tstcanv__lines_to_vec_path(line_pth)
+    tstcanv__contours_to_vec_path(contours)
 
     RETURN(kunit_eq_arv(exp_line_r0, act_line_r0, 0.05) AND kunit_eq_arv(exp_line_r1, act_line_r1, 0.05) )
 
@@ -998,7 +998,7 @@ ROUTINE t_rast_mult2 : BOOLEAN
     act_line_r0, exp_line_r0 : ARRAY[10] OF VECTOR
     act_line_r1, exp_line_r1 : ARRAY[10] OF VECTOR
   BEGIN
-    tstpoly__new
+    tstcanv__new
 
     --set polygon
     clear_path(polygon3)
@@ -1008,26 +1008,26 @@ ROUTINE t_rast_mult2 : BOOLEAN
     polygon3[2].coords = VEC2D(2,10)   
     polygon3[3].coords = VEC2D(2,14)
     polygon3[4].coords = VEC2D(0,14)
-    tstpoly__append_polygon(polygon3)
+    tstcanv__append_polygon(polygon3)
    
     polygon3[1].coords = VEC2D(4,10)   
     polygon3[2].coords = VEC2D(6,10)   
     polygon3[3].coords = VEC2D(6,14)
     polygon3[4].coords = VEC2D(4,14)
-    tstpoly__append_polygon(polygon3)
+    tstcanv__append_polygon(polygon3)
          
     polygon3[1].coords = VEC2D(8,10) 
     polygon3[2].coords = VEC2D(10,10)
     polygon3[3].coords = VEC2D(10,14)
     polygon3[4].coords = VEC2D(8,14)
-    tstpoly__append_polygon(polygon3)
+    tstcanv__append_polygon(polygon3)
 
-    tstpoly__set_params(0, 1, 1, 0, 1)
-    tstpoly__raster(PTH_LINETO)
+    tstcanv__set_params(0, 1, 1, 0, 1)
+    tstcanv__raster(PTH_LINETO)
 
     --clear lines 
     clear_lines(lines)
-    tstpoly__get_lines(1, 10, lines)
+    tstcanv__get_lines(1, 10, lines)
 
     FOR i=1 TO ARRAY_LEN(act_line_r0) DO
       act_line_r0[i] = lines[i].r0
@@ -1049,8 +1049,8 @@ ROUTINE t_rast_mult2 : BOOLEAN
     --convert to path
     clear_contrs(contours)
     clear_contrs(line_pth)
-    tstpoly__lines_to_vec_path(line_pth)
-    tstpoly__contours_to_vec_path(contours)
+    tstcanv__lines_to_vec_path(line_pth)
+    tstcanv__contours_to_vec_path(contours)
 
     RETURN(kunit_eq_arv(exp_line_r0, act_line_r0, 0.05) AND kunit_eq_arv(exp_line_r1, act_line_r1, 0.05) )
 
@@ -1073,15 +1073,15 @@ ROUTINE t_hexagon : BOOLEAN
 
     --initialize polygon object
       --( frm, onboundary, raster_angle, dir, wall_lines, line_width, line_pitch )
-    tstpoly__init((ZEROPOS(1)), FALSE, -90, -1, 2, 0, 20)
+    tstcanv__init((ZEROPOS(1)), FALSE, -90, -1, 2, 0, 20)
      --append polygon into object
-    tstpoly__append_polygon(polygon4)
+    tstcanv__append_polygon(polygon4)
     --raster lines
-    tstpoly__raster(PTH_LINETO)
+    tstcanv__raster(PTH_LINETO)
 
-    --copy lines from tstpoly object
+    --copy lines from tstcanv object
     clear_lines(lines)
-    tstpoly__get_lines(1, 5, lines)
+    tstcanv__get_lines(1, 5, lines)
 
     FOR i=1 TO ARRAY_LEN(act_line_r0) DO
       act_line_r0[i] = lines[i].r0
@@ -1089,7 +1089,7 @@ ROUTINE t_hexagon : BOOLEAN
     ENDFOR
 
     clear_contrs(contours)
-    tstpoly__get_contours(7, 12, contours)
+    tstcanv__get_contours(7, 12, contours)
 
     FOR i=1 TO ARRAY_LEN(exp_cntr_v) DO
       act_cntr_v[i] = contours[i].v
@@ -1138,15 +1138,15 @@ ROUTINE t_upturns : BOOLEAN
 
     --initialize polygon object
       --( frm, onboundary, raster_angle, dir, wall_lines, line_width, line_pitch )
-    tstpoly__init((ZEROPOS(1)), FALSE, 0, 1, 1, 0, 0.5)
+    tstcanv__init((ZEROPOS(1)), FALSE, 0, 1, 1, 0, 0.5)
     --append polygon to object
-    tstpoly__append_polygon(polygon3)
+    tstcanv__append_polygon(polygon3)
     --raster polygon
-    tstpoly__raster(PTH_LINETO)
+    tstcanv__raster(PTH_LINETO)
 
     --clear lines
     clear_lines(lines)
-    tstpoly__get_lines(1, 8, lines)
+    tstcanv__get_lines(1, 8, lines)
 
     FOR i=1 TO ARRAY_LEN(act_line_r0) DO
       act_line_r0[i] = lines[i].r0
@@ -1182,7 +1182,7 @@ ROUTINE draw_pad(width, length : REAL; seperation : REAL; no_of_pads : INTEGER; 
       polygon1[3].coords = start + i*VEC2D(seperation, 0) + VEC2D(width,length)
       polygon1[4].coords = start + i*VEC2D(seperation, 0) + VEC2D(0,length)
       
-      tstpoly__append_polygon(polygon1)
+      tstcanv__append_polygon(polygon1)
     ENDFOR
   END draw_pad
 
@@ -1194,12 +1194,12 @@ ROUTINE t_pads : BOOLEAN
 %define NO_OF_PADS 3
     i : INTEGER
   BEGIN
-    tstpoly__new
+    tstcanv__new
     draw_pad(PAD_WIDTH, PAD_LENGTH, PAD_SEPERATION, NO_OF_PADS, VEC2D(50,50) )
     --raster lines
     --(start_angle, dir, wall_lines, line_width, line_pitch)
-    tstpoly__set_params(0, 1, 1, 0, 10)
-    tstpoly__raster(PTH_LINETO)
+    tstcanv__set_params(0, 1, 1, 0, 10)
+    tstcanv__raster(PTH_LINETO)
 
     RETURN(TRUE)
   END t_pads
@@ -1209,10 +1209,10 @@ ROUTINE t_custom : BOOLEAN
   BEGIN
     --initialize polygon object
       --( frm, onboundary, raster_angle, dir, wall_lines, line_width, line_pitch )
-    tstpoly__init(POS(0,0,0,0,0,90,(ZEROPOS(1).config_data)), FALSE, 90, 1, 1, 0, 10)
-    tstpoly__import_shape(SVG_NAME)
+    tstcanv__init(POS(0,0,0,0,0,90,(ZEROPOS(1).config_data)), FALSE, 90, 1, 1, 0, 10)
+    tstcanv__import_shape(SVG_NAME)
     --raster lines
-    tstpoly__raster(PTH_LINETO)
+    tstcanv__raster(PTH_LINETO)
 
     RETURN(TRUE)
   END t_custom
@@ -1253,7 +1253,7 @@ BEGIN
   kunit_done
 
   --destruct classes
-  tstpoly__delete
+  tstcanv__delete
 
 %ifdef DEBUG_BUILD
   usrdis__write_pipe

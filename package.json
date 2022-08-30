@@ -6,15 +6,16 @@
   "license" : "Apache 2.0",
   "author" : "kobbled",
   "source" : [
-    "src/draw.kl"
+    "lib/drawlib/draw.kl"
   ],
   "tests" : [
     "test/test_draw.kl",
-    "src/svg/rebel.csv"
+    "test/svg_examples/rebel.csv"
   ],
   "includes" : [
-    "include",
-    "include/class"
+    "lib/drawlib",
+    "lib/canvas",
+    "lib/polygon"
   ],
   "depends" : [
     "shapes",
