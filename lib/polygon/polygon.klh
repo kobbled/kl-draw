@@ -36,7 +36,7 @@ ROUTINE makePad(padprm : t_PAD_VARS ; polyprm : t_PATH_VARS; start : VECTOR) FRO
 declare_member(class_name,makePads,class_name,mkpds)
 ROUTINE makePads(padprm : t_PAD_VARS ; polyprm : t_PATH_VARS; start : VECTOR) FROM class_name
 declare_member(class_name,makeHex,class_name,mkhex)
-ROUTINE makeHex(hexprm : t_HEX_VARS ; polyprm : t_PATH_VARS; start : VECTOR) FROM class_name
+ROUTINE makeHex(hexprm : t_HEX_VARS ; polyprm : t_PATH_VARS; padprm : t_PAD_VARS ; center : VECTOR) FROM class_name
 declare_member(class_name,makeCustom,class_name,mkcus)
 ROUTINE makeCustom(filename : STRING ; polyprm : t_PATH_VARS) FROM class_name
 declare_member(class_name,draw,class_name,draw)

@@ -30,11 +30,12 @@ VAR
 %from errors.klh %import SET_UNINIT_F
 %from math.klh %import norm
 %from pose.klh %import set_config
+%from draw.klh %import hexagon
 %include pathlib.klh
 
 --define objects
   --polygon
-draw_object_define(DRAW_OBJECT_NAME)
+canvas_object_define(CANVAS_OBJECT_NAME)
 
 %defeval class_name BASE_CLASSNAME
 
@@ -66,7 +67,7 @@ ROUTINE allocate_poly
 ROUTINE set_raster_params
   BEGIN
     -- (start_angle, dir, wall_lines, line_width, line_pitch)
-    `DRAW_OBJECT_NAME`__set_params((rastprm.angle), (rastprm.dir), (rastprm.contours), & 
+    `CANVAS_OBJECT_NAME`__set_params((rastprm.angle), (rastprm.dir), (rastprm.contours), & 
                                    (rastprm.line_width), (rastprm.overlap) )
   END set_raster_params
 
@@ -94,7 +95,7 @@ ROUTINE init
 
     --initialize polygon object
       --( frm, onboundary, start_angle, dir, wall_lines, line_width, line_pitch )
-    `DRAW_OBJECT_NAME`__init2(origin, onBoundary, rastparam)
+    `CANVAS_OBJECT_NAME`__init2(origin, onBoundary, rastparam)
 
   END init
 
@@ -111,7 +112,7 @@ ROUTINE delete
     clear_poly(copyPoly)
     
     --clear draw object
-    `DRAW_OBJECT_NAME`__delete
+    `CANVAS_OBJECT_NAME`__delete
 
     --uninitialize members
     bbox = uninitbb
@@ -124,13 +125,13 @@ ROUTINE delete
 ROUTINE set_origin
   BEGIN
     origin = frm
-    `DRAW_OBJECT_NAME`__set_canvas(origin)
+    `CANVAS_OBJECT_NAME`__set_canvas(origin)
   END set_origin
 
 ROUTINE get_length
   BEGIN
     --get bounding box
-    bbox = `DRAW_OBJECT_NAME`__get_bounding_box_drawing
+    bbox = `CANVAS_OBJECT_NAME`__get_bounding_box_drawing
 
     -- get length of bounding box along its longitude
     RETURN(math__norm(bbox.verts[4]-bbox.verts[1]))
@@ -144,7 +145,7 @@ ROUTINE flip_origin
     --get length of the drawing, and translate by that length
     len = get_length
     origin = origin:POS(0,0,len,0,180,0,(ZEROPOS(1).config_data))
-    `DRAW_OBJECT_NAME`__set_canvas(origin)
+    `CANVAS_OBJECT_NAME`__set_canvas(origin)
   END flip_origin
 
 ROUTINE get_lines
@@ -164,7 +165,7 @@ ROUTINE get_contours
 ROUTINE translate_canvas
   BEGIN
     origin = origin:POS(vec.x,vec.y,vec.z,0,0,0,(ZEROPOS(1).config_data))
-    `DRAW_OBJECT_NAME`__set_canvas(origin)
+    `CANVAS_OBJECT_NAME`__set_canvas(origin)
   END translate_canvas
 
 ROUTINE rotate_canvas
@@ -172,7 +173,7 @@ ROUTINE rotate_canvas
     -- rotation of W,P angles must be in a canvas wide basis
     -- for planar slicing.
     origin = origin:POS(0,0,0,vec.x,vec.y,0,(ZEROPOS(1).config_data))
-    `DRAW_OBJECT_NAME`__set_canvas(origin)
+    `CANVAS_OBJECT_NAME`__set_canvas(origin)
 
   END rotate_canvas
 
@@ -199,7 +200,7 @@ ROUTINE copy
           ENDFOR
 
           --append into polygon object to create drawing
-          `DRAW_OBJECT_NAME`__append_polygon(copyPoly)
+          `CANVAS_OBJECT_NAME`__append_polygon(copyPoly)
         ENDIF
       ENDFOR
     ENDFOR
@@ -208,13 +209,13 @@ ROUTINE copy
 ROUTINE raster
   BEGIN
     --get raster lines
-    `DRAW_OBJECT_NAME`__raster(PTH_LINETO)
+    `CANVAS_OBJECT_NAME`__raster(PTH_LINETO)
 
     paths__clear_vecpath(lines) ; paths__clear_vecpath(contours) ;
     
     --get lines from object
-    `DRAW_OBJECT_NAME`__lines_to_vec_path(lines) ;
-    `DRAW_OBJECT_NAME`__contours_to_vec_path(contours) ;
+    `CANVAS_OBJECT_NAME`__lines_to_vec_path(lines) ;
+    `CANVAS_OBJECT_NAME`__contours_to_vec_path(contours) ;
 
   END raster
 
@@ -229,7 +230,7 @@ ROUTINE makePad
     polygon[2].coords = start + VEC2D(padprm.width,0)
     polygon[3].coords = start + VEC2D(padprm.width,padprm.length)
     polygon[4].coords = start + VEC2D(0,padprm.length)
-    `DRAW_OBJECT_NAME`__append_polygon(polygon)
+    `CANVAS_OBJECT_NAME`__append_polygon(polygon)
 
   END makePad
 
@@ -243,16 +244,27 @@ ROUTINE makePads
     polygon[2].coords = start + VEC2D(padprm.width,0)
     polygon[3].coords = start + VEC2D(padprm.width,padprm.length)
     polygon[4].coords = start + VEC2D(0,padprm.length)
-    `DRAW_OBJECT_NAME`__append_polygon(polygon)
+    `CANVAS_OBJECT_NAME`__append_polygon(polygon)
 
     copy(VEC2D(padprm.separation, 0), (padprm.no_of_pads), VEC2D(0, 0), 0)
 
   END makePads
 
 ROUTINE makeHex
-  BEGIN
-    --draw pads
-    `DRAW_OBJECT_NAME`__hexagon((hexprm.radius), (hexprm.points), VEC2D(0, 0), (polyprm.polyRotation))
+  VAR
+    centerfrm : XYZWPR
+  BEGIN    
+    --set center
+      -- ..note:: previously polygon rotation was set here in `r`
+    centerfrm = POS(center.x,center.y,center.z,0,0,0,(ZEROPOS(1).Config_data))
+
+    clear_poly(polygon)
+    --draw hexagon
+    draw__hexagon((hexprm.radius), (hexprm.points), centerfrm, polygon)
+    `CANVAS_OBJECT_NAME`__append_polygon(polygon)
+
+    --copy object if set
+    copy(VEC2D(padprm.separation, 0), (padprm.no_of_pads), VEC2D(0, 0), 0)
   END makeHex
 
   VAR
@@ -271,7 +283,7 @@ ROUTINE draw
 
     --get bounding box of drawing
     -- to select start corner for pathplanning
-    bbox = `DRAW_OBJECT_NAME`__get_bounding_box_drawing
+    bbox = `CANVAS_OBJECT_NAME`__get_bounding_box_drawing
   END draw
 
 ROUTINE sequence
@@ -288,17 +300,17 @@ ROUTINE sequence
     --rotate/scale selected polygons on 2d rotation
     --rotate/scale all polygons on canvas
     starti = 1
-    endi = `DRAW_OBJECT_NAME`__get_polygon_count
+    endi = `CANVAS_OBJECT_NAME`__get_polygon_count
 
     FOR i=starti TO endi DO
       --rotate if specified
       IF (rot.z) <> 0 THEN
-        `DRAW_OBJECT_NAME`__rotate_polygon(i, (rot.z))
+        `CANVAS_OBJECT_NAME`__rotate_polygon(i, (rot.z))
       ENDIF
 
       --scale if specified
       IF math__norm(scl) > 0 THEN
-        `DRAW_OBJECT_NAME`__scale_polygon_along_axes(i, scl)
+        `CANVAS_OBJECT_NAME`__scale_polygon_along_axes(i, scl)
       ENDIF
     ENDFOR
 

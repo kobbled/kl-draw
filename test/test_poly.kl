@@ -7,10 +7,10 @@ PROGRAM test_pthdraw
 %include draw.klt
 %include pathlib.klt
 %include toolpath.structs.klt
-%include pathdraw.deps.klt
+%include polygon.deps.klt
 
 --lam object
-%class tstdrw('pathdraw.klc','pathdraw.klh','defaultpathdraw.klt')
+%class tstdrw('polygon.klc','polygon.klh','defaultpolydraw.klt')
 
 BEGIN
 END test_pthdraw

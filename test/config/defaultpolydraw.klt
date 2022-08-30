@@ -1,0 +1,4 @@
+%define POLYDRAW_NAME tstdrw
+
+--canvas object
+%define CANVAS_OBJECT_NAME tstpoly

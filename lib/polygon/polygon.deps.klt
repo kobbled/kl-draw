@@ -1,7 +1,7 @@
 %mode push
 %mode string QQQ "`" "`" "\\"
 
---draw dependency
-%define draw_object_define(object_name) `%class object_name('canvas.klc', 'canvas.klh')`
+--canvas dependency
+%define canvas_object_define(object_name) `%class object_name('canvas.klc', 'canvas.klh')`
 
 %mode pop

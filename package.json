@@ -10,6 +10,7 @@
   ],
   "tests" : [
     "test/test_draw.kl",
+    "test/test_poly.kl",
     "test/svg_examples/rebel.csv"
   ],
   "includes" : [
@@ -20,6 +21,7 @@
   "depends" : [
     "shapes",
     "math",
+    "pose",
     "pathlib",
     "Strings",
     "errors",
@@ -30,5 +32,8 @@
   "tests-depends" : [
     "display",
     "KUnit"
+  ],
+  "tests-includes" :[
+    "test/config"
   ]
 }
