@@ -556,28 +556,43 @@ ROUTINE scale_polygon_along_axes
 
   END scale_polygon_along_axes
 
-ROUTINE trace
   VAR
     i : INTEGER
+ROUTINE trace
+  VAR
+    i, j : INTEGER
+    idx : VECTOR2Di
   BEGIN
     --clear previous contours
-    clear_contours
+    clear_vpath(contours)
 
     --get walls
     i = 0
     WHILE (i < params.wall_lines) DO
-      --clear inset
-      clear_poly(sub_poly)
-      --inset by width of line to fill within boundaries
-      --inset and trace each polygon on the canvas
-       -- **fix** :: currently insetting over full list. Shouldn't it be the sub polygon
-       --            might have to add extra t_VERTEX memeber to store result
-      draw__inset_polygon(canvas, (params.line_width/2 + i*params.line_pitch), hull, sub_poly)
-      --trace polygon
-      draw__trace(sub_poly, params.start_angle, (params.dir), line_type, contours)
-      draw__calc_tangent_segment(contours)
+
+      --loop through each polygon on canvas
+      FOR j=1 TO poly_count DO
+        --get isolated polygon in sub_poly
+        -- idx.x = start index, idx.y = end index
+        idx = get_sub_poly(j)
+
+        --clear inset
+        clear_poly(inset_poly)
+
+        --inset by width of line to fill within boundaries
+        --inset and trace each polygon on the canvas
+        --`insetpoly` gets cleared in inset_polygon
+        draw__inset_polygon(sub_poly, (params.line_width/2 + i*params.line_pitch), hull, inset_poly)
+
+        --trace polygon
+        draw__trace(inset_poly, params.start_angle, (params.dir), line_type, contours)
+      ENDFOR
+
       i = i + 1
     ENDWHILE
+
+    --calculate tangent vectors
+    draw__calc_tangent(contours)
 
   END trace
 
@@ -586,10 +601,20 @@ ROUTINE raster
     i, status : INTEGER
   BEGIN
     clear_lines
-    --trace contours if wall_lines > 0
-    trace(line_type)
-    --raster the interior over whole canvas
-    draw__raster_lines(canvas, hull, params.start_angle, params.line_width, params.line_pitch, (params.dir), rast_bounds, lines)
+
+    --only raster over what is left after inset
+    IF (params.wall_lines > 0) OR (params.line_width > 0) THEN
+      --..NOTE:: using inset_canvas will retain the original polygons as
+      --         it does not override 'canvas'
+
+      --inset by total number of wall lines
+      inset_canvas((params.line_width/2 + (params.wall_lines-1)*params.line_pitch))
+      --raster over inset canvas
+      draw__raster_lines(inset_poly, hull, params.start_angle, params.line_width, params.line_pitch, (params.dir), rast_bounds, lines)
+    ELSE
+      --just raster over original canvas
+      draw__raster_lines(canvas, hull, params.start_angle, params.line_width, params.line_pitch, (params.dir), rast_bounds, lines)
+    ENDIF
 
   END raster
 
