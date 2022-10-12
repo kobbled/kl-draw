@@ -18,8 +18,6 @@ declare_member(class_name,init2,class_name,int2)
 ROUTINE init2(frm_ : XYZWPR; boundary : BOOLEAN; rast : t_RASTER) FROM class_name
 declare_member(class_name,erase,class_name,eras)
 ROUTINE erase FROM class_name
-declare_member(class_name,import_shape,class_name,imps)
-ROUTINE import_shape(filename : STRING) FROM class_name
 declare_member(class_name,set_canvas,class_name,scnv)
 ROUTINE set_canvas(frm_ : XYZWPR) FROM class_name
 declare_member(class_name,flip_canvas,class_name,fpcv)

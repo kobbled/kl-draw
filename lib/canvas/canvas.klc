@@ -268,62 +268,6 @@ ROUTINE erase
     poly_count = 0
   END erase
 
-ROUTINE import_shape
-  VAR
-    header : STRING[16]
-    str : STRING[32]
-    b : BOOLEAN
-    v : VECTOR
-    vert : INTEGER
-    poly : INTEGER
-    status : INTEGER
-  BEGIN
-    csv__read_open(filename, fl)
-    --read header
-    header = csv__read_line(filename, fl)
-
-    clear_poly(sub_poly)
-    --vertex count
-    vert = 0
-    --intialize polygon count
-    poly = 1
-    REPEAT
-      vert = vert + 1
-      
-      --read line
-      b = csv__read_line_ref(filename, fl, str)
-
-      IF b THEN
-        --put string into vector
-        v = s_to_vec(str, ',')
-
-        IF TRUNC(v.z) > poly THEN
-          --append previous polygon into canvas (canvas)
-          append_polygon(sub_poly)
-          clear_poly(sub_poly)
-
-          --add first vertex of next polygon
-          poly = TRUNC(v.z)
-          APPEND_NODE(sub_poly,status)
-          sub_poly[PATH_LEN(sub_poly)].coords = VEC2D(v.x, v.y)
-          sub_poly[PATH_LEN(sub_poly)].polygon = poly
-        ELSE
-          --add vertex
-          APPEND_NODE(sub_poly,status)
-          sub_poly[PATH_LEN(sub_poly)].coords = VEC2D(v.x, v.y)
-          sub_poly[PATH_LEN(sub_poly)].polygon = poly
-        ENDIF
-      ELSE
-        --end of file append polygon into canvas (canvas)
-        append_polygon(sub_poly)
-        clear_poly(sub_poly)
-      ENDIF
-    UNTIL(NOT b)
-
-    csv__read_close(fl)
-
-  END import_shape
-
 ROUTINE set_canvas
   BEGIN
     origin = frm_
