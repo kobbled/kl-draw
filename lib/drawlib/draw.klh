@@ -6,9 +6,11 @@
 %define prog_name draw
 %define prog_name_alias draw
 
--- *** conversions ***
--- *******************
 
+declare_function(prog_name,recalc_poly_indices,prog_name_alias,rcplid)
+ROUTINE draw__recalc_poly_indices(polygon : PATH nodedata = t_VERTEX) FROM draw
+
+-- *** conversions ***
 -- frame is the 2d drawing frame
 declare_function(prog_name,vec_to_vec2d,prog_name_alias,cnvvec2)
 ROUTINE draw__vec_to_vec2d(v : VECTOR; frame : XYZWPR) : VECTOR FROM draw

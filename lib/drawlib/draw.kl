@@ -31,6 +31,7 @@ VAR
 %from errors.klh %import CHK_STAT, karelError
 %include systemlib.klh
 %include math.klh
+%from pose.klh %import vector_to_pose
 %from strings.klh %import i_to_s, r_to_s, vec_to_s, b_to_s
 
 %include draw.klh
@@ -456,7 +457,9 @@ ROUTINE draw__point_collision_polygon
       CHK_STAT(status)
       j = j - 1
 	  ENDWHILE
-
+    
+    --check verticies, if the verticies are not on the hull
+    --mark them as reflex points
     j = 0
     FOR i = 1 TO PATH_LEN(polygon) DO
       IF NOT draw__on_hull(polygon[i].coords, hull) THEN
@@ -467,11 +470,14 @@ ROUTINE draw__point_collision_polygon
     ENDFOR
 
     --if any reflexive points, draw a polygon
-    --around these reflexive points. see
-    --if point is inside this area
+    --around these reflexive points. i.e. the
+    -- negative space between the polygon and the hull
+    -- see if point is inside this area. If it is not
+    -- it is in the polygon
     IF j > 0 THEN
       --start and end polygons are points on the hull
-      --before and after the reflexive points
+      --with the rest being reflexive points
+      --(before and after the reflexive points).
       --mod operator does not handle negatives
       IF reflex_verts[1].v = 1 THEN
         reflex_start = PATH_LEN(polygon)
@@ -479,12 +485,15 @@ ROUTINE draw__point_collision_polygon
         reflex_start = ((reflex_verts[1].v-1-1) MOD PATH_LEN(polygon)) + 1
       ENDIF
 
+      --build negative space polygon until a terminating vertex on the
+      --hull
       FOR i=1 TO j-1 DO
         --if next vertex is not reflexive, we have reached the hull
         IF (reflex_verts[i].v <> reflex_verts[i+1].v-1) THEN
           reflex_end = ((reflex_verts[i].v+1-1) MOD PATH_LEN(polygon)) + 1
           
-          --test poly
+          --test point on negative space polygon
+          -- ..NOTE:: This polygon is assumed to be concave.
           b = draw__point_avoid_convex(v, polygon, reflex_start, reflex_end)
           -- if found inside these interior regions it is not in the polygon
           IF b THEN
@@ -510,6 +519,41 @@ ROUTINE draw__point_collision_polygon
 
 
 -- public polygon routines
+ROUTINE draw__recalc_poly_indices
+  VAR
+    i,j : INTEGER
+    curr_poly, prev_poly : INTEGER
+    uninitVert : t_VERTEX
+  BEGIN
+    curr_poly = 1
+    prev_poly = 0
+    FOR i=1 TO PATH_LEN(polygon) DO
+      --store prevPoly
+        --should be uninit for the first polygon
+      IF curr_poly > 1 THEN
+        polygon[i].prevPoly = prev_poly
+      ENDIF
+
+      --next index is a new polygon
+      IF polygon[i+1].polygon > polygon[i].polygon THEN
+
+        --do not fill 'nextPoly' on last polygon
+        IF (i+1) < PATH_LEN(polygon) THEN
+          --fill 'nextPoly' for current polygon
+          FOR j=i DOWNTO (prev_poly+1) DO
+            polygon[j].nextPoly = i+1
+          ENDFOR
+        ENDIF
+
+        --update prevPoly
+        prev_poly = i
+
+        --increment curr_poly
+        curr_poly = curr_poly + 1
+      ENDIF
+    ENDFOR
+  END draw__recalc_poly_indices
+
 ROUTINE draw__convex_hull
 -- (ref : https://www.geeksforgeeks.org/convex-hull-set-1-jarviss-algorithm-or-wrapping/)
 -- (ref : https://www.topcoder.com/community/competitive-programming/tutorials/geometry-concepts-line-intersection-and-its-applications#convexhull)
@@ -1043,6 +1087,8 @@ ROUTINE draw__inset_polygon
       
       IF NOT UNINIT(prev_line.r0) THEN
 
+        --if at the end of the polygon in the list. inset line between last vertex 
+        --with first index to close up polygon.
         IF (curr_vert.polygon <> next_vert.polygon) OR (i = PATH_LEN(polygon)) THEN
           --evaluate line between first and last index of polygon
           next_vert = polygon[first_vert]
@@ -1084,6 +1130,8 @@ ROUTINE draw__inset_polygon
           first_vert = ((i+1-1) MOD PATH_LEN(polygon)) + 1
 
           poly_count = poly_count + 1
+
+        --inset line segment of polygon
         ELSE
           --find intersection of inset lines
           draw__line_inset(prev_line, new_line, inset_amount, prev_inset, new_inset)
