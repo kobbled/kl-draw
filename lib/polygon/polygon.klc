@@ -261,9 +261,16 @@ ROUTINE copy
   VAR
     i, j, k : INTEGER
     status : INTEGER
+    polycount : INTEGER
   BEGIN
     IF (instances1 < 1) THEN instances1 = 1 ; ENDIF
     IF (instances2 < 1) THEN instances2 = 1 ; ENDIF
+
+    --clear copy container
+    clear_poly(copyPoly)
+
+    --assume 1st polygon is filled, so starting on polygon 2
+    polycount = 2
     
     FOR k=0 TO (instances2-1) DO
       --copy instances1
