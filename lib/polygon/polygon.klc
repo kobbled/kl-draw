@@ -271,33 +271,30 @@ ROUTINE copy
         --do not instance for first cycle assume that has already
         --been appended into the canvas
         IF ((j > 0) OR (k > 0)) THEN
-          --clear copy container
-          clear_poly(copyPoly)
 
-          FOR i=1 TO PATH_LEN(polygon) DO
+          FOR i=1 TO PATH_LEN(originalPoly) DO
             APPEND_NODE(copyPoly, status)
-            copyPoly[i].coords = polygon[i].coords + j*direction1 + k*direction2
+            copyPoly[i].coords = originalPoly[i].coords + j*direction1 + k*direction2
+            copyPoly[i].polygon = polycount
           ENDFOR
 
-          --append into polygon object to create drawing
-          `CANVAS_OBJECT_NAME`__append_polygon(copyPoly)
+          IF addToCanvas THEN
+            --append into polygon object to create drawing
+            `CANVAS_OBJECT_NAME`__append_polygon(copyPoly)
+            --purge copy container as it has already been added to the canvas
+            --and will duplicate in canvas during 'append_polygon' if not purged
+            clear_poly(copyPoly)
+          ENDIF
+
+          --increment polycount
+          polycount = polycount + 1
         ENDIF
       ENDFOR
     ENDFOR
-  END copy
-
-ROUTINE raster
-  BEGIN
-    --get raster lines
-    `CANVAS_OBJECT_NAME`__raster(PTH_LINETO)
-
-    paths__clear_vecpath(lines) ; paths__clear_vecpath(contours) ;
     
-    --get lines from object
-    `CANVAS_OBJECT_NAME`__lines_to_vec_path(lines) ;
-    `CANVAS_OBJECT_NAME`__contours_to_vec_path(contours) ;
-
-  END raster
+    --recalc indicies if multiple polygons exist in copyPoly
+    draw__recalc_poly_indices(copyPoly)
+  END copy
 
 
 ROUTINE makePad
