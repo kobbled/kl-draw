@@ -1148,6 +1148,90 @@ ROUTINE draw__inset_polygon
     ENDFOR
   END draw__inset_polygon
 
+ROUTINE draw__rotate_polygon
+  VAR
+    i : INTEGER
+    p : XYZWPR
+    center : VECTOR
+    status : INTEGER
+  BEGIN
+    --get center
+    center = draw__psuedo_center(polygon)
+
+    FOR i=1 TO PATH_LEN(polygon) DO
+      --put vertex in object (polygon) space
+      p = pose__vector_to_pose((polygon[i].coords - center), VEC(0,0,0), (ZEROPOS(1).config_data))
+      --rotate vertex
+      p = math__rotz(p, angle)
+
+      --create new rotated polygon
+      APPEND_NODE(out_polygon, status)
+      --put back into vector and into canvas space
+      out_polygon[PATH_LEN(out_polygon)].coords = VEC(p.x, p.y, p.z) + center
+    ENDFOR
+    --returns out_polygon
+  END draw__rotate_polygon
+
+ROUTINE draw__scale_polygon
+  VAR
+    i : INTEGER
+    v : VECTOR
+    center : VECTOR
+    tang_vec, perp_vec : VECTOR
+    status : INTEGER
+  BEGIN
+    --get center
+    center = draw__psuedo_center(polygon)
+
+    --get tangent vector
+      --x-axis vector
+    tang_vec = draw__angle_to_vector(axis_angle)
+    tang_vec = tang_vec/math__norm(tang_vec)
+      --y-axis vector
+    --get bitangent vector
+    perp_vec = draw__angle_to_vector(axis_angle + 90)
+    perp_vec = perp_vec/math__norm(perp_vec)
+
+    FOR i=1 TO PATH_LEN(polygon) DO
+      --put vertex in object (polygon) space
+      v = (polygon[i].coords - center)
+
+      --scale along x-axis
+       --determine above or below axis
+      IF (v@tang_vec > 0) THEN
+        -- move in positive direction
+        v.x = scale_x+v.x
+        --do not cross axis
+        IF v.x < 0 THEN v.x = 0 ; ENDIF
+      ELSE
+        -- move in negative direction
+        v.x = -1*scale_x+v.x
+        --do not cross axis
+        IF v.x > 0 THEN v.x = 0 ; ENDIF
+      ENDIF
+
+      --scale along y-axis
+       --determine above or below axis
+      IF (v@perp_vec > 0) THEN
+        -- move in positive direction
+        v.y = scale_y+v.y
+        --do not cross axis
+        IF v.y < 0 THEN v.y = 0 ; ENDIF
+      ELSE
+        -- move in negative direction
+        v.y = -1*scale_y+v.y
+        --do not cross axis
+        IF v.y > 0 THEN v.y = 0 ; ENDIF
+      ENDIF
+
+      --create new rotated polygon
+      APPEND_NODE(out_polygon, status)
+      --put back into vector and into canvas space
+      out_polygon[PATH_LEN(out_polygon)].coords = v + center
+    ENDFOR
+    --returns out_polygon
+  END draw__scale_polygon
+
 ROUTINE draw__trace
   VAR
     i : INTEGER

@@ -50,10 +50,15 @@ declare_function(prog_name,point_collision_polygon,prog_name_alias,pcolp)
 ROUTINE draw__point_collision_polygon(v : VECTOR ; polygon : PATH nodedata = t_VERTEX; hull : PATH nodedata = t_VERTEX) : BOOLEAN FROM draw
 declare_function(prog_name,raster_lines,prog_name_alias,rstln)
 ROUTINE draw__raster_lines(polygon : PATH nodedata = t_VERTEX; out_hull : PATH nodedata = t_VERTEX; raster_angle : REAL; line_width : REAL; line_pitch : REAL; dir : INTEGER ; on_boundary : BOOLEAN ; out_lines : PATH nodedata = t_SEG2D_POLY) FROM draw
+--polygon manipulation
 declare_function(prog_name,inset_polygon,prog_name_alias,inset)
 ROUTINE draw__inset_polygon(polygon : PATH nodedata = t_VERTEX; inset_amount : REAL; out_hull : PATH nodedata = t_VERTEX ; out_polygon : PATH nodedata = t_VERTEX) FROM draw
-declare_function(prog_name,trace,prog_name_alias,trace)
+declare_function(prog_name,rotate_polygon,prog_name_alias,rotpl)
+ROUTINE draw__rotate_polygon(polygon : PATH nodedata = t_VERTEX; angle : REAL; out_polygon : PATH nodedata = t_VERTEX) FROM draw
+declare_function(prog_name,scale_polygon,prog_name_alias,sclpl)
+ROUTINE draw__scale_polygon(polygon : PATH nodedata = t_VERTEX; axis_angle : REAL; scale_x : REAL; scale_y : REAL; out_polygon : PATH nodedata = t_VERTEX) FROM draw
 --dir =1 ccw or =-1 cw
+declare_function(prog_name,trace,prog_name_alias,trace)
 ROUTINE draw__trace(polygon : PATH nodedata = t_VERTEX; start_angle : REAL; dir : INTEGER ; curve_type : INTEGER ; out_contour : PATH nodedata = t_VEC_PATH) FROM draw
 declare_function(prog_name,calc_tangent,prog_name_alias,caltg)
 ROUTINE draw__calc_tangent(pth : PATH nodedata = t_VEC_PATH) FROM draw
