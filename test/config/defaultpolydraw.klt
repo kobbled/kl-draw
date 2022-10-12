@@ -1,4 +1,46 @@
-%define POLYDRAW_NAME tstdrw
+%define POLYDRAW_CONFIG defaultpolydraw.klt
+%define POLYDRAW_NAME tstpoly
 
 --canvas object
-%define CANVAS_OBJECT_NAME tstpoly
+%define CANVAS_OBJECT_NAME tstcanv
+
+
+-- **********
+-- ** IMPORT LAYOUT **
+-- **********
+
+--include file layout
+%define INCLUDE_LAYOUT TRUE
+
+%define LAYOUT_OBJECT_NAME tstldw
+%define LAYOUT_CONFIG_FILENAME defaultpolylayout.klt
+  --include in layer template for defining layout struct
+%include defaultpolylayout.klt
+
+
+--convert between buffer and t_VERTEX
+%mode push
+%mode string QQQ "$" "$" "\\"
+
+%define buffer_header(parent) $
+declare_member(parent,layout_to_poly,parent,lypy)
+ROUTINE layout_to_poly(out_poly : PATH nodedata = t_VERTEX) FROM parent
+$
+
+%define impl_buffer_conversion $
+  ROUTINE layout_to_poly
+    VAR
+      i, status : INTEGER
+    BEGIN
+
+      clear_poly(out_poly)
+
+      FOR i=1 TO PATH_LEN(buffer) DO
+        APPEND_NODE(out_poly,status)
+        out_poly[PATH_LEN(out_poly)].coords = buffer[i].coords
+      ENDFOR
+
+    END layout_to_poly
+$
+
+%mode pop
