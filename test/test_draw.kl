@@ -900,6 +900,8 @@ ROUTINE t_classpoly2 : BOOLEAN
     tstcanv__append_polygon(polygon2)
     --raster lines
     tstcanv__raster(PTH_LINETO)
+    --traces
+    tstcanv__trace(PTH_LINETO)
 
     --clear lines 
     clear_lines(lines)
@@ -960,6 +962,7 @@ ROUTINE t_rast_multi : BOOLEAN
 
     tstcanv__set_params(0, 1, 1, 0, 3)
     tstcanv__raster(PTH_LINETO)
+    tstcanv__trace(PTH_LINETO)
 
     --clear lines 
     clear_lines(lines)
@@ -1024,6 +1027,7 @@ ROUTINE t_rast_mult2 : BOOLEAN
 
     tstcanv__set_params(0, 1, 1, 0, 1)
     tstcanv__raster(PTH_LINETO)
+    tstcanv__trace(PTH_LINETO)
 
     --clear lines 
     clear_lines(lines)
@@ -1078,6 +1082,8 @@ ROUTINE t_hexagon : BOOLEAN
     tstcanv__append_polygon(polygon4)
     --raster lines
     tstcanv__raster(PTH_LINETO)
+    --raster lines
+    tstcanv__trace(PTH_LINETO)
 
     --copy lines from tstcanv object
     clear_lines(lines)
@@ -1204,19 +1210,6 @@ ROUTINE t_pads : BOOLEAN
     RETURN(TRUE)
   END t_pads
 
-ROUTINE t_custom : BOOLEAN
-%define SVG_NAME 'FR:\rebel.csv'
-  BEGIN
-    --initialize polygon object
-      --( frm, onboundary, raster_angle, dir, wall_lines, line_width, line_pitch )
-    tstcanv__init(POS(0,0,0,0,0,90,(ZEROPOS(1).config_data)), FALSE, 90, 1, 1, 0, 10)
-    tstcanv__import_shape(SVG_NAME)
-    --raster lines
-    tstcanv__raster(PTH_LINETO)
-
-    RETURN(TRUE)
-  END t_custom
-
 BEGIN
 
 %ifdef DEBUG_BUILD
@@ -1242,14 +1235,12 @@ BEGIN
   kunit_test('trace lines around star polygon', t_trace) --asserts 2
   kunit_test('test polygon class with c-shape', t_class_poly) --asserts 2
   kunit_test('edge case. Turn vertex intersects line.', t_classpoly2) --asserts 2
-  kunit_test('test create hexagon', t_hexagon) --asserts 4
   kunit_test('multi polygon raster', t_rast_multi) --asserts 2
   kunit_test('small multi polygon raster', t_rast_mult2) --asserts 2
+  kunit_test('test create hexagon', t_hexagon) --asserts 4
   kunit_test('faceted polygon raster', t_upturns) -- asserts 2
   kunit_test('test create pads', t_pads)
-
-  -- **fix** t_custom using a csv layout
-  -- kunit_test('Custom shape', t_custom)
+  
   kunit_done
 
   --destruct classes
