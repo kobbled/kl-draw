@@ -54,10 +54,21 @@ ROUTINE calc_polygon_count : INTEGER FROM class_name
 --manipulate canvas
 declare_member(class_name,translate_canvas,class_name,trcv)
 ROUTINE translate_canvas(vec : VECTOR) FROM class_name
-declare_member(class_name,rotate_polygon,class_name,rtpl)
-ROUTINE rotate_polygon(polygon : INTEGER; angle : REAL) FROM class_name
-declare_member(class_name,scale_polygon_along_axes,class_name,spax)
-ROUTINE scale_polygon_along_axes(polygon : INTEGER; factor : VECTOR) FROM class_name
+declare_member(class_name,rotate_canvas,class_name,rtcv)
+ROUTINE rotate_canvas(vec : VECTOR) FROM class_name
+declare_member(class_name,remove_polygon,class_name,rmcv)
+ROUTINE remove_polygon(polyidx : INTEGER) FROM class_name
+declare_member(class_name,replace_polygon,class_name,rpcv)
+ROUTINE replace_polygon(polyidx : INTEGER; polygon : PATH nodedata = t_VERTEX) FROM class_name
+--manipulate polygons
+declare_member(class_name,rotate_polygons,class_name,rtpl)
+ROUTINE rotate_polygons(angle : REAL; start_poly : INTEGER; end_poly : INTEGER) FROM class_name
+declare_member(class_name,scale_polygons,class_name,scpl)
+ROUTINE scale_polygons(scale_x : REAL; scale_y : REAL; start_poly : INTEGER; end_poly : INTEGER) FROM class_name
+declare_member(class_name,inset_polygons,class_name,inpl)
+ROUTINE inset_polygons(dist : REAL; start_poly : INTEGER; end_poly : INTEGER) FROM class_name
+declare_member(class_name,inset_canvas,class_name,incv)
+ROUTINE inset_canvas(dist : REAL) FROM class_name
 --rastering
 declare_member(class_name,trace,class_name,trce)
 ROUTINE trace(line_type : INTEGER) FROM class_name

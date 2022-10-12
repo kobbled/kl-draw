@@ -454,110 +454,207 @@ ROUTINE translate_canvas
     origin = origin:POS(vec.x,vec.y,vec.z,0,0,0,(ZEROPOS(1).config_data))
   END translate_canvas
 
-ROUTINE rotate_polygon
+ROUTINE rotate_canvas
+  BEGIN
+    origin = origin:POS(0,0,0,vec.x,vec.y,vec.z,(ZEROPOS(1).config_data))
+  END rotate_canvas
+
+ROUTINE remove_polygon
   VAR
-    i, j : INTEGER
-    p : XYZWPR
-    center : VECTOR
+    i, status : INTEGER
     idx : VECTOR2Di
   BEGIN
-    --get isolated polygon and calculate center point
-    idx = new_sub_poly(polygon)
-    --get center
-    center = draw__psuedo_center(sub_poly)
+    --get polygon start and end index
+    idx = get_sub_poly(polyidx)
     
-    --use for updating canvas
+    --remove index range
+    FOR i=idx.x TO idx.y DO
+      --remove vertex from canvas
+      DELETE_NODE(canvas,i,status)
+      CHK_STAT(status)
+    ENDFOR
+
+    --recalc indicies
+    draw__recalc_poly_indices(canvas)
+
+    --clear subpoly
+    clear_poly(sub_poly)
+  END remove_polygon
+
+ROUTINE replace_polygon
+  VAR
+    i, j, k, status : INTEGER
+    idx : VECTOR2Di
+  BEGIN
+    --get polygon start and end index
+    idx = get_sub_poly(polyidx)
+
+    --replace polygon
     j = idx.x
-    FOR i=1 TO PATH_LEN(sub_poly) DO
-      --put vertex in object (polygon) space
-      p = pose__vector_to_pose((sub_poly[i].coords - center), VEC(0,0,0), (ZEROPOS(1).config_data))
-      --rotate vertex
-      p = math__rotz(p, angle)
-      --put back into vector and into canvas space
-      sub_poly[i].coords = VEC(p.x, p.y, p.z) + center
-      --copy back into canvas
-      canvas[j].coords = sub_poly[i].coords
+    FOR i=1 TO PATH_LEN(polygon) DO
+      --insert if new poly length is greater than previous poly length
+      IF j > idx.y THEN
+        --append if at the end of the canvas list
+        IF j > PATH_LEN(canvas) THEN
+          APPEND_NODE(canvas, status)
+          CHK_STAT(status)
+          canvas[j] = polygon[i]
+        --insert into canvas
+        ELSE
+          INSERT_NODE(canvas, j, status)
+          CHK_STAT(status)
+          canvas[j] = polygon[i]
+        ENDIF
+      --replace existing node
+      ELSE
+        canvas[j] = polygon[i]
+      ENDIF
 
       j = j + 1
     ENDFOR
 
-  END rotate_polygon
+    -- remove extra verticies
+    j = j-1 -- i loop add extra j at end
+    IF (j < idx.y) THEN
+      FOR k=1 TO (idx.y-j) DO
+        --remove old verticies from canvas
+        DELETE_NODE(canvas,j+1,status)
+        CHK_STAT(status)
+      ENDFOR
+    ENDIF
 
-ROUTINE scale_polygon_along_axes
+    --recalc indicies
+    draw__recalc_poly_indices(canvas)
+
+  END replace_polygon
+
+ROUTINE rotate_polygons
+  VAR
+    i : INTEGER
+    idx : VECTOR2Di
+  BEGIN
+    --rotate every polygon on the canvas if set to zero
+    IF start_poly <= 0 THEN
+      start_poly = 1
+    ENDIF
+
+    IF end_poly <= 0 THEN
+      end_poly = poly_count
+    ENDIF
+
+    --rotate each polygon seperately about its center
+    FOR i=start_poly TO end_poly DO
+      --clear inset poly to store rotated polygon
+      clear_poly(inset_poly)
+
+      --get isolated polygon in sub_poly
+        -- idx.x = start index, idx.y = end index
+      idx = get_sub_poly(i)
+
+      --rotate polygon
+      draw__rotate_polygon(sub_poly, angle, inset_poly)
+
+      --replace on canvas
+      replace_polygon(i, inset_poly)
+    ENDFOR
+  END rotate_polygons
+
+ROUTINE scale_polygons
   --factor should be between in mm for the x and y axis.
   --will calculate the distance to each axis and scale
   --down to that axis depending on the fraction.
   VAR
-    i, j : INTEGER
-    v : VECTOR
-    center : VECTOR
-    tang_vec, perp_vec : VECTOR
-    amt : REAL
+    i : INTEGER
     idx : VECTOR2Di
   BEGIN
     -- ..Note:: `params.start_angle` must be set before running canvas
     --           function
 
-    --get isolated polygon
-      -- ..Note:: do not use `get_bounding_box_poly` as you need 
-      --          to save idx to update `canvas` as well as `sub_poly`
-    idx = new_sub_poly(polygon)
-    --get center
-    center = draw__psuedo_center(sub_poly)
+    --rotate every polygon on the canvas if set to zero
+    IF start_poly <= 0 THEN
+      start_poly = 1
+    ENDIF
 
-    --scale along the raster angle
-      --x-axis vector
-    tang_vec = draw__angle_to_vector(params.start_angle)
-    tang_vec = tang_vec/math__norm(tang_vec)
-      --y-axis vector
-    perp_vec = draw__angle_to_vector(params.start_angle + 90)
-    perp_vec = perp_vec/math__norm(perp_vec)
+    IF end_poly <= 0 THEN
+      end_poly = poly_count
+    ENDIF
 
-    --use for updating canvas
-    j = idx.x
-    FOR i=1 TO PATH_LEN(sub_poly) DO
-      --put vertex in object (polygon) space
-      v = (sub_poly[i].coords - center)
-      --x-axis
-       --determine above or below axis
-      IF (v@tang_vec > 0) THEN
-        -- move in positive direction
-        v.x = factor.x+v.x
-        --do not cross axis
-        IF v.x < 0 THEN v.x = 0 ; ENDIF
-      ELSE
-        -- move in negative direction
-        v.x = -1*factor.x+v.x
-        --do not cross axis
-        IF v.x > 0 THEN v.x = 0 ; ENDIF
-      ENDIF
+    --scale each polygon seperately about its center
+    FOR i=start_poly TO end_poly DO
+      --clear inset poly to store scaled poly
+      clear_poly(inset_poly)
 
-      --y-axis
-       --determine above or below axis
-      IF (v@perp_vec > 0) THEN
-        -- move in positive direction
-        v.y = factor.y+v.y
-        --do not cross axis
-        IF v.y < 0 THEN v.y = 0 ; ENDIF
-      ELSE
-        -- move in negative direction
-        v.y = -1*factor.y+v.y
-        --do not cross axis
-        IF v.y > 0 THEN v.y = 0 ; ENDIF
-      ENDIF
+      --get isolated polygon in sub_poly
+        -- idx.x = start index, idx.y = end index
+      idx = get_sub_poly(i)
 
-      --put back into vector and into canvas space
-      sub_poly[i].coords = v + center
-      --copy back into canvas
-      canvas[j].coords = sub_poly[i].coords
+      --scale polygon
+      draw__scale_polygon(sub_poly, (params.start_angle), scale_x, scale_y, inset_poly)
 
-      j = j + 1
+      --replace on canvas
+      replace_polygon(i, inset_poly)
     ENDFOR
 
-  END scale_polygon_along_axes
+  END scale_polygons
 
+ROUTINE inset_polygons
   VAR
     i : INTEGER
+    idx : VECTOR2Di
+  BEGIN
+    -- ..Note:: `params.start_angle` must be set before running canvas
+    --           function
+
+    --rotate every polygon on the canvas if set to zero
+    IF start_poly <= 0 THEN
+      start_poly = 1
+    ENDIF
+
+    IF end_poly <= 0 THEN
+      end_poly = poly_count
+    ENDIF
+
+    --scale each polygon seperately about its center
+    FOR i=start_poly TO end_poly DO
+      --clear inset poly to store scaled poly
+      clear_poly(inset_poly)
+
+      --get isolated polygon in sub_poly
+        -- idx.x = start index, idx.y = end index
+      idx = get_sub_poly(i)
+
+      --inset polygon by amount
+      draw__inset_polygon(sub_poly, dist, hull, inset_poly)
+
+      --replace on canvas
+      replace_polygon(i, inset_poly)
+    ENDFOR
+
+  END inset_polygons
+
+ROUTINE inset_canvas
+  VAR
+    i : INTEGER
+    idx : VECTOR2Di
+  BEGIN
+    --clear inset poly to store scaled poly
+    clear_poly(inset_poly)
+
+    --scale each polygon seperately about its center
+    FOR i=1 TO poly_count DO
+
+      --get isolated polygon in sub_poly
+        -- idx.x = start index, idx.y = end index
+      idx = get_sub_poly(i)
+
+      --inset polygon by amount
+      draw__inset_polygon(sub_poly, dist, hull, inset_poly)
+      
+    ENDFOR
+
+  END inset_canvas
+
+
 ROUTINE trace
   VAR
     i, j : INTEGER
