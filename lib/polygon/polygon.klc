@@ -307,25 +307,17 @@ ROUTINE makePad
     polygon[2].coords = start + VEC2D(padprm.width,0)
     polygon[3].coords = start + VEC2D(padprm.width,padprm.length)
     polygon[4].coords = start + VEC2D(0,padprm.length)
-    `CANVAS_OBJECT_NAME`__append_polygon(polygon)
+
+    IF addToCanvas THEN
+      `CANVAS_OBJECT_NAME`__append_polygon(polygon)
+    ENDIF
+
+    IF (padprm.no_of_pads > 1) AND (padprm.separation > 0) THEN
+      --copy to create pad array
+      copy(polygon, VEC2D(padprm.separation, 0), (padprm.no_of_pads), VEC2D(0, 0), 0, addToCanvas)
+    ENDIF
 
   END makePad
-
-ROUTINE makePads
-  BEGIN
-
-    clear_poly(polygon)
-    allocate_poly(4)
-
-    polygon[1].coords = start
-    polygon[2].coords = start + VEC2D(padprm.width,0)
-    polygon[3].coords = start + VEC2D(padprm.width,padprm.length)
-    polygon[4].coords = start + VEC2D(0,padprm.length)
-    `CANVAS_OBJECT_NAME`__append_polygon(polygon)
-
-    copy(VEC2D(padprm.separation, 0), (padprm.no_of_pads), VEC2D(0, 0), 0)
-
-  END makePads
 
 ROUTINE makeHex
   VAR
@@ -338,19 +330,53 @@ ROUTINE makeHex
     clear_poly(polygon)
     --draw hexagon
     draw__hexagon((hexprm.radius), (hexprm.points), centerfrm, polygon)
-    `CANVAS_OBJECT_NAME`__append_polygon(polygon)
 
-    --copy object if set
-    copy(VEC2D(padprm.separation, 0), (padprm.no_of_pads), VEC2D(0, 0), 0)
+    IF addToCanvas THEN
+      `CANVAS_OBJECT_NAME`__append_polygon(polygon)
+    ENDIF
+    
+    IF (padprm.no_of_pads > 1) AND (padprm.separation > 0) THEN
+      --copy to create pad array
+      copy(polygon, VEC2D(padprm.separation, 0), (padprm.no_of_pads), VEC2D(0, 0), 0, addToCanvas)
+    ENDIF
   END makeHex
+
+%ifdef INCLUDE_LAYOUT
 
 ROUTINE makeCustom
   VAR
-    p : XYZWPR
+    eof : BOOLEAN
   BEGIN
-    --draw svg
-    `CANVAS_OBJECT_NAME`__import_shape('FR:\' + filename + '.csv')
+    --load file
+    import_layout(filename)
+
+    open_layout
+
+    eof = FALSE
+    WHILE NOT eof DO
+      -- load next polygon into `buffer` attribute
+      eof = `LAYOUT_OBJECT_NAME`__loadBuffer
+
+      --load polygon
+      layout_to_poly(polygon)
+    
+      --draw polygon onto canvas
+      IF addToCanvas THEN
+        `CANVAS_OBJECT_NAME`__append_polygon(polygon)
+      ENDIF
+
+      IF (padprm.no_of_pads > 1) AND (padprm.separation > 0) THEN
+        --copy to create pad array
+        copy(polygon, VEC2D(padprm.separation, 0), (padprm.no_of_pads), VEC2D(0, 0), 0, addToCanvas)
+      ENDIF
+
+    ENDWHILE
+
+    close_layout
+
   END makeCustom
+
+%endif
 
 ROUTINE draw
   BEGIN

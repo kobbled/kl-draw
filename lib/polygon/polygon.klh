@@ -29,14 +29,19 @@ declare_member(class_name,copy,class_name,copy)
 ROUTINE copy(originalPoly : PATH nodedata = t_VERTEX; direction1 : VECTOR; instances1 : INTEGER; direction2 : VECTOR; instances2 : INTEGER; addToCanvas : BOOLEAN) FROM class_name
 
 --polygon creation methods
-declare_member(class_name,makePad,class_name,mkpad)
-ROUTINE makePad(padprm : t_PAD_VARS ; polyprm : t_PATH_VARS; start : VECTOR) FROM class_name
-declare_member(class_name,makePads,class_name,mkpds)
-ROUTINE makePads(padprm : t_PAD_VARS ; polyprm : t_PATH_VARS; start : VECTOR) FROM class_name
-declare_member(class_name,makeHex,class_name,mkhex)
-ROUTINE makeHex(hexprm : t_HEX_VARS ; polyprm : t_PATH_VARS; padprm : t_PAD_VARS ; center : VECTOR) FROM class_name
-declare_member(class_name,makeCustom,class_name,mkcus)
-ROUTINE makeCustom(filename : STRING ; polyprm : t_PATH_VARS) FROM class_name
+ -- ..NOTE:: Keep In Mind; took out 'polyprm : t_PATH_VARS' as polygon translation and
+ --          rotation should be set in a sepatate operation.
+declare_member(class_name,makePad,class_name,mkpd)
+ROUTINE makePad(padprm : t_PAD_VARS ; start : VECTOR; addToCanvas : BOOLEAN) FROM class_name
+declare_member(class_name,makeHex,class_name,mkhx)
+ROUTINE makeHex(hexprm : t_HEX_VARS ; padprm : t_PAD_VARS ; center : VECTOR; addToCanvas : BOOLEAN) FROM class_name
+
+%ifdef INCLUDE_LAYOUT
+declare_member(class_name,makeCustom,class_name,mkcs)
+ROUTINE makeCustom(filename : STRING; padprm : t_PAD_VARS ; addToCanvas : BOOLEAN) FROM class_name
+%endif
+
+--draw lines and contours + get bounding box.
 declare_member(class_name,draw,class_name,draw)
 ROUTINE draw FROM class_name
 declare_member(class_name,sequence,class_name,sqnc)
