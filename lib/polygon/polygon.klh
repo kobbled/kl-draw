@@ -21,10 +21,13 @@ declare_member(class_name,get_contours,class_name,gtcr)
 ROUTINE get_contours(out_contour : PATH nodedata = t_VEC_PATH) FROM class_name
 
 --polygon manipulation
-declare_member(class_name,translate_canvas,class_name,trcv)
-ROUTINE translate_canvas(vec : VECTOR) FROM class_name
-declare_member(class_name,rotate_canvas,class_name,rtcv)
-ROUTINE rotate_canvas(vec : VECTOR) FROM class_name
+  -- use with t_PATH_VARS.polyRotation
+declare_member(class_name,rotate,class_name,rtpy)
+ROUTINE rotate(rotation : REAL; padprm : t_PAD_VARS ; copyRot : BOOLEAN; addToCanvas : BOOLEAN) FROM class_name
+declare_member(class_name,scale,class_name,sclp)
+ROUTINE scale(scale_x : REAL; padprm : t_PAD_VARS ; scale_y : REAL; copyRot : BOOLEAN; addToCanvas : BOOLEAN) FROM class_name
+declare_member(class_name,inset,class_name,inst)
+ROUTINE inset(dist : REAL; padprm : t_PAD_VARS ; copyRot : BOOLEAN; addToCanvas : BOOLEAN) FROM class_name
 declare_member(class_name,copy,class_name,copy)
 ROUTINE copy(originalPoly : PATH nodedata = t_VERTEX; direction1 : VECTOR; instances1 : INTEGER; direction2 : VECTOR; instances2 : INTEGER; addToCanvas : BOOLEAN) FROM class_name
 

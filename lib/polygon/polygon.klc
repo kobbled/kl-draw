@@ -242,20 +242,66 @@ ROUTINE get_contours
     COPY_PATH(contours, 0, 0, out_contour, status)
   END get_contours
 
-ROUTINE translate_canvas
+ROUTINE rotate
   BEGIN
-    origin = origin:POS(vec.x,vec.y,vec.z,0,0,0,(ZEROPOS(1).config_data))
-    `CANVAS_OBJECT_NAME`__set_canvas(origin)
-  END translate_canvas
+    clear_poly(transPoly)
 
-ROUTINE rotate_canvas
+    --rotate polygon
+    draw__rotate_polygon(polygon, rotation, transPoly)
+
+    IF addToCanvas THEN
+      `CANVAS_OBJECT_NAME`__append_polygon(transPoly)
+    ENDIF
+
+    IF copyRot THEN
+      IF (padprm.no_of_pads > 1) AND (padprm.separation > 0) THEN
+        --copy to create pad array
+        copy(transPoly, VEC2D(padprm.separation, 0), (padprm.no_of_pads), VEC2D(0, 0), 0, addToCanvas)
+      ENDIF
+    ENDIF
+
+  END rotate
+
+ROUTINE scale
   BEGIN
-    -- rotation of W,P angles must be in a canvas wide basis
-    -- for planar slicing.
-    origin = origin:POS(0,0,0,vec.x,vec.y,0,(ZEROPOS(1).config_data))
-    `CANVAS_OBJECT_NAME`__set_canvas(origin)
+    clear_poly(transPoly)
 
-  END rotate_canvas
+    --scale polygon
+    draw__scale_polygon(polygon, (rastparam.start_angle), scale_x, scale_y, transPoly)
+
+    IF addToCanvas THEN
+      `CANVAS_OBJECT_NAME`__append_polygon(transPoly)
+    ENDIF
+
+    IF copyRot THEN
+      IF (padprm.no_of_pads > 1) AND (padprm.separation > 0) THEN
+        --copy to create pad array
+        copy(transPoly, VEC2D(padprm.separation, 0), (padprm.no_of_pads), VEC2D(0, 0), 0, addToCanvas)
+      ENDIF
+    ENDIF
+
+  END scale
+
+ROUTINE inset
+  BEGIN
+    clear_poly(transPoly)
+    clear_poly(hull)
+
+    --inset polygon by amount
+    draw__inset_polygon(polygon, dist, hull, transPoly)
+
+    IF addToCanvas THEN
+      `CANVAS_OBJECT_NAME`__append_polygon(transPoly)
+    ENDIF
+
+    IF copyRot THEN
+      IF (padprm.no_of_pads > 1) AND (padprm.separation > 0) THEN
+        --copy to create pad array
+        copy(transPoly, VEC2D(padprm.separation, 0), (padprm.no_of_pads), VEC2D(0, 0), 0, addToCanvas)
+      ENDIF
+    ENDIF
+
+  END inset
 
 ROUTINE copy
   VAR
