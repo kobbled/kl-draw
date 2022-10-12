@@ -43,8 +43,6 @@ ROUTINE makeCustom(filename : STRING; padprm : t_PAD_VARS ; addToCanvas : BOOLEA
 
 --draw lines and contours + get bounding box.
 declare_member(class_name,draw,class_name,draw)
-ROUTINE draw FROM class_name
-declare_member(class_name,sequence,class_name,sqnc)
-ROUTINE sequence(trans : VECTOR; rot : VECTOR; scl : VECTOR) FROM class_name
+ROUTINE draw(doRaster : BOOLEAN) FROM class_name
 
 %endif --end header
