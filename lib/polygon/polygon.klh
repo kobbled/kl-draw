@@ -11,18 +11,15 @@ declare_member(class_name,init,class_name,init)
 ROUTINE init(frm : XYZWPR; rastprm_ : t_PATH_RAST; flipCanvas_ : BOOLEAN) FROM class_name
 declare_member(class_name,delete,class_name,dstr)
 ROUTINE delete FROM class_name
-declare_member(class_name,set_origin,class_name,stor)
-ROUTINE set_origin(frm : XYZWPR) FROM class_name
-declare_member(class_name,flip_origin,class_name,fpor)
-ROUTINE flip_origin FROM class_name
-declare_member(class_name,get_length,class_name,gtlth)
+
+--getters/setters
+declare_member(class_name,get_length,class_name,gtlt)
 ROUTINE get_length : REAL FROM class_name
-declare_member(class_name,get_lines,class_name,gtlns)
+declare_member(class_name,get_lines,class_name,gtln)
 ROUTINE get_lines(out_lines : PATH nodedata = t_VEC_PATH) FROM class_name
-declare_member(class_name,get_contours,class_name,gtctr)
+declare_member(class_name,get_contours,class_name,gtcr)
 ROUTINE get_contours(out_contour : PATH nodedata = t_VEC_PATH) FROM class_name
-declare_member(class_name,raster,class_name,rast)
-ROUTINE raster FROM class_name
+
 --polygon manipulation
 declare_member(class_name,translate_canvas,class_name,trcv)
 ROUTINE translate_canvas(vec : VECTOR) FROM class_name

@@ -9,9 +9,9 @@
     "lib/drawlib/draw.kl"
   ],
   "tests" : [
+    "test/assets/svg_examples/rebel.csv",
     "test/test_draw.kl",
-    "test/test_poly.kl",
-    "test/assets/svg_examples/rebel.csv"
+    "test/test_poly.kl"
   ],
   "includes" : [
     "lib/drawlib",
@@ -23,6 +23,7 @@
     "math",
     "pose",
     "pathlib",
+    "layout",
     "Strings",
     "errors",
     "csv",

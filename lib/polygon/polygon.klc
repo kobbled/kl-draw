@@ -5,6 +5,19 @@ PROGRAM class_name
 
 %include namespace.m
 
+%ifeq INCLUDE_LAYOUT FALSE
+%undef INCLUDE_LAYOUT
+%endif
+
+%ifeq DEBUG_BUILD FALSE
+%undef DEBUG_BUILD
+%endif
+
+%ifdef DEBUG_BUILD
+%include display.c.klt
+%endif
+
+
 %include systemlib.types.klt
 %include systemvars.klt
 %include pose.const.klt
@@ -13,34 +26,62 @@ PROGRAM class_name
 %include toolpath.structs.klt
 %include polygon.deps.klt
 
+%ifdef INCLUDE_LAYOUT
+--define layout struct
+layout_type
+%endif
+
 %define BASE_CLASSNAME class_name
 
 VAR
   bbox : t_RECT
-  origin : XYZWPR
   rastparam : t_RASTER
   onBoundary : BOOLEAN
   flipCanvas : BOOLEAN
   polygon : PATH nodedata = t_VERTEX
+  transPoly : PATH nodedata = t_VERTEX
   copyPoly : PATH nodedata = t_VERTEX
+  hull : PATH nodedata = t_VERTEX
+
   contours : PATH nodedata = t_VEC_PATH
   lines : PATH nodedata = t_VEC_PATH
+
+%ifdef INCLUDE_LAYOUT
+-- include reference to layout "buffer".
+%include layout.friends.klt
+layout_friends(LAYOUT_OBJECT_NAME,LAYOUT_STRUCT)
+%endif
 
 %from systemlib.klh %import VEC, VEC2D
 %from errors.klh %import SET_UNINIT_F
 %from math.klh %import norm
 %from pose.klh %import set_config
-%from draw.klh %import hexagon
-%include pathlib.klh
+%from draw.klh %import bounding_box, recalc_poly_indices, rotate_polygon, scale_polygon, inset_polygon, hexagon
+%include pathlib.klh %import clear_toolpath, new_coord_sys, new_tool_params
 
 --define objects
   --polygon
 canvas_object_define(CANVAS_OBJECT_NAME)
 
+%ifdef INCLUDE_LAYOUT
+--define layout object
+define_layout(LAYOUT_OBJECT_NAME,LAYOUT_CONFIG_FILENAME)
+%endif
+
+%ifdef DEBUG_BUILD
+-- user display log
+%class usrdis('dispclass.klc','dispclass.klh')
+%endif
+
 %defeval class_name BASE_CLASSNAME
 
 %include polygon.klh
 %include polygon.private.klh
+
+%ifdef INCLUDE_LAYOUT
+--implement polygon template headers
+buffer_header(class_name)
+%endif
 
 --private
 
@@ -71,6 +112,51 @@ ROUTINE set_raster_params
                                    (rastprm.line_width), (rastprm.overlap) )
   END set_raster_params
 
+%ifdef INCLUDE_LAYOUT
+
+ROUTINE import_layout
+  BEGIN
+
+%ifdef DEBUG_BUILD
+    usrdis__print(DEBUG, '** importing file **')
+%endif
+
+    `LAYOUT_OBJECT_NAME`__new(filename)
+
+%ifdef DEBUG_BUILD
+    usrdis__print(DEBUG, filename + ' loaded.')
+%endif
+
+  END import_layout
+
+ROUTINE open_layout
+  VAR
+    i : INTEGER
+    eof : BOOLEAN
+  BEGIN
+    `LAYOUT_OBJECT_NAME`__openfile
+  
+%ifdef DEBUG_BUILD
+    usrdis__print(INFO, '-- class_name opened layout file --')
+%endif
+  END open_layout
+
+ROUTINE close_layout
+  BEGIN
+    `LAYOUT_OBJECT_NAME`__closefile
+
+%ifdef DEBUG_BUILD
+    usrdis__print(INFO, '-- class_name closed layout file --')
+%endif
+  END close_layout
+
+
+--implement polygon template members
+impl_buffer_conversion
+
+%endif
+
+
 --public
 
 ROUTINE init
@@ -78,9 +164,8 @@ ROUTINE init
     --clear polygon container
     clear_poly(polygon)
     clear_poly(copyPoly)
-
-    --set drawing frame
-    origin = frm
+    clear_poly(transPoly)
+    clear_poly(hull)
 
     --copy raster parameters
     onBoundary = rastprm_.onBoundary
@@ -89,13 +174,18 @@ ROUTINE init
     rastparam.wall_lines = rastprm_.contours
     rastparam.line_width = rastprm_.line_width
     rastparam.line_pitch = rastprm_.overlap
-    
-    --mark if drawing needs to be flipped
-    flipCanvas = flipCanvas_
 
     --initialize polygon object
       --( frm, onboundary, start_angle, dir, wall_lines, line_width, line_pitch )
-    `CANVAS_OBJECT_NAME`__init2(origin, onBoundary, rastparam)
+    `CANVAS_OBJECT_NAME`__init2(frm, onBoundary, rastparam)
+
+    --mark if drawing needs to be flipped
+    flipCanvas = flipCanvas_
+
+    --flip canvas if specified
+    IF flipCanvas THEN
+      `CANVAS_OBJECT_NAME`__flip_canvas
+    ENDIF
 
   END init
 
@@ -110,43 +200,33 @@ ROUTINE delete
     --clear polygon containers
     clear_poly(polygon)
     clear_poly(copyPoly)
+    clear_poly(transPoly)
+    clear_poly(hull)
     
     --clear draw object
     `CANVAS_OBJECT_NAME`__delete
+
+%ifdef INCLUDE_LAYOUT
+    --layout delete
+    `LAYOUT_OBJECT_NAME`__delete
+%endif
 
     --uninitialize members
     bbox = uninitbb
     rastparam = uninitrast
     onBoundary = FALSE
     flipCanvas = FALSE
-    SET_UNINIT_F('class_name', 'origin')
   END delete
-
-ROUTINE set_origin
-  BEGIN
-    origin = frm
-    `CANVAS_OBJECT_NAME`__set_canvas(origin)
-  END set_origin
 
 ROUTINE get_length
   BEGIN
     --get bounding box
-    bbox = `CANVAS_OBJECT_NAME`__get_bounding_box_drawing
+    bbox = draw__bounding_box(polygon, (rastparam.start_angle))
 
     -- get length of bounding box along its longitude
     RETURN(math__norm(bbox.verts[4]-bbox.verts[1]))
 
   END get_length
-
-ROUTINE flip_origin
-  VAR
-    len : REAL
-  BEGIN
-    --get length of the drawing, and translate by that length
-    len = get_length
-    origin = origin:POS(0,0,len,0,180,0,(ZEROPOS(1).config_data))
-    `CANVAS_OBJECT_NAME`__set_canvas(origin)
-  END flip_origin
 
 ROUTINE get_lines
   VAR

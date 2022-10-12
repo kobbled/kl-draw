@@ -4,4 +4,7 @@
 --canvas dependency
 %define canvas_object_define(object_name) `%class object_name('canvas.klc', 'canvas.klh')`
 
+--csv dependency
+%define define_layout(object_name,cnfg_file) `%class object_name('layout.klc','layout.klh','cnfg_file')`
+
 %mode pop
