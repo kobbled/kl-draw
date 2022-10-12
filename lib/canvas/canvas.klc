@@ -17,6 +17,7 @@ PROGRAM class_name
 VAR
   canvas : PATH nodedata = t_VERTEX
   sub_poly : PATH nodedata = t_VERTEX
+  inset_poly : PATH nodedata = t_VERTEX
   -- ..Note:: `sub_poly` maybe should be a seperate type without
   --          nextPoly, prevPoly, polygon, and include holes member list
   hull : PATH nodedata = t_VERTEX
@@ -25,6 +26,7 @@ VAR
   contours : PATH nodedata = t_VEC_PATH
   fl : FILE
   origin : XYZWPR
+  poly_count : INTEGER
   params : t_RASTER
   -- toggle if you want to raster lines on the boundary of the shape
   -- if false it will exclude the boundary
@@ -87,20 +89,34 @@ ROUTINE clear_lines
 	  ENDWHILE
   END clear_lines
 
-ROUTINE clear_contours
+ROUTINE clear_vpath
   VAR
     i : INTEGER
     status : INTEGER
   BEGIN
-    i = PATH_LEN(contours)
-    WHILE PATH_LEN(contours) > 0 DO
-		  DELETE_NODE(contours,i,status)
+    i = PATH_LEN(p)
+    WHILE PATH_LEN(p) > 0 DO
+		  DELETE_NODE(p,i,status)
       CHK_STAT(status)
       i = i - 1
 	  ENDWHILE
-  END clear_contours
+  END clear_vpath
 
-ROUTINE new_sub_poly
+ROUTINE clear_members
+  BEGIN
+    --clear polys
+    clear_poly(canvas)
+    clear_poly(sub_poly)
+    clear_poly(inset_poly)
+    --clear hull
+    clear_hull
+    --clear lines
+    clear_lines
+    --clear contours
+    clear_vpath(contours)
+  END clear_members
+
+ROUTINE get_sub_poly
   VAR
     nde_strt, nde_end : INTEGER
     i : INTEGER
@@ -108,33 +124,47 @@ ROUTINE new_sub_poly
     idx : VECTOR2Di
   BEGIN
     nde_strt = 1; nde_end = PATH_LEN(canvas);
-    --find polygon
-    IF (polygon > 0) THEN
+    --find polygon if more than one polygon is on canvas
+    IF (poly_count > 1) THEN
       i = 1
+      --find the correct polygon by looking at the current
+      --polygons 'nextPoly' index, then jumping to that index
+      --and checking the polygon number.
+      --if it is the correct polygon update start and end index
+      --and break out. Also if you are at the last polygon
+      --'nextPoly' will be uninit, so break out, selecting
+      --PATH_LEN and the end index.
       REPEAT
         nde_strt = i
         --handle uninitialized nextPoly
         IF UNINIT(canvas[i].nextPoly) THEN
           nde_end = PATH_LEN(canvas)
+          GOTO BREAK_SUB
         ELSE
           nde_end = canvas[i].nextPoly - 1
+          --get index of next polygon
         ENDIF
-
+        
         i = canvas[i].nextPoly
       UNTIL(canvas[i].polygon > polygon)
+
+      BREAK_SUB::
     ENDIF
 
     --clear to sub path
     clear_poly(sub_poly)
+    --copy canvas window to sub_poly, which should only contain
+    --the selected polygon
     COPY_PATH(canvas, nde_strt, nde_end, sub_poly, status)
     CHK_STAT(status)
 
+    --return the start and end index for reference
     idx.x = nde_strt
     idx.y = nde_end
 
     RETURN(idx)
 
-  END new_sub_poly
+  END get_sub_poly
 
 ROUTINE update_last_poly
   VAR
@@ -180,14 +210,9 @@ ROUTINE delete
     SET_UNINIT_F('class_name', 'origin')
 
     rast_bounds = FALSE
+    poly_count = 0
 
-    --clear hull
-    clear_hull
-    --clear to sub path
-    clear_poly(sub_poly)
-
-    clear_lines
-    clear_contours
+    clear_members
   END delete
 
 ROUTINE new
@@ -196,6 +221,7 @@ ROUTINE new
     delete
     set_canvas((ZEROPOS(1)))
     rast_bounds = TRUE
+    poly_count = 0
 
     --set default params
     params.start_angle = 0
@@ -210,6 +236,7 @@ ROUTINE init
     delete
     set_canvas(frm_)
     rast_bounds = boundary
+    poly_count = 0
     
     --fill params
     params.start_angle = start_angle_
@@ -224,6 +251,7 @@ ROUTINE init2
     delete
     set_canvas(frm_)
     rast_bounds = boundary
+    poly_count = 0
     
     --fill params
     params.start_angle = rast.start_angle
@@ -236,16 +264,8 @@ ROUTINE init2
 --clear the canvas, but keep the canvas
 ROUTINE erase
   BEGIN
-    --clear drawing
-    clear_poly(canvas)
-    clear_poly(sub_poly)
-
-    --clear hull
-    clear_hull
-
-    --clear rasters
-    clear_lines
-    clear_contours
+    clear_members
+    poly_count = 0
   END erase
 
 ROUTINE import_shape
@@ -360,6 +380,8 @@ ROUTINE append_polygon
     polygon : INTEGER
     lastPoly : INTEGER
   BEGIN
+    -- update nextPoly field in the previous polygon
+    -- in anticiptation of a new appended polygon
     polygon = update_last_poly
 
     --retain last index to point to prevPoly
@@ -371,6 +393,10 @@ ROUTINE append_polygon
         canvas[PATH_LEN(canvas)].prevPoly = lastPoly
       ENDIF
     ENDFOR
+
+    --add polygon count
+    poly_count = poly_count + 1
+
   END append_polygon
 
 ROUTINE append_polygon_array
@@ -379,6 +405,8 @@ ROUTINE append_polygon_array
     polygon : INTEGER
     lastPoly : INTEGER
   BEGIN
+    -- update nextPoly field in the previous polygon
+    -- in anticiptation of a new appended polygon
     polygon = update_last_poly
 
     --retain last index to point to prevPoly
@@ -390,6 +418,10 @@ ROUTINE append_polygon_array
         canvas[PATH_LEN(canvas)].prevPoly = lastPoly
       ENDIF
     ENDFOR
+
+    --add polygon count
+    poly_count = poly_count + 1
+    
   END append_polygon_array
 
 ROUTINE get_poly
@@ -446,7 +478,7 @@ ROUTINE get_bounding_box_poly
     idx : VECTOR2Di
   BEGIN
     --get individual polygon and store in `sub_poly`
-    idx = new_sub_poly(polygon)
+    idx = get_sub_poly(polygon)
     bbox = draw__bounding_box(sub_poly, (params.start_angle))
     --convert to world coordinates
     RETURN(bbox)
@@ -465,8 +497,13 @@ ROUTINE get_canvas_length
 
 ROUTINE get_polygon_count
   BEGIN
-    RETURN(canvas[PATH_LEN(canvas)].polygon)
+    RETURN(poly_count)
   END get_polygon_count
+
+ROUTINE calc_polygon_count
+  BEGIN
+    RETURN(canvas[PATH_LEN(canvas)].polygon)
+  END calc_polygon_count
 
 ROUTINE translate_canvas
   BEGIN
