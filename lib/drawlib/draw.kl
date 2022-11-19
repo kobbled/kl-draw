@@ -1388,7 +1388,7 @@ ROUTINE draw__calc_tangent_segment
     ENDFOR
   END draw__calc_tangent_segment
 
-ROUTINE draw_hexagon
+ROUTINE draw__hexagon
   VAR 
     i, pthlen : INTEGER
     status : INTEGER
@@ -1430,7 +1430,7 @@ ROUTINE draw_hexagon
       --increment path length as it may not be tha same as i+1
       pthlen = pthlen + 1
     ENDFOR
-  END draw_hexagon
+  END draw__hexagon
 
 BEGIN
 END draw
