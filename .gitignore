@@ -6,3 +6,5 @@ plots/
 debug/
 __pycache__/
 helpers/*
+temp/
+tp/

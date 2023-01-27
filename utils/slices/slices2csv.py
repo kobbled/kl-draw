@@ -50,16 +50,15 @@ def img2contour(Xresolution, Yresolution, Xdimension, Ydimension, totalLayers, z
         img = cv2.imread(foldername + '\\' + str(layer) + '.png', cv2.IMREAD_GRAYSCALE)
         ret, binaryImg = cv2.threshold(img, 100, 255, cv2.THRESH_OTSU)
         contours, hierarchy = cv2.findContours(binaryImg, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+ 
+        # # To show contours
+        # if layer == args.show_layer:
+        #     # convert to rgb for drawing contours later
+        #     rgbImg = cv2.cvtColor(img,cv2.COLOR_GRAY2RGB)    
+        #     with_contours = cv2.drawContours(rgbImg, contours, -1, (255,0,0),3)
+        #     cv2.imshow('Detected contours', with_contours)
+        #     cv2.waitKey(0)
 
-        """"
-        # To show contours
-        if layer == args.show_layer:
-            # convert to rgb for drawing contours later
-            rgbImg = cv2.cvtColor(img,cv2.COLOR_GRAY2RGB)    
-            with_contours = cv2.drawContours(rgbImg, contours, -1, (255,0,0),3)
-            cv2.imshow('Detected contours', with_contours)
-            cv2.waitKey(0)
-        """
         count_polygons = 1
         # interpret contours in layer
         for contour, level in zip(contours,hierarchy[0]):
@@ -94,8 +93,8 @@ def img2contour(Xresolution, Yresolution, Xdimension, Ydimension, totalLayers, z
 
 def main(args):
     # model slices file
-    zipdir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', '..')) + '\\test\\stl_examples\\'
-    csvdir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', '..')) + '\\test\\csv_examples\\'
+    zipdir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', '..')) + '\\test\\assets\\stl_examples\\'
+    csvdir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', '..')) + '\\test\\assets\\csv_examples\\'
     zipfile = zipdir + args.zip_file 
     csvfile = csvdir + args.csv_file
     
