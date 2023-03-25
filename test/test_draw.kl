@@ -1215,6 +1215,7 @@ BEGIN
 %ifdef DEBUG_BUILD
   --(log_filename, show_date, show_debug, show_info)
   usrdis__new(LOG_NAME, FALSE, TRUE, TRUE)
+  usrdis__open
   usrdis__clear_file
 %endif
 
@@ -1247,6 +1248,7 @@ BEGIN
   tstcanv__delete
 
 %ifdef DEBUG_BUILD
+  usrdis__close
   usrdis__write_pipe
   usrdis__delete
 %endif
