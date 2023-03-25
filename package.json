@@ -10,8 +10,7 @@
   ],
   "tests" : [
     "test/assets/svg_examples/rebel.csv",
-    "test/test_draw.kl",
-    "test/test_poly.kl"
+    "test/test_draw.kl"
   ],
   "includes" : [
     "lib/drawlib",

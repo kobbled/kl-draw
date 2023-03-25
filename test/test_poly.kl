@@ -9,8 +9,82 @@ PROGRAM test_pthdraw
 %include toolpath.structs.klt
 %include polygon.deps.klt
 
---lam object
-%class tstdrw('polygon.klc','polygon.klh','defaultpolydraw.klt')
+VAR
+  contours : PATH nodedata = t_VEC_PATH
+  lines : PATH nodedata = t_VEC_PATH
+
+%from systemlib.klh %import VEC, VEC2D
+%from pathlib.klh %import new_raster_params, new_pad_params
+
+--polygon object
+%class tstpoly('polygon.klc','polygon.klh','defaultpolydraw.klt')
+--canvas object
+%include defaultpolydraw.klt
+canvas_object_define(CANVAS_OBJECT_NAME)
+
+ROUTINE t_pad_xinset
+  VAR
+    rastprm : t_PATH_RAST
+    padprm : t_PAD_VARS
+    layer : INTEGER
+%define TOTAL_LAYERS 5
+%define PAD_ANGLE 0
+%define NO_OF_PADS 3
+%defeval PAD_SEPERATION 90
+%define PAD_WIDTH 50
+%define PAD_LENGTH 80
+
+%define CONTOUR_LINES 1
+%define RASTER_ANGLE 0
+%define PASS_OVERLAP 6
+
+    scale_vec : VECTOR
+%define SCALE_AMOUNT -10
+  BEGIN
+    --raster parameters
+      --overlap, line_width, angle, contours, dir, rastType, startCorner, constrain, onBoundary
+    rastprm = paths__new_raster_params(PASS_OVERLAP, 0, RASTER_ANGLE, CONTOUR_LINES, 1, ONEWAY, LEFT_BOTTOM, FALSE, FALSE)
+
+    --parameters for pad
+      -- width, length, separation, no_of_pads, inDegrees
+    padprm = paths__new_pad_params(PAD_WIDTH, PAD_LENGTH, PAD_SEPERATION, NO_OF_PADS, FALSE)
+
+    --initialize polygon and canvas
+    tstpoly__init((ZEROPOS(1)), rastprm, FALSE)
+
+    --draw multiple pads
+      --(i.e. `pads` - multiple, `pad` - single)
+      --(padprm, origin on canvas, add to canvas)
+    tstpoly__makePad(padprm, VEC(0,0,0), TRUE)
+
+    FOR layer=1 TO TOTAL_LAYERS DO
+      --::TODO.. Redo inset so that it work of a linear, or polynomial equation line
+      --         with a set layer height offset as to get the finite difference between the layers
+      --         to inset by for the current layer.
+
+      --scale along x-axis of the canvas every layer
+        --dont inset on first layer
+      IF layer > 1 THEN
+        -- (scale_x, scale_y, start_poly, end_poly)
+        `CANVAS_OBJECT_NAME`__scale_polygons(SCALE_AMOUNT, 0, 0, 0)
+      ENDIF
+      --draw current layer
+      tstpoly__draw(TRUE)
+
+      --get drawing
+      tstpoly__get_lines(lines)
+      tstpoly__get_contours(contours)
+
+      --pause to inspect drawing
+      PAUSE
+    ENDFOR
+    
+  END t_pad_xinset
 
 BEGIN
+  --single pad inset
+  t_pad_xinset
+
+  tstpoly__delete
+  
 END test_pthdraw
